@@ -1,0 +1,364 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[left=1.0cm,right=1.0cm, top=1.5cm, bottom=1.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{graphics}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{listings}
+\usepackage{mathtools}
+\usepackage{hyperref}
+
+% Align all equations left:
+\documentclass[fleqn]{article} 
+
+
+% Sets and quantifiers
+\newcommand{\R}{\mathbb{R}\;}
+\newcommand{\Q}{\mathbb{Q}\;}
+\newcommand{\N}{\mathbb{N}\;}
+\newcommand{\nin}{n \in \mathbb{N}}
+\newcommand{\fa}{\;\forall\;}
+\newcommand{\ex}{\;\exists\;}
+\newcommand{\nex}{\;\nexists\;}
+
+% Sequences
+\newcommand{\seq}[1]{\{#1\}}
+\newcommand{\seqx}{\seq{x_n}}
+\newcommand{\seqy}{\seq{y_n}}
+\newcommand{\seqs}{\seq{s_n}}
+
+% Subsequences
+\newcommand{\seqxni}{\seq{x_{n_i}}}
+\newcommand{\seqyni}{\seq{y_{n_i}}}
+\newcommand{\xni}{x_{n_i}}
+\newcommand{\yni}{y_{n_i}}
+\newcommand{\xnij}{x_{n_{i_j}}}
+\newcommand{\ynij}{y_{n_{i_j}}}
+\newcommand{\seqxnij}{\seq{x_{n_{i_j}}}}
+\newcommand{\seqynij}{\seq{y_{n_{i_j}}}}
+
+% Such that
+\newcommand{\st}{\;\text{such that}\;}
+
+% Vectors
+\newcommand{\xhat}{\hat{\mathbf{x}}}
+\newcommand{\yhat}{\hat{\mathbf{y}}}
+\newcommand{\zhat}{\hat{\mathbf{z}}}
+\newcommand{\nhat}{\hat{\mathbf{n}}}
+\newcommand{\shat}{\hat{\mathbf{s}}}
+\newcommand{\rhat}{\hat{\mathbf{r}}}
+\newcommand{\vhat}{\hat{\mathbf{v}}}
+\newcommand{\hatvector}[1]{\hat{\mathbf{1}}}
+\newcommand{\mb}[1]{\mathbf{#1}}
+
+% Derivatives
+\newcommand{\der}[2]{\frac{d #1}{d #2}}
+\newcommand{\dder}[2]{\frac{d^2 #1}{d #2^2}}
+\newcommand{\derop}[1]{\frac{d}{d #1}}
+\newcommand{\dderop}[1]{\frac{d^2}{d #1^2}}
+
+% Partial Derivatives
+\newcommand{\pd}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\pdd}[2]{\frac{\partial^2 #1}{\partial #2^2}}
+\newcommand{\pdop}[1]{\frac{\partial}{\partial #1}}
+\newcommand{\pddop}[1]{\frac{\partial^2}{\partial #1^2}}
+\newcommand{\pddmixed}[3]{\frac{\partial^2 #1}{\partial #2\partial #3}}
+\newcommand{\pddmixedop}[2]{\frac{\partial^2}{\partial #1\partial #2}}
+
+% ith
+\newcommand{\ith}{\text{i}^{\text{th}}}
+
+% lim, limsup, liminf
+\newcommand{\limn}{\text{lim}_{n \rightarrow \infty}}
+\newcommand{\limi}{\text{lim}_{i \rightarrow \infty}}
+\newcommand{\limj}{\text{lim}_{j \rightarrow \infty}}
+\newcommand{\limsupn}{\limsup_{n \rightarrow \infty}}
+\newcommand{\liminfn}{\liminf_{n \rightarrow \infty}}
+
+% Parallel symbols
+\newcommand{\parallelsum}{\mathbin{\!/\mkern-5mu/\!}}
+
+
+% Custom for absolute value
+\delimitershortfall-1sp
+\newcommand\abs[1]{\left|#1\right|}
+
+% Reference and hyperlink
+\newcommand{\source}[1]{\href{#1}{(\textbf{Source})}}
+
+% Use for define equals
+\newcommand{\delteq}{\overset{\Delta}{=}}
+
+% For nicer fonts
+\usepackage{eucal}
+
+% For Dreamer Paper
+\newcommand{\stau}{s_{\tau}}
+\newcommand{\expect}[1]{\mathbb{E}_{#1}}
+\newcommand{\indep}{\perp \!\!\! \perp}
+
+
+\title{6.801/6.866: Machine Vision, Lecture 15}
+\author{Professor Berthold Horn, Ryan Sander, Tadayuki Yoshitake \\
+        MIT Department of Electrical Engineering and Computer Science \\ 
+        Fall 2020}
+\date{}
+
+\begin{document}
+
+\maketitle
+These lecture summaries are designed to be a review of the lecture.  Though I do my best to include all main topics from the lecture, the lectures will have more elaborated explanations than these notes.  Therefore, if you're looking for the most rigorous review and treatment of these topics, we encourage you to rewatch the lecture videos.  With that said, we hope these summaries are beneficial for your learning.  If you have any feedback for these lecture summaries, please submit it \textbf{\href{https://forms.gle/itCUtP4AubAbtwQT9}{here}}.
+\section{Lecture 15: Alignment, recognition in PatMAx, distance field, filtering and sub-sampling (US 7,065,262)}
+In this lecture, we will discuss another patent on the topic of object inspection and pose estimation, known as PatMAx.  We will then look at computing distance to lines as a means to perform better edge detection, and then will investigate the role of sparse convolution for multiscale systems that perform filtering.
+\subsection{PatMAx}
+Another patent we will look at for object inspection is PatMAx.  
+\subsubsection{Overview}
+Some introductory notes on this:
+\begin{itemize}
+    \item This framework builds off of the previous PatQuick patent.
+    \item This framework, unlike PatQuick, does not perform quantization of the pose space, which is one key factor in enabling sub-pixel accuracy.
+    \item PatMAx assumes we already have an approximate initial estimate of the pose.
+    \item PatMAx relies on an iterative process for optimizing energy, and each \textbf{attraction step} improves the fit of the configuration.
+    \item Another motivation for the name of this patent is based off of electrostatic components, namely dipoles, from Maxwell.  As it turns out, however, this analogy works better with mechanical springs than with electrostatic dipoles.
+    \item PatMAx performs an \textbf{iterative attraction process} to obtain an estimate of the pose.
+    \item An iterative approach (e.g. gradient descent, Gauss-Newton, Levenberg-Marquadt) is taken because we likely will not have a closed-form solution in the real world.  Rather than solving for a closed-form solution, we will run this iterative optimization procedure until we reach convergence.
+    \item Relating this framework back to PatQuick, PatMAx can be run after PatQuick computes an initial pose estimate, which we can then refine using PatMAx.  In fact, we can view our patent workflow as:
+    \begin{figure}[ht]
+        \centering
+        \includegraphics[width=\linewidth]{figures/patquick_patmax.png}
+        \caption{An overview of how the patents we have looked at for object inspection fit together.}
+        \label{fig:my_label}
+    \end{figure}
+\end{itemize}
+A diagram of the system can be found here:
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{figures/patmax_system_diagram.png}
+    \caption{High-level diagram of the PatMAx system.}
+    \label{fig:my_label}
+\end{figure}
+Now that we have a high-level overview, we are now ready to dive more into the specifics of the system.
+\subsubsection{Training PatMAx}:
+The training process can be classified as three distinct steps:
+\begin{enumerate}
+    \item We begin with edge detection, which produces a \textbf{field dipole list} (essentially the probe points from the PatQuick patent framework).
+    \item Training also produces a \textbf{field}.  We compare runtime features with template features and determine the attraction of these features between the images using this field as a vector field.*
+    \item We map the feature-detected runtime image's features back to the field (this is more computationally-efficient than mapping the field to the runtime image).
+\end{enumerate}
+*For field generation, we can in turn discuss the steps needed to generate such a field:
+\begin{enumerate}
+    \item Initialize
+    \item Seed
+    \item Connect
+    \item Chain
+    \item Filter
+    \item Segment
+    \item Propagate
+\end{enumerate}
+Many of the steps outlined in this field generation process were also leveraged in the PatQuick method. \\ \\
+Another important aspect of training is \textbf{computing field dipoles}.  A few notes on this:
+\begin{itemize}
+    \item Field dipoles correspond to edge fragments.
+    \item Field dipoles are created as a data structure of flags that provide information about proximity to other components, such as the edge.
+\end{itemize}
+Some other notes on this framework:
+\begin{itemize}
+    \item Edge detection is largely the same procedure that we have seen in the previous patents (e.g. PatQuick).  However, note that because this framework seeks to obtain highly-precise estimates accurate to the sub-pixel level, PatMAx does not use CORDIC or quantized gradient directions.
+    \item \textbf{Field dipoles} are computed during training.
+    \item The chaining procedure used in PatMAx is similar to the process we saw before: (i) Link chains, and then (ii) Remove short (weak) chains.
+    \item For \textbf{initialization}, the array contains a vector field, but the vectors do not cover the entire array.
+\end{itemize}
+We will now explore some specific elements of this framework:
+\subsubsection{Estimating Other Pixels}
+\begin{itemize}
+    \item To estimate other pixels, we need to fill in pixels near the edge in an iterative fashion.
+    \item To accomplish this, PatMAx uses a \textbf{distance map}, which is common in machine vision applications.
+    \item We can compute the distance to the edge accurately with Manhattan distance, but we use Euclidean distance, which is non-trivial to compute, particularly, as we will see shortly, for corner edges.
+    \item Intuitively, we want the system to be drawn to a ``lower energy state", hence the idea of this algorithm being an energy minimization algorithm.
+    \item Identical copies can be resolved via averaging.
+\end{itemize}
+\subsubsection{Attraction Module}
+The diagram of the attraction module is given below:
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{figures/patmax_attraction_module.png}
+    \caption{The Attraction module for the PatMAx system.  Note that this produces a refined estimate of the pose at the output, which is one of the main goals of the PatMAx system.}
+    \label{fig:my_label}
+\end{figure}
+\textbf{Intuition with Mechanical Springs:} Scaling adjustments via scaled transformations can be conceptualized as a set of mechanical springs (rather than electrostatic dipoles) that are adjusted until an optimal configuration of the degrees of freedom is found. \\ \\
+Solving this system is equivalent to solving a large \textbf{least squares problem}:
+\begin{itemize}
+    \item Each runtime dipole has force exerted on it in a certain direction.  The goal here is to use diffent movements, which comprise our Degrees of Freedom, to create a configuration of these dipoles that minimizes the overall energy/tension of this system.
+    \item The movements/degrees of freedom that are allowed: (i) Translation in 2D (2 DOF), (ii) Rotation in 2D (1 DOF), (iii) Scaling (1 DOF).  Therefore with these admissible movements we have 4 degrees of freedom.
+    \item A closed-form solution of this does not exist, but we can compute a solution to this least squares problem using an \textbf{upper triangular matrix accumulator array}.  This array is scaled additionally by weights, and can also be used to compute image moments.
+    \item With our movements (translation, rotation, and scaling), we have 4 DOF.  With a full set of movements comprising affine linear transformations, we have 6 DOF.
+    \item Local linearization around the operating point is also used when solving for the least squares solution to this problem.
+    \item One computational technique the authors of this patent make use of is the use of \textbf{doubly linked lists} for the image dipoles.
+\end{itemize}
+\subsubsection{PatMAx Claims}
+As we have seen, another good way to get a sense of the ``abstract" of a patent is to look through its claims.  The big claim of PatMAx: PatMAx is a geometric pattern-matching method used for iteratively refining the estimate of the true pose (relative to the orientation of the object in the training image) in a runtime image.
+\subsubsection{Comparing PatMAx to PatQuick}
+To better understand these frameworks (and how they potentially fit together for cascaded object inspection, let us draw some comparisons between PatQuick and PatMAx):
+\begin{itemize}
+    \item PatQuick searched all pose space and does not require an initial guess - PatMAx does require an initial estimate/guess of the pose in order to produce a refined estimate.
+    \item For PatMAx, there is repeated emphasis on avoiding techniques such as thresholding and quantization of gradient directions that have been used in the previous patents we have looked at.  This makes sense, since PatMAx aims to output a more refined estimate of the pose than these other frameworks (i.e. reach sub-pixel accuracy).
+    \item Using ``dipoles" for PatMAx is misguided - using physical springs as an analog is much more physically consistent.
+    \item For PatMAx, we use evidence collected for determining the quality of alignment, which in turn determines the quality of our refined pose estimate.
+    \item PatMAx and PatQuick each have different methods for assigning weights.
+    \item PatMAx is a nonlinear optimization problem, and therefore does not have a closed-form solution.  PatMAx is also iterative - alignment quality and matched edges get closer with more iterations of optimization.
+\end{itemize}
+\subsubsection{Field Generation for PatMAx}
+Here, we look at the field generation.  For building intuition and simplifying, we will only take into account distance.  See the figure below for some examples of distance fields as circles, lines, and (hardest to compute) corner edges.
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{figures/distance_fields.png}
+    \caption{Examples of distance fields.}
+    \label{fig:my_label}
+\end{figure}
+A few notes about these:
+\begin{itemize}
+    \item If we were working with \textbf{Manhattan} (L1-norm) distance rather than \textbf{Euclidean} (L2-norm) distance, this would be a much easier problem to solve, especially for edge corners.  However, unfortunately this is not an option we have.
+    \item We can weight the forces of \textbf{individual dipoles} in the runtime image.  Weight is computed for beliefs/evidence for (i) \textbf{forces}, (ii) \textbf{torques}, and (iii) \textbf{scaling}, where $\{w_i\}_{i=1}^{N}$ is the set of weights:
+    \begin{enumerate}
+        \item \textbf{Forces (Translation)}: $\mb{F} = \frac{\sum_{i=1}^{N}\mb{F}_iw_i}{\sum_{i=1}^{N}w_i} \in \mathbb{R}^2$
+        \item \textbf{Torques (Rotation)}: $\tau = \frac{\sum_{i=1}^{N}w_i(\mb{r}_i \times \mb{F}_i)}{\sum_{i=1}^{N}w_i} \in \mathbb{R}$, where $r_i$ is the radial vector
+        \item \textbf{Scaling}: $s = \frac{\sum_{i=1}^{N}w_i(\mb{r}_i \cdot \mb{F}_i)}{\sum_{i=1}^{N}w_i} \in \mathbb{R}$ where $r_i$ is the radial vector
+    \end{enumerate}
+    Together, these three elements composed of weighted evidence from the dipoles compose our 4 DOF.
+\end{itemize}
+\subsection{Finding Distance to Lines}
+One application of performing this task is to improve the performance of edge detection systems by combining shorter edge fragments of objects into longer edge fragments. \\ \\
+For this procedure, we break this down into two steps:
+\begin{enumerate}
+    \item Rotate the 2D cartesian coordinate system into a system that is parallel to the line of interest:
+    \begin{align*}
+        & x' = x\cos\theta + y\sin\theta \\
+        & y' = -x\sin\theta + y\cos\theta \\
+        & \text{I.e.} \begin{bmatrix}x' \\ y'\end{bmatrix} = \begin{bmatrix}\cos\theta & \sin\theta \\ -\sin\theta & \cos\theta \end{bmatrix}\begin{bmatrix}x \\ y\end{bmatrix}
+    \end{align*}
+    \item Translate the origin to the new location to match the line:
+    \begin{align*}
+        & x'' = x' \\
+        y'' & = y'-\rho \\
+            & = -x\sin\theta + y\cos\theta - \rho
+    \end{align*}
+    Together, these equations imply:
+    \begin{align*}
+        & y'' + x\sin\theta - y\cos\theta + \rho = 0 \\
+        & y'' + x''\sin\theta - y\cos\theta + \rho = 0
+    \end{align*}
+    Which in turn has the properties:
+    \begin{itemize}
+        \item There are no redundant solutions
+        \item The system is parameterized by $(\rho, \theta)$
+        \item There are no singularities
+    \end{itemize}
+\end{enumerate}
+From here, we can use the above framework to find a line by minimizing the following objective over our parameterized degrees of freedom $\rho$ and $\theta$:
+\begin{align*}
+    \rho^*, \theta^* & = \arg\min_{\rho, \theta}\sum_{i=1}^{N}(y^{''}_i)^2 \\
+                     & = \arg\min_{\rho, \theta}\sum_{i=1}^{N}(x_i\sin\theta - y_i\cos\theta + \rho)^2 \\
+                     & \delteq \arg\min_{\rho, \theta}J(\rho, \theta)
+\end{align*}
+This problem can be solved through our standard calculus approaches of finding the first-order conditions of our objective $J(\rho, \theta)$ on our degrees of freedom $\rho$ and $\theta$.  Since we have two degrees of freedom, we have two First-Order Conditions:
+\begin{enumerate}
+    \item $\pd{J(\rho, \theta)}{\rho} = 0$:
+    \begin{align*}
+        \pd{}{\rho}(J(\rho, \theta)) & = \pd{}{\rho}\Big(\sum_{i=1}^{N}(x_i\sin\theta - y_i\cos\theta + \rho)^2\Big) \\
+                                     & = 2\sum_{i=1}^{N}(x_i\sin\theta - y_i\cos\theta + \rho)  = 0 \\
+                                     & = \sin\theta\Big(\sum_{i=1}^{N}x_i\Big) - \cos\theta\Big(\sum_{i=1}^{N}y_i\Big) + \Big(\sum_{i=1}^{N}\rho\Big) = 0 \\
+                                     & = N\bar{x}\sin\theta - N\bar{y}\cos\theta + N\rho = 0 \\
+                                     & = \bar{x}\sin\theta - \bar{y}\cos\theta + \rho = 0
+    \end{align*}
+    (Where $\bar{x} \delteq \frac{1}{N}\sum_{i=1}^{N}x_i$ and $\bar{y} \delteq \frac{1}{N}\sum_{i=1}^{N}y_i$.) \\ \\
+    Though this does not give us the final answer, it does provide information on how our solution is constrained, i.e. the line must pass through the centroid given by the mean $(\bar{x}, \bar{y})$.  Let us now look at the second FOC to combine insights from that FOC with this FOC in order to obtain our solution.
+    \item $\pd{J(\rho, \theta)}{\theta} = 0$: \\ \\
+    Before computing this derivative, let us move our coordinates to the centroid, i.e. subtract the mean:
+    \begin{align*}
+        x^{'}_i = x_i - \bar{x} \longrightarrow x_i = \bar{x} + x^{'}_i \\
+        y^{'}_i = y_i - \bar{y} \longrightarrow y_i = \bar{y} + y^{'}_i \\
+    \end{align*}
+    Plugging this substituted definition into our equations renders them such that the centroid cancels out.  Let us now compute the second FOC:
+     \begin{align*}
+        \pd{}{\theta}(J(\rho, \theta)) & = \pd{}{\theta}\Big(\sum_{i=1}^{N}(x_i\sin\theta - y_i\cos\theta + \rho)^2\Big) \\
+                                     & = 2\sum_{i=1}^{N}(x_i\sin\theta - y_i\cos\theta + \rho)(x'\cos\theta + y'\sin\theta)  = 0 \\
+                                     & = \sum_{i=1}^{N}x'^2\sin\theta\cos\theta + x'y'\sin^2\theta - x'y'\cos^2\theta - y'^2\cos\theta\sin\theta) = 0 \\
+                                     & = \sum_{i=1}^{N}(x^{2}_i-y^{2}_i)\sin\theta\cos\theta = \sum_{i=1}^{N}x_iy_i(\cos^2\theta - \sin^2\theta) = 0\\
+                                     & = \frac{1}{2}\sum_{i=1}^{N}(x^{2}_i-y^{2}_i)\sin(2\theta) = \sum_{i=1}^{N}x_iy_i\cos(2\theta) = 0 \\
+                                     & = \frac{\sin(2\theta)}{\cos(2\theta)} = \tan(2\theta) = \frac{2\sum_{i=1}^{N}x_iy_i}{\sum_{i=1}^{N}(x^{2}_i-y^{2}_i)}
+    \end{align*}
+    A few notes about this:
+    \begin{itemize}
+        \item In the second-to-last step, we used the two following trigonometric identities: (i) $\sin\theta\cos\theta = \sin(2\theta)$, and (ii) $\cos^2\theta - \sin^2\theta = \cos(2\theta)$.
+        \item Notice that we can separate the angle $\theta$ from the sums because it does not depend on the sum index and is a degree of freedom in this optimization problem.
+    \end{itemize}
+    From here, we can solve for the optimal value of $\theta$ (which will also constrain and give us an optimal value of $\rho$) by taking the arctangent that returns quadrant (``atan2"):
+    \begin{align*}
+        \theta^* = \frac{1}{2}\arctan2\Big(2\sum_{i=1}^{N}x_iy_i, \sum_{i=1}^{N}(x^{2}_i-y^{2}_i)\Big)
+    \end{align*}
+\end{enumerate}
+Therefore, solving the FOCs gives us a closed-form least squares estimate of this line parameterized by ($\rho, \theta$).  This solution, unlike the Cartesian $y = mx + b$ fitting of a line, is independent of the chosen coordinate system, allowing for further flexibility and generalizability.
+\subsection{Fast Convolutions Through Sparsity}
+Next, we will switch gears and revisit multiscale, which is a common procedure needed in machine vision.  Multiscale motivates the need of filtering methods that are computationally-agnostic to the scale or resolution being used.  Since filtering is just convolution, this motivates the exploration of another patent, namely on \textit{fast convolutions}.  
+The patent we explore is \textbf{``Efficient Flexible Digital Filtering, US 6.457,032}. \\ \\
+The goal of this system is to efficiently compute filters for multiscale.  For this, we assume the form of an N$^{\text{th}}$-order piecewise polynomial, i.e. a N$^{\text{th}}$-order spline. 
+\subsubsection{System Overview}
+The block diagram of this system can be found below:
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=3\linewidth/4]{figures/efficient_filtering.png}
+    \caption{Block diagram of this sparse/fast convolution framework for digital filtering.  Note that this can be viewed as a compression problem, in which differencing compresses the signal, and summing decompresses the signal.}
+    \label{fig:my_label}
+\end{figure}
+A few notes on this system:
+\begin{itemize}
+    \item Why is it of interest, if we have N$^{\text{th}}$-order splines as our functions, to take N$^{\text{th}}$-order differences?  The reason for this is that the differences create \textbf{sparsity}, which is critical for fast and efficient convolution.  Sparsity is ensured because:
+    \begin{align*}
+        & \frac{d^{N+1}}{dx^{N+1}}f(x) = 0 \fa x \;\text{if} \;f(x) = \sum_{i=0}^{N}a_ix^{i}, a_i \in \R \fa i \in \{1, \cdots, N\} \\
+        & \text{(I.e, if} \;f(x)\; \text{is a order-N polynomial, then the order-(N+1) difference will be 0 for all x.}
+    \end{align*}
+    This sparse structure makes convolutions much easier and more efficient to compute by reducing the size/cardinality of the support (we will discuss what a support is in greater detail in the next lecture, as well as how the size of a support affects computational efficiency, but effectively the support is the subset of the domain of a function that is not mapped to zero).
+    \item Why do we apply an order-(N+1) summing operator?  We apply this because we need to ``invert" the effects of the order-(N+1) difference.  Intuitively, this makes sense that the order-(N+1) difference and the order-(N+1) sum commute, because we are simply performing iterative rounds of subtraction and addition (respectively), which we know are commutative algebraic operations.  I.e, representing differencing and summing as linear operators where their order is the same, we have:
+    \begin{align*}
+        & \textbf{First Order}: \; \mathcal{D}\mathcal{S} = I \\
+        & \textbf{Second Order}: \; \mathcal{D}\mathcal{D}\mathcal{S}\mathcal{S} = \mathcal{D}\mathcal{S}\mathcal{D}\mathcal{S} = (\mathcal{D}\mathcal{S})(\mathcal{D}\mathcal{S}) = II = I \\
+        & \vdots \\
+        & \textbf{Order K}: \; (\mathcal{D})^K(\mathcal{S})^K = (\mathcal{D}\mathcal{S})^K = I^K = I \\
+    \end{align*}
+\end{itemize}
+\subsubsection{Integration and Differentiation as Convolutions}
+Conceptualizing these differencing/differentiation and summing/integration as linear operators that are commutative and associative, we can then extend this framework to conceptualizing these operators as convolutions:
+\begin{itemize}
+    \item \textbf{Integration}: This corresponds to the convolution of our piecewise polynomial $f(x)$ with a unit step function $u(x)$.
+    \item \textbf{Differentiation}: This corresponds to the convolution of our piecewise polynomial $f(x)$ with two scaled impulses in opposite directions:
+    $\frac{1}{2}\delta(x+\frac{\epsilon}{2}) + \frac{1}{2}\delta(x-\frac{\epsilon}{2})$.
+\end{itemize}
+This motivates the discussion of some of the properties of convolution this system relies on in order to achieve high performance.  For operators $\mathcal{A}, \mathcal{B}$, and $\mathcal{C}$, we have that:
+\begin{enumerate}
+    \item \textbf{Commutativity}: $\mathcal{A} \otimes \mathcal{B} = \mathcal{B} \otimes \mathcal{A}$
+    \item \textbf{Associativity}: $\mathcal{A} \otimes (\mathcal{B} \otimes \mathcal{C})= (\mathcal{A} \otimes \mathcal{B}) \otimes \mathcal{C}$
+\end{enumerate}
+These properties stem from the fact that in the Fourier domain, convolution is simply multiplication.  Therefore, convolution obeys all the algebraic properties of multiplication.
+\subsubsection{Sparse Convolution as Compression}
+As aforementioned, another way to consider this efficient convolution system is as a compression mechanism, in which the \textbf{differencing} operation acts as a compression mechanism, and the \textbf{summing} operation acts as a decompression mechanism.  We can contrast this with standard convolution in the block diagram below.  This sparse convolution approach ends up being a much more efficient way to filter a signal.
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=2\linewidth/3]{figures/compression_diagram.png}
+    \caption{Comparison of standard filtering and efficient/sparse filtering procedures, where the sparse filtering approach is illustrated as a compression problem.  Here, $H$ represents the filter, $X$ and $Y$ represent the uncompressed inputs and outputs, respectively, and $x$ and $y$ represent the compressed inputs and outputs.}
+    \label{fig:my_label}
+\end{figure}
+\subsubsection{Effects on Scaling}
+This fast/efficient convolution framework yields desirable results for scaling, and, as we will see shortly, for problems in which multiscale approaches are necessary.  Because the only places in which we need to do work are now the locations where the piecewise polynomial segments are stitched together, the scaling can be changed to coarser and finer levels without affecting the amount of computation that is required!  This improves the efficiency of multiscale approaches.
+\subsubsection{Filtering (For Multiscale): Anti-Aliasing}
+We have now reduced the amount of computation needed to compute efficient digital filtering.  We now only need final ingredient for multiscale that is motivated by Shannon and Nyquist: anti-aliasing methods (filters).  \\ \\
+Recall from Shannon/Nyquist (the Sampling Theorem) that in order to sample (for instance, when we subsample in multiscale problems) without aliasing and high-frequency artifacts, it is critical that we first remove high-frequency components from the signal we are sampling.  This high-frequency component removal can be achieved with approximate low pass filtering (which we will cover in greater detail during the next lecture). \\ \\
+We will see in the next lecture that one way we can achieve approximate low pass filtering is by approximating a spatial sinc function (which transforms into an ideal low pass filter in the frequency domain) as a spline.
+\subsubsection{Extending Filtering to 2D and An Open Research Problem}
+This framework is built for 1D, but we note that we can extend it to 2D simply by approximating 2D convolution as a cascaded set of 1D convolutions, if we are to continue using this sparse convolution mechanism.  This requires some additional run-time memory as we must store an image corresponding to the 1D convolution of the image with a 1D filter, but this allows us to continue using this efficient sparse convolution structure. \\ \\
+One open research problem: how can we extend this sparse convolution structure to 2D? \\ \\
+Finally, we will finish this lecture with a fun fact on \textbf{calcite crystals}.  Calcite crystals are a type of \textbf{birefringent material}, which means that they have two indices of refraction that depend on two polarizations (one in the x-direction and one in the y-direction), and therefore reflect light into two different ways.  As we will see in the next lecture, adding birefringent lenses in the analog domain can prevent aliasing affects from occurring that would otherwise be unavoidable.  DSLRs have these birefringent lenses affixed to them for this specific anti-aliasing purpose.
+\end{document}

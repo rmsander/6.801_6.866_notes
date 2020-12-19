@@ -1,0 +1,294 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[left=1.0cm,right=1.0cm, top=1.5cm, bottom=1.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{graphics}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{listings}
+\usepackage{mathtools}
+\usepackage{hyperref}
+
+% Align all equations left:
+\documentclass[fleqn]{article} 
+
+
+% Sets and quantifiers
+\newcommand{\R}{\mathbb{R}\;}
+\newcommand{\Q}{\mathbb{Q}\;}
+\newcommand{\N}{\mathbb{N}\;}
+\newcommand{\nin}{n \in \mathbb{N}}
+\newcommand{\fa}{\;\forall\;}
+\newcommand{\ex}{\;\exists\;}
+\newcommand{\nex}{\;\nexists\;}
+
+% Sequences
+\newcommand{\seq}[1]{\{#1\}}
+\newcommand{\seqx}{\seq{x_n}}
+\newcommand{\seqy}{\seq{y_n}}
+\newcommand{\seqs}{\seq{s_n}}
+
+% Subsequences
+\newcommand{\seqxni}{\seq{x_{n_i}}}
+\newcommand{\seqyni}{\seq{y_{n_i}}}
+\newcommand{\xni}{x_{n_i}}
+\newcommand{\yni}{y_{n_i}}
+\newcommand{\xnij}{x_{n_{i_j}}}
+\newcommand{\ynij}{y_{n_{i_j}}}
+\newcommand{\seqxnij}{\seq{x_{n_{i_j}}}}
+\newcommand{\seqynij}{\seq{y_{n_{i_j}}}}
+
+% Such that
+\newcommand{\st}{\;\text{such that}\;}
+
+% lim, limsup, liminf
+\newcommand{\limn}{\text{lim}_{n \rightarrow \infty}}
+\newcommand{\limi}{\text{lim}_{i \rightarrow \infty}}
+\newcommand{\limj}{\text{lim}_{j \rightarrow \infty}}
+\newcommand{\limsupn}{\limsup_{n \rightarrow \infty}}
+\newcommand{\liminfn}{\liminf_{n \rightarrow \infty}}
+
+
+% Custom for absolute value
+\delimitershortfall-1sp
+\newcommand\abs[1]{\left|#1\right|}
+
+% Reference and hyperlink
+\newcommand{\source}[1]{\href{#1}{(\textbf{Source})}}
+
+% Use for define equals
+\newcommand{\delteq}{\overset{\Delta}{=}}
+
+% For nicer fonts
+\usepackage{eucal}
+
+% For Dreamer Paper
+\newcommand{\stau}{s_{\tau}}
+\newcommand{\expect}[1]{\mathbb{E}_{#1}}
+\newcommand{\indep}{\perp \!\!\! \perp}
+
+
+\title{6.801/6.866: Machine Vision, Lecture 2}
+\author{Professor Berthold Horn, Ryan Sander, Tadayuki Yoshitake \\
+        MIT Department of Electrical Engineering and Computer Science \\ 
+        Fall 2020}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+These lecture summaries are designed to be a review of the lecture.  Though I do my best to include all main topics from the lecture, the lectures will have more elaborated explanations than these notes.  Therefore, if you're looking for the most rigorous review and treatment of these topics, we encourage you to rewatch the lecture videos.  With that said, we hope these summaries are beneficial for your learning.  If you have any feedback for these lecture summaries, please submit it \textbf{\href{https://forms.gle/itCUtP4AubAbtwQT9}{here}}.
+\section{Lecture 2: Image Formation, Perspective Projection, Time Derivative, Motion Field}
+Definition of perspective projection:
+\begin{align}
+    \frac{x}{f} = \frac{X}{Z}, \frac{y}{f} = \frac{Y}{Z} \;\textbf{(component form)} &&
+\end{align} 
+\begin{align}
+    \frac{1}{f}\mathbf{r} = \frac{1}{\mathbf{R} \cdot \hat{\mathbf{z}}}\mathbf{R}\;\textbf{(vector form)} &&
+\end{align}
+If we differentiate these perspective projection equations:
+\begin{align*}
+    \frac{1}{f}\frac{dx}{dt} = \frac{1}{Z}\frac{dX}{dt} - \frac{X}{Z^2}\frac{dZ}{dt} &&
+\end{align*}
+What are these derivatives?  They correspond to \textbf{velocities}.  Let's define some of these velocities:
+\begin{itemize}
+    \item $u \delteq \frac{dx}{dt}$
+    \item $v \delteq \frac{dy}{dt}$
+    \item $U \delteq \frac{dX}{dt}$
+    \item $V \delteq \frac{dY}{dt}$
+    \item $W \delteq \frac{dZ}{dt}$
+\end{itemize}
+Now, rewriting the differentiated perspective projection equations with these velocity terms, we first write the equation for the $x$ component:
+\begin{align}
+    \frac{1}{f}u = \frac{1}{Z}U - \frac{X}{Z^2}W &&
+\end{align}
+Similarly, for $y$:
+\begin{align}
+    \frac{1}{f}v = \frac{1}{Z}V - \frac{Y}{Z^2}W &&
+\end{align}
+Why are these equations relevant?  They allow us to find parts of the image that don't exhibit any motion - i.e. stationary points.  Let's find where $U = V = 0$.  Let the point $(x_0, y_0)$ correspond to this point.  Then:
+\begin{align}
+    \frac{x_0}{f} = \frac{U}{W}, \frac{y_0}{f} = \frac{V}{W} &&
+\end{align}
+\textbf{Focus of Expansion (FOE)}:  Point in image space given by $(x_0, y_0)$.  This point is where the 3D motion vector intersects with the line given by $z = f$. \\ \\
+Why is FOE useful?  If you know FOE, you can derive the \textbf{direction of motion} by drawing a vector from the origin to FOE. \\ \\
+Additionally, we can rewrite the differentiated perspective projection equations with FOE:
+\begin{align}
+    \frac{1}{f}u = \frac{x_0-x}{f}\frac{W}{Z} \;\textbf{(x comp.)}, \;\;\frac{1}{f}v = \frac{y_0-y}{f}\frac{W}{Z} \;\textbf{(y comp.)}&&
+\end{align}
+Cancelling out the focal length ($f$) terms:
+\begin{align}
+    u = (x_0-x)\frac{W}{Z} \;\textbf{(x comp.)}, \;\;v = (y_0-y)\frac{W}{Z} \;\textbf{(y comp.)}&&
+\end{align}
+A few points here:
+\begin{itemize}
+    \item You can draw the vector diagram of the motion field in the image plane.
+    \item All vectors in the motion field expand outward from \textbf{FOE}.
+    \item Recall that perspective projection cannot give us absolute distances.
+\end{itemize}
+For building intuition, let's additionally consider what each of these quantities mean.  The inverse term $\frac{Z}{W} = \frac{Z}{\frac{dZ}{dt}}$ has units of $\frac{\textbf{meters}}{\frac{\textbf{meters}}{\textbf{second}}} = \textbf{seconds}$ - i.e. \textbf{Time of Impact}. \\ \\
+Let's now revisit these equations in vector form, rather than in the component form derived above:
+\begin{align}
+    \frac{1}{f}\frac{d\mathbf{r}}{dt} = \frac{1}{\mathbf{R} \cdot \hat{\mathbf{z}}} - \frac{R}{(\mathbf{R} \cdot \hat{\mathbf{r}})^2}\frac{d}{dt}(\mathbf{R} \cdot \hat{\mathbf{r}}) &&
+\end{align}
+Let's rewrite this with dots for derivatives.  Fun fact: The above notation is Leibniz notation, and the following is Newtonian notation:
+\begin{align}
+    \frac{1}{f}\dot{\mathbf{r}} = \frac{1}{\mathbf{R} \cdot \hat{\mathbf{z}}}\dot{\mathbf{R}} - \frac{R}{(\mathbf{R} \cdot \hat{\mathbf{z}})^2}(\dot{\mathbf{R}} \cdot \hat{\mathbf{z}}) &&
+\end{align}
+\begin{align}
+    \frac{1}{f}\dot{\mathbf{r}} = \frac{1}{Z}(\dot{\mathbf{R}} - W\frac{1}{f}\mathbf{r}) &&
+\end{align}
+One way for reasoning about these equations is that \textbf{motion is magnified by the ratio of the distance terms}. \\ \\
+Next, we'll reintroduce the idea of \textbf{Focus of Expansion}, but this time, for the vector form.  FOE in the vector form is given at the point where $\dot{\mathbf{r}} = 0$:
+\begin{align}
+    \frac{1}{f}\dot{\mathbf{r}} = \frac{1}{W}\dot{\mathbf{R}} &&
+\end{align}
+We can use a dot product/cross product identity to rewrite the above expression in terms of cross products.  The identity is as follows for any $\mathbf{a}, \mathbf{b}, \mathbf{c} \in \mathbb{R}^n$
+\begin{align}
+    \mathbf{a} \times (\mathbf{b} \times \mathbf{c}) = (\mathbf{c} \cdot \mathbf{a})\mathbf{b} - (\mathbf{a} \cdot \mathbf{b})\mathbf{c} &&
+\end{align}
+Using this identity, we rewrite the expression above to solve for FOE:
+\begin{align}
+    \frac{1}{f}\dot{\mathbf{r}} = \frac{1}{(\mathbf{R} \cdot \hat{\mathbf{z}})^2}(\hat{\mathbf{z}} \times (\dot{\mathbf{R}} \times \mathbf{R})) &&
+\end{align}
+What is this expression?  This is \textbf{image motion} expressed in terms of \textbf{world motion}.  Note the following identities/properties of this motion, which are helpful for building intuition:
+\begin{itemize}
+    \item $\dot{\mathbf{r}} \cdot \hat{\mathbf{z}} = 0 \implies$ Image motion is perpendicular to the z-axis.  This makes since intuitively because otherwise the image would be coming out of/going into the image plane.
+    \item $\dot{\mathbf{r}} \perp \hat{\mathbf{z}}$
+    \item $\dot{\mathbf{R}} \parallel \mathbf{R} \implies \dot{\mathbf{r}} = 0$ (this condition results in there being no image motion).
+\end{itemize}
+\subsection{Brightness and Motion}
+Let's now consider how brightness and motion are intertwined.  Note that for this section, we will frequently be switching between continuous and discrete.  The following substitutions/conversions are made:
+\begin{itemize}
+    \item \textbf{Representations of brightness functions}: $E(x, y) \leftrightarrow E[x, y]$
+    \item \textbf{Integrals and Sums}: $\int_x \int_y \leftrightarrow \sum_x \sum_y$
+    \item \textbf{Brightness Gradients and Finite Differences}: $(\frac{\partial E}{\partial x}, \frac{\partial E}{\partial y}) \leftrightarrow (\frac{1}{\delta x}(E[k, e+1]-E[k, e])$
+\end{itemize}
+\subsubsection{1D Case}
+\begin{align}
+    \frac{dx}{dt} = U \implies \delta x = U\delta &&
+\end{align}
+By taking a linear approximation of the local brightness:
+\begin{align}
+    \delta E = E_x \delta x = u E_x \delta t \;\;\;\text{(note here that $E_x = \frac{\partial E}{\partial x}$)} &&
+\end{align}
+Dividing each side by $\delta t$, we have:
+\begin{align}
+    u E_x + E_t = 0 \implies U = -\frac{E_x}{E_t} = -\frac{\frac{\partial E}{\partial t}}{\frac{\partial E}{\partial x}} &&
+\end{align}
+A couple of points about this:
+\begin{itemize}
+    \item This 1D result allows us to recover motion from brightness.
+    \item We can infer motion from a single point.  However, this is only true in the 1D case.
+    \item We can estimate from 1 pixel, but frequently, we have much more than 1 pixel, so why use just 1?  We can reduce noise by estimating motion from many pixels through regression techniques such as Ordinary Least Squares (OLS).
+    \item From statistics, the standard deviation of the motion estimates will be reduced by a factor of $\frac{1}{\sqrt{N}}$, where $N$ is the number of pixels sampled for estimating motion.
+\end{itemize}
+Finite Difference approximation for $E$ is given by:
+\begin{align}
+    E \approx \frac{1}{\delta x}(E(x + \delta x, t) - E(x, t)) &&
+\end{align}
+Motion estimation can be done through unweighted averaging:
+\begin{align}
+    \bar{u}_{\text{unweighted}} = \frac{1}{N}\sum_{i=1}^N\frac{-E_{t_i}}{E_{x_i}} &&
+\end{align}
+As well as weighted averaging:
+\begin{align}
+    \bar{u}_{\text{weighted}} = \frac{\sum_{i=1}^Nw_i\frac{-E_{t_i}}{E_{x_i}}}{\sum_{i=1}^{N}w_i} &&
+\end{align}
+A quick check here: take $w_i = 1 \fa i \in \{1, ..., N\}$.  Then we have that $\bar{u}_{\text{weighted}} = \frac{1}{N}\sum_{i=1}^{N}\frac{-E_t}{E_x} = \bar{u}_{\text{unweighted}}$. \\ \\
+Note that in the continuous domain, the sums in the weighted and unweighted average values are simply replaced with integrals.
+\subsubsection{2D Case}
+While these results are great, we must remember that images are in 2D, and not 1D.  Let's look at the 2D case.  First and foremost, let's look at the brightness function, since it now depends on $x$, $y$, and $t$: $E(x, y, t)$.  The relevant partial derivatives here are thus:
+\begin{itemize}
+    \item $\frac{\partial E}{\partial x}$ - i.e. how the brightness changes in the x direction.
+    \item $\frac{\partial E}{\partial y}$ - i.e. how the brightness changes in the y direction.
+    \item $\frac{\partial E}{\partial t}$ - i.e. how the brightness changes w.r.t. time.
+\end{itemize}
+As in the previous 1D case, we can approximate these derivatives with finite forward first differences:
+\begin{itemize}
+    \item $\frac{\partial E}{\partial x} = E_x \approx \frac{1}{\delta x}(E(x + \delta x, y, t) - E(x,y,t))$
+    \item $\frac{\partial E}{\partial y} = E_y \approx \frac{1}{\delta y}(E(x, y + \delta y, t) - E(x,y,t))$
+    \item $\frac{\partial E}{\partial t} = E_t \approx \frac{1}{\delta t}(E(x, y, t + \delta t) - E(x,y,t))$
+\end{itemize}
+Furthermore, let's suppose that $x$ and $y$ are parameterized by time, i.e. $x = x(t), y = y(t)$.  Then we can compute the First-Order Condition (FOC) given by:
+\begin{align}
+    \frac{dE(x, y, t)}{dt} = 0 &&
+\end{align}
+Here, we can invoke the chain rule, and we obtain the result given by:
+\begin{align}
+    \frac{dE(x, y, t)}{dt} = \frac{dx}{dt} \frac{\partial E}{\partial x} + \frac{dy}{dt} \frac{\partial E}{\partial y} + \frac{\partial E}{\partial t} = 0 &&
+\end{align}
+Rewriting this in terms of $u, v, w$ from above:
+\begin{align}
+    uE_x + vE_y + E_t = 0 &&
+\end{align}
+\textbf{Objective here}: We have a time-varying sequence of images, and our goal is to find and recover motion. \\ \\
+To build intuition, it is also common to plot in velocity space given by $(u, v)$.  For instance, a linear equation in the 2D world corresponds to a line in velocity space.  Rewriting the equation above as a dot product:
+\begin{align}
+    uE_x + vE_y + E_t = 0 \leftrightarrow (u, v) \cdot (E_x, E_y) = -E_t &&
+\end{align}
+Normalizing the equation on the right by the magnitude of the brightness derivative vectors, we obtain the \textbf{brightness gradient}:
+\begin{align}
+    (u, v) \cdot \Bigg(\frac{E_x}{\sqrt{E_x^2 + E_y^2}}, \frac{E_y}{\sqrt{E_x^2 + E_y^2}}\Bigg) = -\frac{E_t}{\sqrt{E_x^2 + E_y^2}} &&
+\end{align}
+What is the \textbf{brightness gradient}?
+\begin{itemize}
+    \item A unit vector given by: $\Bigg(\frac{E_x}{\sqrt{E_x^2 + E_y^2}}, \frac{E_y}{\sqrt{E_x^2 + E_y^2}}\Bigg) \in \mathbb{R}^2$.
+    \item Measures spatial changes in brightness in the image in the image plane $x$ and $y$ directions.
+\end{itemize}
+\textbf{Isophotes}: A curve on an illuminated surface that connects points of equal brightness (source: Wikipedia). \\ \\
+As we saw in the previous case with 1D, we don't want to just estimate with just one pixel.  For multiple pixels, we will solve a system of $N$ equations and two unknowns:
+\begin{align}
+    uE_{x_1} + vE_{y_1} + E_{t_1} = 0 & \\
+    uE_{x_2} + vE_{y_2} + E_{t_2} = 0 &&
+\end{align}
+Rewriting this in matrix form:
+\begin{align}
+    \begin{bmatrix}E_{x_1} & E_{y_1} \\ E_{x_2} & E_{y_2} \end{bmatrix}\begin{bmatrix}U \\ V \end{bmatrix} = \begin{bmatrix}-E_{t_1} \\ -E_{t_2} \end{bmatrix} &&
+\end{align}
+Solving this as a standard $Ax = b$ problem, we have:
+\begin{align}
+    \begin{bmatrix}U \\ V\end{bmatrix} = \frac{1}{(E_{x_1}E_{y_2} - E_{y_1}E_{x_2})}\begin{bmatrix}E_{y_2} & -E_{y_1} \\ -E_{x_2} & E_{x_1} \end{bmatrix}\begin{bmatrix}-E_{t_1} \\ -E_{t_2} \end{bmatrix} &&
+\end{align}
+Note that the expression given by $\frac{1}{(E_{x_1}E_{y_2} - E_{y_1}E_{x_2})}$ is the determinant of the partial derivatives matrix, since we are taking its inverse (in this case, simply a 2x2 matrix). \\ \\
+\textbf{When can/does this fail?}  It's important to be cognizant of edge cases in which this motion estimation procedure/algorithm fails.  Some cases to consider:
+\begin{itemize}
+    \item When brightness partial derivatives / brightness gradients are parallel to one another $\leftrightarrow$ The determinant goes to zero $\leftrightarrow$ This corresponds to linear dependence in the observations.  This occurs when $E_{x_1}E_{y_2} = E_{y_1}E_{x_2} \implies \frac{E_{y_1}}{E_{x_1}} = \frac{E_{y_2}}{E_{x_2}}$.
+\end{itemize}
+This issue can be mitigated by weighting the pixels as we saw in the 1D case above.  However, a more robust solution is to search for a minima of motion, rather than the point where it has zero motion.  The intuition here is that even if we aren't able to find a point of zero motion, we can still get as close to zero as possible.  Mathematically, let us define the following objective:
+\begin{align}
+    J(u, v) \delteq \int_{x \in \mathbb{X}}\int_{y \in \mathbb{Y}}(uE_x + vE_y + E_t)^2dxdy &&
+\end{align}
+Then we now seek to solve the problem of:
+\begin{align}
+    u^*, v^* = \arg \min_{u, v} J(u, v) = \arg \min_{u, v} \int_{x \in \mathbb{X}}\int_{y \in \mathbb{Y}}(uE_x + vE_y + E_t)^2dxdy &&
+\end{align}
+Since this is an unconstrained optimization problem, we can solve by finding the minima of the two variables using two First-Order Conditions (FOCs):
+\begin{itemize}
+    \item $\frac{\partial J(u, v)}{\partial u} = 0$
+    \item $\frac{\partial J(u, v)}{\partial v} = 0$
+\end{itemize}
+Here, we have two equations and two unknowns.  When can this fail?
+\begin{itemize}
+    \item When we have linear independence.  This occurs when:
+    \begin{itemize}
+        \item E = 0 everywhere
+        \item E = constant
+        \item $E_x = 0$
+        \item $E_y = 0$
+        \item $E_x = E_y$
+        \item $E_x = kE_y$
+    \end{itemize}
+    \item When $E = 0$ everywhere (professor's intuition: ``You're in a mine.")
+    \item When $E_x, E_y = 0$ (constant brightness).
+    \item Mathematically, this fails when: $\int_x \int_x E^2_x \int_y \int_y E^2_y - (\int_x \int_y E_xE_y)^2 = 0$
+\end{itemize}
+When is this approach possible?  \textbf{Only when isophotes are not parallel straight lines - i.e. want isophote curvature/rapid turning of brightness gradients.} \\  \\
+\textbf{Noise Gain}: Intuition - if I change a value by this much in the image, how much does this change in the result?
+\end{document}
+
+

@@ -1,0 +1,209 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[left=1.0cm,right=1.0cm, top=1.5cm, bottom=1.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{graphics}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{listings}
+\usepackage{mathtools}
+\usepackage{hyperref}
+
+% Align all equations left:
+\documentclass[fleqn]{article} 
+
+% Sets and quantifiers
+\newcommand{\R}{\mathbb{R}\;}
+\newcommand{\Q}{\mathbb{Q}\;}
+\newcommand{\N}{\mathbb{N}\;}
+\newcommand{\nin}{n \in \mathbb{N}}
+\newcommand{\fa}{\;\forall\;}
+\newcommand{\ex}{\;\exists\;}
+\newcommand{\nex}{\;\nexists\;}
+
+% Sequences
+\newcommand{\seq}[1]{\{#1\}}
+\newcommand{\seqx}{\seq{x_n}}
+\newcommand{\seqy}{\seq{y_n}}
+\newcommand{\seqs}{\seq{s_n}}
+
+% Subsequences
+\newcommand{\seqxni}{\seq{x_{n_i}}}
+\newcommand{\seqyni}{\seq{y_{n_i}}}
+\newcommand{\xni}{x_{n_i}}
+\newcommand{\yni}{y_{n_i}}
+\newcommand{\xnij}{x_{n_{i_j}}}
+\newcommand{\ynij}{y_{n_{i_j}}}
+\newcommand{\seqxnij}{\seq{x_{n_{i_j}}}}
+\newcommand{\seqynij}{\seq{y_{n_{i_j}}}}
+
+% Machine Vision
+\newcommand{\xhat}{\hat{\mathbf{x}}}
+\newcommand{\yhat}{\hat{\mathbf{y}}}
+\newcommand{\zhat}{\hat{\mathbf{z}}}
+\newcommand{\nhat}{\hat{\mathbf{n}}}
+\newcommand{\shat}{\hat{\mathbf{s}}}
+\newcommand{\mb}[1]{\mathbf{#1}}
+\newcommand{\pd}[2]{\frac{\partial #1}{\partial #2}}
+
+% Such that
+\newcommand{\st}{\;\text{such that}\;}
+
+% lim, limsup, liminf
+\newcommand{\limn}{\text{lim}_{n \rightarrow \infty}}
+\newcommand{\limi}{\text{lim}_{i \rightarrow \infty}}
+\newcommand{\limj}{\text{lim}_{j \rightarrow \infty}}
+\newcommand{\limsupn}{\limsup_{n \rightarrow \infty}}
+\newcommand{\liminfn}{\liminf_{n \rightarrow \infty}}
+
+% Parallel symbols
+\newcommand{\parallelsum}{\mathbin{\!/\mkern-5mu/\!}}
+
+
+% Custom for absolute value
+\delimitershortfall-1sp
+\newcommand\abs[1]{\left|#1\right|}
+
+% Reference and hyperlink
+\newcommand{\source}[1]{\href{#1}{(\textbf{Source})}}
+
+% Use for define equals
+\newcommand{\delteq}{\overset{\Delta}{=}}
+
+% For nicer fonts
+\usepackage{eucal}
+
+% For Dreamer Paper
+\newcommand{\stau}{s_{\tau}}
+\newcommand{\expect}[1]{\mathbb{E}_{#1}}
+\newcommand{\indep}{\perp \!\!\! \perp}
+
+
+\title{6.801/6.866: Machine Vision, Lecture 6}
+\author{Professor Berthold Horn, Ryan Sander, Tadayuki Yoshitake \\
+        MIT Department of Electrical Engineering and Computer Science \\ 
+        Fall 2020}
+\date{}
+
+\begin{document}
+
+\maketitle
+These lecture summaries are designed to be a review of the lecture.  Though I do my best to include all main topics from the lecture, the lectures will have more elaborated explanations than these notes.  Therefore, if you're looking for the most rigorous review and treatment of these topics, we encourage you to rewatch the lecture videos.  With that said, we hope these summaries are beneficial for your learning.  If you have any feedback for these lecture summaries, please submit it \textbf{\href{https://forms.gle/itCUtP4AubAbtwQT9}{here}}.
+\section{Lecture 6: Photometric Stereo, Noise Gain, Error Amplification, Eigenvalues and Eigenvectors review}
+This lecture covers an overview of some relevant concepts from linear algebra.  If you would like a refresher on some of these concepts, please check out Professor Horn's posted linear algebra review \textbf{\href{http://people.csail.mit.edu/bkph/articles/Eigenvectors.pdf}{here}}.
+\subsection{Applications of Linear Algebra to Motion Estimation/Noise Gain}
+Recall our problem of noise gain, in that if we observe a noisy estimate of $y$ and we're asked to derive $x$, the noise from our observed value can greatly affect our estimate of $x$.  We've analyzed this problem in 1D, and now we're ready to generalize this to higher dimensions using eigenvalues and eigenvectors. \\ \\
+For the sake of brevity, the notes from the linear algebra review will not be given here, but they are in the handwritten notes for this lecture, as well as in the linear algebra handout posted above.  These notes cover:
+\begin{itemize}
+    \item Definitions of eigenvalues/eigenvectors
+    \item Characteristic Polynomials
+    \item Rewriting vectors using an eigenbasis
+\end{itemize}
+\subsubsection{Application Revisited: Photometric Stereo}
+Let us now return to an application where we determine shape from shading: photometric stereo.  Let us first consider the simple case where the surface we seek to reconstruct is Lambertian:
+\begin{align*}
+    E \propto \cos\theta_i = \rho \hat{\mathbf{n}} \cdot \hat{\mathbf{s}}_i &&
+\end{align*}
+Recall the following, to help frame the setup of this problem:
+\begin{itemize}
+    \item For shape from shading problems, our goal is to estimate and reconstruct a 3D scene from a 2D image given information about the shading and surface orientation of the scene.
+    \item In 2D, this shape from shading problem has 2 Degrees of Freedom (abbreviated in these course notes as DOF).
+    \item Recall that we can use albedo ($\rho$) to actually make this problem easier - can create a problem with 3 unknowns and 3 equations.  Without the use of albedo, recall that we had a quadratic constraint we had to follow, which, by \textbf{Bezout's theorem}, suggests that there are at two solutions to such a system of equations.  In this case, we have 3 linear equations and 3 unknowns, so by Bezout's theorem we have only one solution, as desired.
+\end{itemize}
+Recall that for such a system, suppose we have three brightness measurements of the form:
+\begin{enumerate}
+    \item $E_1 = \rho \hat{\mathbf{n}} \cdot \hat{\mathbf{s}}_1 $ - Intuitively, look at pixel with light source located at $\mathbf{s}_1$ and take measurement $E_1$.
+    \item $E_2 = \rho \hat{\mathbf{n}} \cdot \hat{\mathbf{s}}_2 $ - Intuitively, look at pixel with light source located at $\mathbf{s}_2$ and take measurement $E_2$.
+    \item $E_3 = \rho \hat{\mathbf{n}} \cdot \hat{\mathbf{s}}_3 $ - Intuitively, look at pixel with light source located at $\mathbf{s}_3$ and take measurement $E_3$.
+\end{enumerate}
+Let's review the linear algebraic system of equations by combining the equations above into a matrix-vector product.
+\begin{align*}
+    \begin{bmatrix}-s^T_1 \\ -s^T_2 \\ -s^T_3 \\ \end{bmatrix}\mathbf{n} = \begin{bmatrix}E_1 \\ E_2 \\ E_3\end{bmatrix} &&
+\end{align*}
+Note the following:
+\begin{itemize}
+    \item Since the matrix on the left-hand side corresponds to the three-dimensional position of the light source in the given frame of reference, we have:
+\begin{align*}
+    \begin{bmatrix}-s^T_1 \\ -s^T_2 \\ -s^T_3 \\ \end{bmatrix} \in \mathbb{R}^{3 \times 3}, \;\; \begin{bmatrix}E_1 \\ E_2 \\ E_3\end{bmatrix} \in \mathbb{R}^{3} &&
+\end{align*}
+    \item $\mathbf{n} = \rho\hat{\mathbf{n}}$, i.e. we do not need to deal with the second order constraint $\hat{\mathbf{n}}^T\hat{\mathbf{n}} = 1$.  This eliminates the second-order constraint from our set of equations and ensures we are able to derive a unique solutions by solving a system of only linear equations.
+    \item Define $\mathbf{S} \delteq \begin{bmatrix}-s^T_1 \\ -s^T_2 \\ -s^T_3\end{bmatrix}$
+\end{itemize}
+Like many other linear system of equations we encounter of the form $\mathbf{A}\mathbf{x} = \mathbf{b}$, we typically want to solve for $\mathbf{x}$.  In this case, we want to solve for $\mathbf{n}$, which provides information about the surface orientation of our object of interest:
+\begin{align*}
+   \mathbf{S}\mathbf{n} = \mathbf{E} \longrightarrow \mathbf{n} = \mathbf{S}^{-1}\mathbf{E}
+\end{align*}
+Like the other ``inverse" problems we have solved so far in this class, we need to determine when this problem is ill-posed, i.e. when $\mathbf{S}$ is not invertible.  Recall from linear algebra that this occurs when the columns of $\mathbf{S}$ are not linearly independent/the rank of $\mathbf{S}$ is not full.  \\ \\
+An example of when this problem is ill-posed is when the light source vectors are coplanar with one another, i.e. 
+\begin{align*}
+        \mathbf{s}_1 + \mathbf{s}_2 + \mathbf{s}_3 = 0 \;\;\text{(Note that this can be verified by simply computing the vector sum of any three coplanar vectors.)}&&
+\end{align*}
+Therefore, for optimal performance and to guarantee that $\mathbf{S}$ is invertible:
+\begin{itemize}
+    \item We make the vectors from the light sources to the objects ($\mathbf{s}_i$) as non-coplanar as possible.
+    \item The best configuration for this problem is to have the vectors from the light sources to the surface be orthogonal to one another.  Intuitively, consider that this configuration captures the most variation in the angle between a given surface normal and three light sources.
+\end{itemize}
+\textbf{Example: Determining Depth of Craters on the Moon}: \\ \\
+As it turns out, we cannot simply image the moon directly, since the plane between the earth/moon and the sun makes it such that all our vectors $\mathbf{s}_i$ will lie in the same plane/are coplanar.  Thus, we cannot observe the moon's tomography from the surface of the earth.
+\subsection{Lambertian Objects and Brightness}
+\textbf{Fun Fact}: ``Lambert's Law" was derived from a monk observing light passing through an oil spot in a piece of paper. \\ \\
+\textbf{``Lambert's Law"}:
+\begin{align*}
+    E_i \propto \cos\theta_i = \nhat \cdot \shat_i
+\end{align*}
+To better understand this law, let us talk more about surface orientation.
+\subsubsection{Surface Orientation}
+\begin{itemize}
+    \item For an extended surface, we can take small patches of the surface that are ``approximately planar", which results in us constraining the surface to be a \textbf{2-manifold} [1] (technically, the language here is ``locally planar").
+    \item Using these ``approximately planar" patches of the surface results in many unit normal vectors $\nhat_i$ pointing in a variety of different directions for different patches in the surface.
+    \item We can also understand surface orientation from a calculus/Taylor Series point of view.  Consider $z(x + \delta x, y + \delta y)$, i.e. an estimate for the surface height at $(x, y)$ perturbed slightly by a small value $\delta$.  The Taylor Series expansion of this is given by:
+    \begin{align*}
+        z(x + \delta x, y + \delta y) = z(x, y) + \delta x \pd{z}{x} + \delta y \pd{z}{y} + \cdots = z(x, y) + p\delta x + q \delta y \\
+        \text{Where} \; p \delteq \pd{z}{x}, q \delteq \pd{z}{y} &&
+    \end{align*}
+    \item The surface orientation $(p \delteq \pd{z}{x}, q \delteq \pd{z}{y})$ captures the gradient of the height of the surface $z$.
+    \item Note that the surface unit normal $\nhat$ is perpendicular to any two lines in the surface, e.g. tangent lines.
+\end{itemize}
+We can use the cross product of the two following tangent lines of this surface to compute the the unit surface normal, which describes the orientation of the surface:
+\begin{enumerate}
+    \item $(\delta x, 0, p \delta x)^T = \delta x (1, 0, p)^T$
+    \item $(0, \delta y, q \delta x)^T = \delta y (0, 1, q)^T$
+\end{enumerate}
+Since we seek to find the \textit{unit} surface normal, we can remove the scaling factors out front ($\delta x$ and $\delta y$).  Then the cross product of these two vectors is:
+\begin{align*}
+    (1, 0, p)^T \times (0, 1, p)^T = \det
+    \begin{bmatrix}\xhat & \yhat & \zhat \\
+                    1 & 0 & p \\
+                    0 & 1 & q \\
+    \end{bmatrix} = \mathbf{n} = \begin{bmatrix}-p \\ -q \\ 1\end{bmatrix} &&
+\end{align*}
+We can now compute the unit surface normal by normalizing the vector $\mb{n}$:
+\begin{align*}
+    \nhat = \frac{\mb{n}}{||\mb{n}||_2} = \frac{\begin{bmatrix}-p & -q & 1 \end{bmatrix}^T}{\sqrt{p^2 + q^2 + 1}} &&
+\end{align*}
+With this surface normal computed, we can also go the opposite way to extract the individual components of the surface orientation ($p$ and $q$):
+\begin{align*}
+    p = \frac{-\mb{n} \cdot \xhat}{\mb{n} \cdot \zhat}, \;\; q = \frac{-\mb{n} \cdot \yhat}{\mb{n} \cdot \zhat} &&
+\end{align*}
+Note: Do the above equations look similar to something we have encountered before?  Do they look at all like the coordinate-wise perspective projection equations? \\ \\
+We will leverage these $(p, q)$-space plots a lot, using \textit{reflectance maps} (which we will discuss later).  Now, instead of plotting in velocity space, we are plotting in surface orientation/spatial derivative space.  Individual points in this plane correspond to different surface orientations of the surface.
+\subsubsection{Surface Orientation Isophotes/Reflectance Maps for Lambertian Surfaces}
+Recall the equation to derive isophotes of a Lambertian surface (since the brightness depends on the incident angle between the surface and the light source):
+\begin{align*}
+    \nhat \cdot \shat = E_1 \;\;\text{Where $E_1$ is a constant, scalar level of brightness}
+\end{align*}
+If we expand our light source vector $\shat$, we get the following for this dot product:
+\begin{align*}
+    \nhat \cdot \shat = \frac{\begin{bmatrix}-p & -q & 1 \end{bmatrix}^T}{\sqrt{p^2 + q^2 + 1}} \cdot \frac{\begin{bmatrix}-p_s & -q_s & 1 \end{bmatrix}^T}{\sqrt{p^2_s + q^2_s + 1}} = E_1
+\end{align*}
+Carrying out this dot product and squaring each side, we can derive a parametric form of these isophotes in $(p, q)$ space (note that the light source orientation $(p_s, q_s)$ is fixed (at least for a single measurement), and thus we can treat it as constant:
+\begin{align*}
+    (1 + p_sp + q_sq)^2 = c^2(1 + p^2 + q^2)(1 + p^2_s + q^2_s)
+\end{align*}
+If we plot these isophotes in $(p, q)$ space, we will see they become \textbf{conic sections}.  Different isophotes will generate different curves.   When we have multiple light sources, we can have intersections between these isophotes, which indicate solutions.
+\subsection{References}
+[1] Manifolds, https://en.wikipedia.org/wiki/Manifold.
+\end{document}

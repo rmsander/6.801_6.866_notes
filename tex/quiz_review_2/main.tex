@@ -1,0 +1,527 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[left=1.0cm,right=1.0cm, top=1.5cm, bottom=1.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{graphics}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{listings}
+\usepackage{mathtools}
+\usepackage{hyperref}
+
+% Align all equations left:
+\documentclass[fleqn]{article} 
+
+% Sets and quantifiers
+\newcommand{\R}{\mathbb{R}\;}
+\newcommand{\Q}{\mathbb{Q}\;}
+\newcommand{\N}{\mathbb{N}\;}
+\newcommand{\nin}{n \in \mathbb{N}}
+\newcommand{\fa}{\;\forall\;}
+\newcommand{\ex}{\;\exists\;}
+\newcommand{\nex}{\;\nexists\;}
+
+% Multidimensional sets
+\newcommand{\Rd}[1]{\mathbb{R}^{#1}}
+\newcommand{\Qd}[1]{\mathbb{Q}^{#1}}
+\newcommand{\Nd}[1]{\mathbb{N}^{#1}}
+
+% Sequences
+\newcommand{\seq}[1]{\{#1\}}
+\newcommand{\seqx}{\seq{x_n}}
+\newcommand{\seqy}{\seq{y_n}}
+\newcommand{\seqs}{\seq{s_n}}
+
+% Subsequences
+\newcommand{\seqxni}{\seq{x_{n_i}}}
+\newcommand{\seqyni}{\seq{y_{n_i}}}
+\newcommand{\xni}{x_{n_i}}
+\newcommand{\yni}{y_{n_i}}
+\newcommand{\xnij}{x_{n_{i_j}}}
+\newcommand{\ynij}{y_{n_{i_j}}}
+\newcommand{\seqxnij}{\seq{x_{n_{i_j}}}}
+\newcommand{\seqynij}{\seq{y_{n_{i_j}}}}
+
+% Such that
+\newcommand{\st}{\;\text{such that}\;}
+
+% Vectors
+\newcommand{\xhat}{\hat{\mathbf{x}}}
+\newcommand{\yhat}{\hat{\mathbf{y}}}
+\newcommand{\zhat}{\hat{\mathbf{z}}}
+\newcommand{\nhat}{\hat{\mathbf{n}}}
+\newcommand{\shat}{\hat{\mathbf{s}}}
+\newcommand{\rhat}{\hat{\mathbf{r}}}
+\newcommand{\vhat}{\hat{\mathbf{v}}}
+\newcommand{\hatvector}[1]{\hat{\mathbf{1}}}
+\newcommand{\mb}[1]{\mathbf{#1}}
+\newcommand{\omegahat}{\boldsymbol{\hat{\mathbf{\omega}}}}
+
+% Four-vector quaternions
+\newcommand{\quat}[1]{\overset{o}{#1}}
+\newcommand{\quatconj}[1]{\overset{o}{#1}^{*}}
+
+
+% Bold vectors
+\newcommand{\xb}{\mathbf{x}}
+\newcommand{\yb}{\mathbf{y}}
+\newcommand{\zb}{\mathbf{z}}
+\newcommand{\rb}{\mathbf{r}}
+\newcommand{\qb}{\mathbf{q}}
+
+
+% Matrices
+\newcommand{\I}[1]{\mb{I}_{#1}}
+
+% Derivatives
+\newcommand{\der}[2]{\frac{d #1}{d #2}}
+\newcommand{\dder}[2]{\frac{d^2 #1}{d #2^2}}
+\newcommand{\derop}[1]{\frac{d}{d #1}}
+\newcommand{\dderop}[1]{\frac{d^2}{d #1^2}}
+
+% Partial Derivatives
+\newcommand{\pd}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\pdd}[2]{\frac{\partial^2 #1}{\partial #2^2}}
+\newcommand{\pdop}[1]{\frac{\partial}{\partial #1}}
+\newcommand{\pddop}[1]{\frac{\partial^2}{\partial #1^2}}
+\newcommand{\pddmixed}[3]{\frac{\partial^2 #1}{\partial #2\partial #3}}
+\newcommand{\pddmixedop}[2]{\frac{\partial^2}{\partial #1\partial #2}}
+
+% ith
+\newcommand{\ith}{\text{i}^{\text{th}}}
+
+% lim, limsup, liminf
+\newcommand{\limn}{\text{lim}_{n \rightarrow \infty}}
+\newcommand{\limi}{\text{lim}_{i \rightarrow \infty}}
+\newcommand{\limj}{\text{lim}_{j \rightarrow \infty}}
+\newcommand{\limsupn}{\limsup_{n \rightarrow \infty}}
+\newcommand{\liminfn}{\liminf_{n \rightarrow \infty}}
+
+% Parallel symbols
+\newcommand{\parallelsum}{\mathbin{\!/\mkern-5mu/\!}}
+
+
+% Custom for absolute value
+\delimitershortfall-1sp
+\newcommand\abs[1]{\left|#1\right|}
+
+% Reference and hyperlink
+\newcommand{\source}[1]{\href{#1}{(\textbf{Source})}}
+
+% Use for define equals
+\newcommand{\delteq}{\overset{\Delta}{=}}
+
+% For nicer fonts
+\usepackage{eucal}
+
+% For Dreamer Paper
+\newcommand{\stau}{s_{\tau}}
+\newcommand{\expect}[1]{\mathbb{E}_{#1}}
+\newcommand{\indep}{\perp \!\!\! \perp}
+
+\title{6.801/6.866: Machine Vision, Quiz 2 Review}
+\author{Professor Berthold Horn, Ryan Sander, Tadayuki Yoshitake \\
+        MIT Department of Electrical Engineering and Computer Science \\ 
+        Fall 2020}
+\date{}
+
+\begin{document}
+% Title Page
+% Table of contents page
+\maketitle
+These lecture summaries are designed to be a review of the lecture.  Though I do my best to include all main topics from the lecture, the lectures will have more elaborated explanations than these notes.  Therefore, if you're looking for the most rigorous review and treatment of these topics, we encourage you to rewatch the lecture videos.  With that said, we hope these summaries are beneficial for your learning.  If you have any feedback for these lecture summaries, please submit it \textbf{\href{https://forms.gle/itCUtP4AubAbtwQT9}{here}}. \\ \\
+Here you will find a high-level review of some of the topics covered since Quiz 1.  These are as follows in the section notes:
+\begin{enumerate}
+    \item \textbf{Relevant Mathematics Review} - Rayleigh Quotients, Groups, Levenberg-Marquadt, Bezout's Theorem
+    \item \textbf{Systems/Patents} - PatQuick, PatMAx, Fast Convolutions, Hough Transforms
+    \item \textbf{Signals} - Sampling, Spline Interpolation, Integral Images, Repeated Block Averaging
+    \item \textbf{Photogrammetry} - Photogrammetry Problems, Absolute orientation, Relative Orientation, Interior Orientation, Exterior Orientation, Critical Surfaces, Radial and Tangential Distortion
+    \item \textbf{Rotations/Orientation} - Gibb's vector, Rodrigues Formula, Quaternions, Orthonormal Matrices
+    \item \textbf{3D Recognition} - Extended Gaussian Image, Solids of Revolution, Polyhedral Objects, Desirable Properties
+\end{enumerate}
+\section{Relevant Mathematics Review}
+We'll start with a review of some of the relevant mathematical tools we have relied on in the second part of the course.
+\subsection{Rayleigh Quotients}
+We saw from our lectures with absolute orientation that this is a simpler way (relative to Lagrange Multipliers) to take constraints into account: \\ \\
+The intuitive idea behind them: How do I prevent my parameters from becoming too large) positive or negative) or too small (zero)?  We can accomplish this by dividing our objective by our parameters, in this case our constraint.  In this case, with the Rayleigh Quotient taken into account, our objective becomes:
+\begin{align*}
+    \min_{\quat{q}, \quat{q} \cdot \quat{q} = 1}\quat{q}^TN\quat{q} \longrightarrow \min_{\quat{q}}\frac{\quat{q}^TN\quat{q}}{\quat{q}^T\quat{q}} &&
+\end{align*}
+\subsection{(Optional) Groups}
+Though we don't cover them specifically in this course, \textbf{groups} can be helpful for better understanding rotations.  ``In mathematics, a group is a set equipped with a binary operation that combines any two elements to form a third element in such a way that four conditions called group axioms are satisfied, namely closure, associativity, identity and invertibility." [1].  We won't focus too much on the mathematical details, but being aware of the following groups may be helpful when reading machine vision, robotics, control, or vision papers:
+\begin{itemize}
+    \item Orthonormal Rotation Matrices $\rightarrow \textbf{SO}(3) \in \Rd{3\times 3}$, \textbf{Special Orthogonal Group}.  Note that the ``3" refers to the number of dimensions, which may vary depending on the domain.
+    \item Poses (Translation + Rotation Matrices) $\rightarrow \textbf{SE}(3) \in \Rd{4 \times 4}$, \textbf{Special Euclidean Group}.
+\end{itemize}
+Since these groups do not span standard Euclidean spaces (it turns out these groups are both manifolds - though this is not generally true with groups), we cannot apply standard calculus-based optimization techniques to solve for them, as we have seen to be the case in our photogrammetry lectures.
+\subsection{(Optional) Levenberg-Marquadt and Gauss-Newton Nonlinear Optimization}
+Recall this was a nonlinear optimization technique we saw to solve photogrammetry problems such as Bundle Adjustment (BA). \\ \\
+Levenberg-Marquadt (LM) and Gauss-Newton (GN) are two nonlinear optimization procedures used for deriving solutions to nonlinear least squares problems.  These two approaches are largely the same, except that LM uses an additional \textbf{regularization term} to ensure that a solution exists by making the closed-form matrix to invert in the normal equations positive semidefinite.  The normal equations, which derive the closed-form solutions for GN and LM, are given by:
+\begin{enumerate}
+    \item \textbf{GN}: $(J(\mb{\theta})^TJ(\mb{\theta}))^{-1}\mb{\theta} = J(\mb{\theta})^Te(\mb{\theta}) \implies \mb{\theta} = (J(\mb{\theta})^TJ(\mb{\theta}))^{-1}J(\mb{\theta})^Te(\mb{\theta})$
+    \item \textbf{LM}: $(J(\mb{\theta})^TJ(\mb{\theta}) + \lambda I)^{-1}\mb{\theta} = J(\mb{\theta})^Te(\mb{\theta}) \implies \mb{\theta} = (J(\mb{\theta})^TJ(\mb{\theta}) + \lambda I)^{-1}J(\mb{\theta})^Te(\mb{\theta})$
+\end{enumerate}
+Where:
+\begin{itemize}
+    \item $\mb{\theta}$ is the vector of parameters and our solution point to this nonlinear optimization problem.
+    \item $J(\mb{\theta})$ is the Jacobian of the nonlinear objective we seek to optimize.
+    \item $e(\theta)$ is the residual function of the objective evaluated with the current set of parameters.
+\end{itemize}
+Note the $\lambda I$, or regularization term, in Levenberg-Marquadt.  If you're familiar with ridge regression, LM is effectively ridge regression/regression with L2 regularization for nonlinear optimization problems.  Often, these approaches are solved iteratively using gradient descent:
+\begin{enumerate}
+    \item \textbf{GN}: $\theta^{(t+1)} \leftarrow \theta^{(t)} - \alpha(J(\mb{\theta^{(t)}})^TJ(\mb{\theta^{(t)}}))^{-1}J(\mb{\theta^{(t)}})^Te(\mb{\theta^{(t)}})$
+    \item \textbf{LM}: $\theta^{(t+1)} \leftarrow \theta^{(t)} - \alpha(J(\mb{\theta^{(t)}})^TJ(\mb{\theta^{(t)}}) + \lambda I)^{-1}J(\mb{\theta^{(t)}})^Te(\mb{\theta^{(t)}})$
+\end{enumerate}
+Where $\alpha$ is the step size, which dictates how quickly the estimates of our approaches update.
+\subsection{Bezout's Theorem}
+Though you're probably well-versed with this theorem by now, its importance is paramount for understanding the number of solutions we are faced with when we solve our systems: \\ \\
+Theorem: \textit{The maximum number of solutions is the product of the polynomial order of each equation in the system of equations}:
+        \begin{align*}
+            \text{number of solutions} = \prod_{e=1}^Eo_e &&
+        \end{align*}
+\section{Systems}
+In this section, we'll review some of the systems we covered in this course through patents, namely PatQuick, PatMAx, and Fast Convolutions.  A block diagram showing how we can cascade the edge detection systems we studied in this class can be found below:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{figures/patquick_patmax.png}
+    \caption{An overview of how the patents we have looked at for object inspection fit together.}
+    \label{fig:my_label}
+\end{figure}
+\subsection{PatQuick}
+There were three main ``objects" in this model:
+\begin{itemize}
+    \item \textbf{Training/template image}.  This produces a model consisting of probe points.
+    \item \textbf{Model}, containing probe points.
+    \item \textbf{Probe points}, which encode evidence for where to make gradient comparisons, i.e. to determine how good matches between the template image and the runtime image under the current pose configuration.
+\end{itemize}
+Once we have the model from the training step, we can summarize the process for generating matches as:
+\begin{enumerate}
+    \item Loop over/sample from configurations of the pose space (which is determined and parameterized by our degrees of freedom), and modify the runtime image according to the current pose configuration.
+    \item Using the probe points of the model, compare the gradient direction (or magnitude, depending on the scoring function) to the gradient direction (magnitude) of the runtime image under the current configuration, and score using one of the scoring functions below.
+    \item Running this for all/all sampled pose configurations from the pose space produces a multidimensional scoring surface.  We can find matches by looking for peak values in this surface.
+\end{enumerate}
+\subsection{PatMAx}
+\begin{itemize}
+    \item This framework builds off of the previous PatQuick patent.
+    \item This framework, unlike PatQuick, does not perform quantization of the pose space, which is one key factor in enabling sub-pixel accuracy.
+    \item PatMAx assumes we already have an approximate initial estimate of the pose.
+    \item PatMAx relies on an iterative process for optimizing energy, and each \textbf{attraction step} improves the fit of the configuration.
+    \item Another motivation for the name of this patent is based off of electrostatic components, namely dipoles, from Maxwell.  As it turns out, however, this analogy works better with mechanical springs than with electrostatic dipoles.
+    \item PatMAx performs an \textbf{iterative attraction process} to obtain an estimate of the pose.
+    \item An iterative approach (e.g. gradient descent, Gauss-Newton, Levenberg-Marquadt) is taken because we likely will not have a closed-form solution in the real world.  Rather than solving for a closed-form solution, we will run this iterative optimization procedure until we reach convergence.
+\end{itemize}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{figures/patmax_system_diagram.png}
+    \caption{High-level diagram of the PatMAx system.}
+    \label{fig:my_label}
+\end{figure}
+\subsection{Fast Convolutions}
+The patent we explore is \textbf{``Efficient Flexible Digital Filtering, US 6.457,032}. \\ \\
+The goal of this system is to efficiently compute filters for multiscale.  For this, we assume the form of an N$^{\text{th}}$-order piecewise polynomial, i.e. a N$^{\text{th}}$-order spline. 
+\subsubsection{System Overview}
+The block diagram of this system can be found below:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=3\linewidth/5]{figures/efficient_filtering.png}
+    \caption{Block diagram of this sparse/fast convolution framework for digital filtering.  Note that this can be viewed as a compression problem, in which differencing compresses the signal, and summing decompresses the signal.}
+    \label{fig:my_label}
+\end{figure}
+A few notes on this system:
+\begin{itemize}
+    \item Why is it of interest, if we have N$^{\text{th}}$-order splines as our functions, to take N$^{\text{th}}$-order differences?  The reason for this is that the differences create \textbf{sparsity}, which is critical for fast and efficient convolution.  Sparsity is ensured because:
+    \begin{align*}
+        & \frac{d^{N+1}}{dx^{N+1}}f(x) = 0 \fa x \;\text{if} \;f(x) = \sum_{i=0}^{N}a_ix^{i}, a_i \in \R \fa i \in \{1, \cdots, N\} \\
+        & \text{(I.e, if} \;f(x)\; \text{is a order-N polynomial, then the order-(N+1) difference will be 0 for all x.}
+    \end{align*}
+    This sparse structure makes convolutions much easier and more efficient to compute by reducing the size/cardinality of the support.
+    \item Why do we apply an order-(N+1) summing operator?  We apply this because we need to ``invert" the effects of the order-(N+1) difference:
+    \begin{align*}
+        & \textbf{First Order}: \; \mathcal{D}\mathcal{S} = I \\
+        & \textbf{Second Order}: \; \mathcal{D}\mathcal{D}\mathcal{S}\mathcal{S} = \mathcal{D}\mathcal{S}\mathcal{D}\mathcal{S} = (\mathcal{D}\mathcal{S})(\mathcal{D}\mathcal{S}) = II = I \\
+        & \vdots \\
+        & \textbf{Order K}: \; (\mathcal{D})^K(\mathcal{S})^K = (\mathcal{D}\mathcal{S})^K = I^K = I \\
+    \end{align*}
+\end{itemize}
+\subsection{Hough Transforms}
+\textbf{Motivation}: Edge and line detection for industrial machine vision; we are looking for lines in images, but our gradient-based methods may not necessarily work, e.g. due to non-contiguous lines that have ``bubbles" or other discontinuities.  These discontinuities can show up especially for smaller resolution levels. \\ \\
+\textbf{Idea}: The main idea of the \textbf{Hough Transform} is to intelligently map from image/surface space to parameter space for that surface. \\ \\
+\textbf{Some notes on Hough Transforms}:
+\begin{itemize}
+    \item Often used as a subroutine in many other machine vision algorithms.
+    \item Actually generalize beyond edge and line detection, and extend more generally into any domain in which we map a parameterized surface in image space into parameter space in order to estimate parameters.
+\end{itemize}
+\textbf{Example: Hough Transforms with Lines}
+A line/edge in image space can be expressed (in two-dimensions for now, just for building intuition, but this framework is amenable for broader generalizations into higher-dimensional lines/planes): $y = mx + c$.  Note that because $y = mx + c, m = \frac{y-c}{x}$ and $c = y - mx$.  Therefore, this necessitates that:
+\begin{itemize}
+    \item A line in image space maps to a singular point in Hough parameter space.
+    \item A singular point in line space corresponds to a line in Hough parameter space.
+\end{itemize}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=12cm]{figures/hough_lines.png}
+    \caption{Example of finding parameters in Hough Space via the Hough Transform.}
+    \label{fig:my_label}
+\end{figure}
+\section{Photogrammetry}
+Given the length of the mathematical derivations in these sections, we invite you to revisit notes in lectures 17-21 for a more formal treatment of these topics.  In this review, we hope to provide you with strong intuition about different classes of photogrammetric problems and their solutions. \\ \\
+Four important problems in photogrammetry that we covered in this course:
+\begin{itemize}
+    \item \textbf{Absolute Orientation} $3D \longleftrightarrow 3D$, Range Data
+    \item \textbf{Relative Orientation} $2D \longleftrightarrow 2D$, Binocular Stereo
+    \item \textbf{Exterior Orientation} $2D \longleftrightarrow 3D$, Passive Navigation
+    \item \textbf{Intrinsic Orientation} $3D \longleftrightarrow 2D$, Camera Calibration
+\end{itemize}
+Below we discuss each of these problems at a high level.  We will be discussing these problems in greater depth later in this and following lectures.
+\subsection{Absolute Orientation}
+We will start with covering \textbf{absolute orientation}.  This problem asks about the relationship between two or more objects (cameras, points, other sensors) in 3D.  Some examples of this problem include:
+\begin{enumerate}
+    \item Given two 3D sensors, such as lidar (light detection and ranging) sensors, our goal is to find the \textbf{transformation}, or \textbf{pose}, between these two sensors.
+    \item Given one 3D sensor, such as a lidar sensor, and two objects (note that this could be two distinct objects at a single point in time, or a single object at two distinct points in time), our goal is to find the \textbf{transformation}, or \textbf{pose}, between the two objects.
+\end{enumerate}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth/2]{figures/absolute_orientation.png}
+    \caption{General case of absolute orientation: Given the coordinate systems $(\mb{x}_l, \mb{y}_l, \mb{z}_l) \in \Rd{3 \times 3}$ and $(\mb{x}_r, \mb{y}_r, \mb{z}_r) \in \Rd{3 \times 3}$, our goal is to find the transformation, or pose, between them using points measured in each frame of reference $\mb{p}_i$.}
+    \label{fig:my_label}
+\end{figure}
+\subsection{Relative Orientation}
+This problem asks how we can find the 2D $\longleftrightarrow$ 2D relationship between two objects, such as cameras, points, or other sensors.  This type of problem comes up frequently in machine vision, for instance, \textbf{binocular stereo}.  Two high-level applications include:
+\begin{enumerate}
+    \item Given two cameras/images that these cameras take, our goal is to extract 3D information by finding the relationship between two 2D images.
+    \item Given two cameras, our goal is to find the (relative) \textbf{transformation}, or \textbf{pose}, between the two cameras.
+\end{enumerate}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth/3]{figures/binocular_stereo_setup.png}
+    \caption{Binocular stereo system set up.  For this problem, recall that one of our objectives is to measure the translation, or baseline, between the two cameras.}
+    \label{fig:my_label}
+\end{figure}
+\subsection{Exterior Orientation}
+This photogrammetry problem aims from going 2D $\longrightarrow$ 3D.  One common example in robotics (and other field related to machine vision) is \textbf{localization}, in which a robotic agent must find their location/orientation on a map given 2D information from a camera (as well as, possibly, 3D laser scan measurements). \\ \\
+More generally, with \textbf{localization}, our goal is to find where we are and how we are oriented in space given a 2D image and a 3D model of the world.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth/2]{figures/exterior_orientation.png}
+    \caption{Exterior orientation example: Determining position and orientation from a plane using  a camera and landmark observations on the ground.}
+    \label{fig:my_label}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=2\textwidth/3]{figures/ba.png}
+    \caption{Bundle Adjustment (BA) is another problem class that relies on exterior orientation: we seek to find the orientation of cameras using image location of landmarks.  In the general case, we can have any number of $K$ landmark points (``interesting" points in the image) and $N$ cameras that observe the landmarks.}
+    \label{fig:my_label}
+\end{figure}
+\subsection{Interior Orientation}
+This photogrammetry problem aims from going 3D $\longrightarrow$ 2D.  The most common application of this problem is \textbf{camera calibration}.  Camera calibration is crucial for high-precision imaging, as well as solving machine and computer vision problems such as Bundle Adjustment [1].  Finding a principal point is another example of the interior orientation problem.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth/2]{figures/tsai_calibration.png}
+    \caption{Interior orientation seeks to find the transformation between a camera and a calibration object - a task often known as camera calibration.  This can be used, for instance, with Tsai's calibration method (note that this method also relies on exterior orientation).}
+    \label{fig:my_label}
+\end{figure}
+
+\section{Rotation}
+There are a myriad of representations for rotations - some of these representations include:
+\begin{enumerate}
+    \item Axis and angle
+    \item Euler Angles
+    \item Orthonormal Matrices
+    \item Exponential cross product
+    \item Stereography plus bilinear complex map
+    \item Pauli Spin Matrices
+    \item Euler Parameters
+    \item Unit Quaternions
+\end{enumerate}
+We would also like our representations to have the following properties:
+\begin{itemize}
+    \item The ability to rotate vectors - or coordinate systems
+    \item The ability to compose rotations
+    \item Intuitive, non-redundant representation - e.g. rotation matrices have 9 entries but only 3 degrees of freedom
+    \item Computational efficiency
+    \item Interpolate orientations
+    \item Averages over range of rotations
+    \item Derivative with respect to rotations - e.g. for optimization and least squares
+    \item Sampling of rotations - uniform and random (e.g. if we do not have access to closed-form solutions)
+    \item Notion of a space of rotations
+\end{itemize}
+Let us delve into some of these in a little more depth.
+\subsection{Axis and Angle}
+This representation is composed of a vector $\omegahat$ and an angle $\theta$, along with the \textbf{Gibb's vector} that combines these given by $\omegahat\tan\big(\frac{\theta}{2}\big)$, which has magnitude $\tan\big(\frac{\theta}{2}\big)$, providing the system with an additional degree of freedom that is not afforded by unit vectors.  Therefore, we have our full 3 rotational DOF.
+\subsection{Orthonormal Matrices}
+We have studied these previously, but these are the matrices that have the following properties:
+\begin{enumerate}
+    \item $\mb{R}^T\mb{R} = \mb{R}\mb{R}^T = I, \mb{R}^T = \mb{R}^{-1}$ (skew-symmetric)
+    \item $\det|R| = +1$
+    \item $\mb{R} \in$ \textbf{SO}(3) (see notes on groups above) - being a member of this Special Orthogonal group is contingent on satisfying the properties above.
+\end{enumerate}
+\subsection{Quaternions}
+In this section, we will discuss another way to represent rotations: quaternions.
+\subsubsection{Hamilton and Division Algebras}
+Hamilton's insight with quaternions is that these quaternions require a ``4th dimension for the sole purpose of calculating triples".
+Hamilton noted the following insights in order to formalize his quaternion.  Therefore, the complex components $i, j, k$ defined have the following properties:
+\begin{enumerate}
+    \item $i^2 = j^2 = k^2 = ijk = -1$
+    \item From which follows:
+    \begin{enumerate}
+        \item $ij = k$
+        \item $jk = i$
+        \item $ki = j$
+        \item $ji = -k$
+        \item $kj = -i$
+        \item $ik = -j$
+    \end{enumerate}
+    \textbf{Note}: As you can see from these properties, multiplication of the components of these quaternions is not commutative.
+\end{enumerate}
+We largely use the 4-vector quaternion, denoted $\quat{q} = (q, \mb{q}) \in \Rd{4}$.
+\subsection{Properties of 4-Vector Quaternions}
+These properties will be useful for representing vectors and operators such as rotation later:
+\begin{enumerate}
+    \item \textbf{Not commutative}: $\quat{p}\quat{q} \neq \quat{q}\quat{p}$
+    \item \textbf{Associative}: $(\quat{p}\quat{q})\quat{r} = \quat{p}(\quat{q}\quat{r})$
+    \item \textbf{Conjugate}: $(p, \mb{p})^{*} = (p, -\mb{p}) \implies (\quat{p}\quat{q}) = \quatconj{q}\quat{p}$
+    \item \textbf{Dot Product}: $(p, \mb{p}) \cdot (q, \qb) = pq + \mb{p} + \qb$
+    \item \textbf{Norm}: $||\quat{q}||^{2}_2 = \quat{q} \cdot \quat{q}$
+    \item \textbf{Conjugate Multiplication}: $\quat{q}\quatconj{q}$:
+    \begin{align*}
+        \quat{q}\quatconj{q} & = (q, \qb)(q, -\qb) \\
+                          & = (q^2 + \qb \cdot \qb, 0) \\
+                          & = (\quat{q} \cdot \quat{q})\quat{e} &&
+    \end{align*}
+    Where $\quat{e} \delteq (1, 0)$, i.e. it is a quaternion with no vector component.  Conversely, then, we have: $\quatconj{q}\quat{q} = (\quat{q}\quat{q})\quat{e}$.
+    \item \textbf{Multiplicative Inverse}: $\quat{q}^{-1} = \frac{\quatconj{q}}{(\quat{q} \cdot \quat{q}}$ (Except for $\quat{q} = (0, \mb{0})$, which is problematic with other representations anyway.)
+\end{enumerate}
+We can also look at properties with dot products:
+\begin{enumerate}
+    \item $(\quat{p}\quat{q}) \cdot (\quat{p}\quat{q}) = (\quat{p} \cdot \quat{p}) (\quat{q} \cdot \quat{q})$
+    \item $(\quat{p}\quat{q}) \cdot (\quat{p}\quat{r}) = (\quat{p} \cdot \quat{p}) (\quat{q} \cdot \quat{r})$
+    \item $(\quat{p}\quat{q}) \cdot \quat{r} = \quat{p} \cdot (\quat{r} \quatconj{q})$
+\end{enumerate}
+We can also represent these quaternions as vectors.  Note that these quaternions all have zero scalar component.
+\begin{enumerate}
+    \item $\quat{r} = (0, \mb{r})$
+    \item $\quat{r}^{*} = (0, -\mb{r})$
+    \item $\quat{r} \cdot \quat{s} = \mb{r} \cdot \mb{s}$
+    \item $\quat{r}\quat{s} = (-\rb \cdot \mb{s}, \rb \times \mb{s})$
+    \item $(\quat{r}\quat{s}) \cdot \quat{t} = \quat{r} \cdot (\quat{s}\quat{t}) = \mb{[r \;s \;t]}$ (Triple Products)
+    \item $\quat{r}\quat{r} = -(\rb \cdot \rb)\quat{e}$
+\end{enumerate}
+Another \textbf{note}: For representing rotations, we will use unit quaternions.  We can represent scalars and vectors with:
+\begin{itemize}
+    \item \textbf{Representing scalars}: $(s, \mb{0})$
+    \item \textbf{Representing vectors}: $(0, \mb{v})$
+\end{itemize}
+\subsection{Quaternion Rotation Operator}
+To represent a rotation operator using quaternions, we need a quaternion operation that maps from vectors to vectors.  More specifically, we need an operation that maps from 4D, the operation in which quaternions reside, to 3D in order to ensure that we are in the correct for rotation in 3-space.  Therefore, our rotation operator is given:
+\begin{align*}
+    \quat{r}' = R(\quat{r}) & = \quat{q}\quat{r}\quatconj{q} \\
+                            & = (Q\quat{r})\quatconj{q} \\
+                            & = (\bar{Q}^TQ)\quat{r} &&
+\end{align*}
+Where the matrix $\bar{Q}^TQ$ is given by:
+\begin{align*}
+    \bar{Q}^TQ = 
+        \begin{bmatrix}
+            \quat{q} \cdot \quat{q} & 0 & 0 & 0 \\
+            0 & q^{2}_0 + q^{2}_x - q^{2}_y - q^{2}_z & 2(q_xq_y - q_0q_z) & 2(q_xq_z + q_0q_y) \\
+            0 & 2(q_yq_x + q_0q_z) & q^{2}_0 - q^{2}_x + q^{2}_y - q^{2}_z & 2(q_yq_z - q_0q_x) \\
+            0 & 2(q_zq_x - q_0q_y) & 2(q_zq_y + q_0q_z) & q^{2}_0 - q^{2}_x - q^{2}_y + q^{2}_z
+        \end{bmatrix}
+\end{align*}
+A few notes about this matrix:
+\begin{itemize}
+    \item Since the scalar component of $\quat{q}$ is zero, the first row and matrix of this column are sparse, as we can see above.
+    \item If $\quat{q}$ is a unit quaternion, the lower right $3 \times 3$ matrix of $\bar{Q}^TQ$ will be orthonormal (it is an orthonormal rotation matrix).
+\end{itemize}
+Let us look at more properties of this mapping $\quat{r}' = \quat{q}\quat{r}\quatconj{q}$:
+\begin{enumerate}
+    \item \textbf{Scalar Component}: $r' = r(\quat{q} \cdot \quat{q})$
+    \item \textbf{Vector Component}: $\rb' = (q^2 - \qb \cdot \qb)\rb + 2(\qb \cdot \rb)\qb + 2q(\qb \times \rb)$
+    \item \textbf{Operator Preserves Dot Products}: $\quat{r}' \cdot \quat{s}' = \quat{r} \cdot \quat{s} \implies \rb' \cdot \mb{s}' = \rb \cdot \mb{s}$
+    \item \textbf{Operator Preserves Triple Products}: $(\quat{r}' \cdot \quat{s}') \cdot \quat{t}' = (\quat{r} \cdot \quat{s}) \cdot \quat{t} \implies (\rb' \cdot \mb{s}') \mb{t}' = (\rb \cdot \mb{s}) \cdot \mb{t} \implies \mb{[r' \; s' \; t'] = [r \; s \; t]}$
+    \item \textbf{Composition (of rotations!)}: Recall before that we could not easily compose rotations with our other rotation representations.  Because of associativity, however, we can compose rotations simply through quaternion multiplication:
+    \begin{align*}
+        \quat{p}(\quat{q}\quat{r}\quatconj{q})\quatconj{p} = (\quat{p}\quat{q})\quat{r}(\quatconj{q}\quatconj{p}) = (\quat{p}\quat{q})\quat{r}(\quat{p}\quat{q})^{*} &&
+    \end{align*}
+    I.e. if we denote the product of quaternions $\quat{z} \delteq \quat{p}\quat{q}$, then we can write this rotation operator as a single rotation:
+    \begin{align*}
+        \quat{p}(\quat{q}\quat{r}\quatconj{q})\quatconj{p} = (\quat{p}\quat{q})\quat{r}(\quatconj{q}\quatconj{p}) = (\quat{p}\quat{q})\quat{r}(\quat{p}\quat{q})^{*} = \quat{z}\quat{r}\quatconj{z} &&
+    \end{align*}
+    This ability to compose rotations is quite advantageous relative to many of the other representations of rotations we have seen before (orthonormal rotation matrices can achieve this as well).
+\end{enumerate}
+\section{3D Recognition}
+\subsection{Extended Gaussian Image}
+The idea of the extended Gaussian Image: what do points on an object and points on a sphere have in common?  They have the same surface normals.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth/2]{figures/object_mapping.png}
+    \caption{Mapping from object space the Gaussian sphere using correspondences between surface normal vectors.  Recall that this method can be used for tasks such as image recognition and image alignment.}
+    \label{fig:my_label}
+\end{figure}
+\begin{itemize}
+    \item \textbf{Curvature}: $\kappa = \frac{\delta S}{\delta O} = \lim_{\delta \rightarrow 0}\frac{\delta S}{\delta O} = \der{S}{O}$
+    \item \textbf{Density}: $G(\eta) = \frac{\delta O}{\delta S} = \lim_{\delta \rightarrow 0}\frac{\delta O}{\delta S} = \der{O}{S}$
+\end{itemize}
+\subsection{EGI with Solids of Revolution}
+Are there geometric shapes that lend themselves well for an ``intermediate representation" with EGI (not too simple, nor too complex)?  It turns out there are, and these are the \textbf{solids of revolution}.  These include:
+\begin{itemize}
+    \item Cylinders
+    \item Spheres
+    \item Cones
+    \item Hyperboloids of one and two sheets
+\end{itemize}
+How do we compute the EGI of solids of revolution?  We can use \textbf{generators} that produce these objects to help.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=2\textwidth/3]{figures/solids_of_revolution_mapping.png}
+    \caption{EGI representation of a generalized solid of revolution.  Note that bands in the object domain correspond to bands in the sphere domain.}
+    \label{fig:my_label}
+\end{figure}
+As we can see from the figure, the bands ``map" into each other!  These solids of revolution are symmetric in both the object and transform space.  Let's look at constructing infinitesimal areas so we can then compute Gaussian curvature $\kappa$ and density $G$:
+\begin{itemize}
+    \item \textbf{Area of object band}: $\delta O = 2\pi r\delta s$
+    \item \textbf{Area of sphere band}: $\delta S = 2\pi \cos(\eta) \delta n$
+\end{itemize}
+Then we can compute the curvature as:
+\begin{align*}
+    & \kappa = \frac{\delta S}{\delta O} = \frac{2\pi\cos(\eta)\delta \eta}{2\pi r\delta s} = \frac{\cos(\eta)\delta \eta}{r\delta s} \\
+    & G = \frac{1}{\kappa} = \frac{\delta O}{\delta S} = \sec(\eta)\frac{\delta s}{\delta \eta} &&
+\end{align*}
+Then in the limit of $\delta \rightarrow 0$, our curvature and density become:
+\begin{align*}
+    & \kappa = \lim_{\delta \rightarrow O}\frac{\delta S}{\delta O} = \frac{\cos\eta}{r}\der{\eta}{s} \;\; \text{(Where} \; \der{\eta}{s} \; \text{is the rate of change of surface normal direction along the arc, i.e. curvature)} \\
+    & G = \lim_{\delta \rightarrow 0}\frac{\delta O}{\delta S} = r\sec\eta\der{s}{\eta} \; \text{(Where} \; \der{s}{\eta} \;\; \text{is the rate of change of the arc length w.r.t. angle)} \\
+    & \kappa = \frac{\cos\eta}{r}\kappa &&
+\end{align*}Recall that we covered this for the following 
+\subsection{Sampling From Spheres Using Regular and Semi-Regular Polyhedra}
+More efficient to sample rotations from shapes that form a ``tighter fit" around the sphere - for instance: \textbf{polyhedra}!  Some polyhedra we can use:
+\begin{itemize}
+    \item \textbf{Tetrahedra} (4 faces)
+    \item \textbf{Hexahedra} (6 faces)
+    \item \textbf{Octahedra} (8 faces)
+    \item \textbf{Dodecahedra} (12 faces)
+    \item \textbf{Icosahedra} (20 faces)
+\end{itemize}
+These polyhedra are also known as the \textbf{regular solids}. \\ \\
+As we did for the cube, we can do the same for polyhedra: to sample from the sphere, we can sample from the polyhedra, and then \textbf{project} onto the point on the sphere that intersects the line from the origin to the sampled point on the polyhedra.  From this, we get \textbf{great circles} from the edges of these polyhedra on the sphere when we project. \\ \\
+\textbf{Fun fact}: Soccer balls have 32 faces!  More related to geometry: soccer balls are part of a group of \textbf{semi-regular} solids, specifically an \textbf{icosadodecahedron}.
+\subsection{Desired Properties of Dividing Up the Sphere/Tessellations}
+To build an optimal representation, we need to understand what our desired optimal properties of our tessellations will be:
+\begin{enumerate}
+    \item \textbf{Equal areas of cells/facets}
+    \item \textbf{Equal shapes of cells/facets}
+    \item \textbf{``Rounded" shapes of cells/facets}
+    \item \textbf{Regular pattern}
+    \item \textbf{Allows for easy ``binning"}
+    \item \textbf{Alignment of rotation}
+\end{enumerate}
+\textbf{Platonic} and \textbf{Archimedean} solids are the representations we will use for these direction histograms.
+\section{References}
+\begin{enumerate}
+    \item Groups, https://en.wikipedia.org/wiki/Group\_(mathematics)
+\end{enumerate}
+\end{document}
+

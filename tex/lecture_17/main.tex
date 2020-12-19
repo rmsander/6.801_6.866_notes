@@ -1,0 +1,463 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[left=1.0cm,right=1.0cm, top=1.5cm, bottom=1.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{graphics}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{listings}
+\usepackage{mathtools}
+\usepackage{hyperref}
+
+% Align all equations left:
+\documentclass[fleqn]{article} 
+
+
+% Sets and quantifiers
+\newcommand{\R}{\mathbb{R}\;}
+\newcommand{\Q}{\mathbb{Q}\;}
+\newcommand{\N}{\mathbb{N}\;}
+\newcommand{\nin}{n \in \mathbb{N}}
+\newcommand{\fa}{\;\forall\;}
+\newcommand{\ex}{\;\exists\;}
+\newcommand{\nex}{\;\nexists\;}
+
+% Multidimensional sets
+\newcommand{\Rd}[1]{\mathbb{R}^{#1}}
+\newcommand{\Qd}[1]{\mathbb{Q}^{#1}}
+\newcommand{\Nd}[1]{\mathbb{N}^{#1}}
+
+% Sequences
+\newcommand{\seq}[1]{\{#1\}}
+\newcommand{\seqx}{\seq{x_n}}
+\newcommand{\seqy}{\seq{y_n}}
+\newcommand{\seqs}{\seq{s_n}}
+
+% Subsequences
+\newcommand{\seqxni}{\seq{x_{n_i}}}
+\newcommand{\seqyni}{\seq{y_{n_i}}}
+\newcommand{\xni}{x_{n_i}}
+\newcommand{\yni}{y_{n_i}}
+\newcommand{\xnij}{x_{n_{i_j}}}
+\newcommand{\ynij}{y_{n_{i_j}}}
+\newcommand{\seqxnij}{\seq{x_{n_{i_j}}}}
+\newcommand{\seqynij}{\seq{y_{n_{i_j}}}}
+
+% Such that
+\newcommand{\st}{\;\text{such that}\;}
+
+% Vectors
+\newcommand{\xhat}{\hat{\mathbf{x}}}
+\newcommand{\yhat}{\hat{\mathbf{y}}}
+\newcommand{\zhat}{\hat{\mathbf{z}}}
+\newcommand{\nhat}{\hat{\mathbf{n}}}
+\newcommand{\shat}{\hat{\mathbf{s}}}
+\newcommand{\rhat}{\hat{\mathbf{r}}}
+\newcommand{\vhat}{\hat{\mathbf{v}}}
+\newcommand{\hatvector}[1]{\hat{\mathbf{1}}}
+\newcommand{\mb}[1]{\mathbf{#1}}
+\newcommand{\omegahat}{\boldsymbol{\hat{\mathbf{\omega}}}}
+
+% Bold vectors
+\newcommand{\xb}{\mathbf{x}}
+\newcommand{\yb}{\mathbf{y}}
+\newcommand{\zb}{\mathbf{z}}
+\newcommand{\rb}{\mathbf{r}}
+
+
+% Matrices
+\newcommand{\I}[1]{\mb{I}_{#1}}
+
+% Derivatives
+\newcommand{\der}[2]{\frac{d #1}{d #2}}
+\newcommand{\dder}[2]{\frac{d^2 #1}{d #2^2}}
+\newcommand{\derop}[1]{\frac{d}{d #1}}
+\newcommand{\dderop}[1]{\frac{d^2}{d #1^2}}
+
+% Partial Derivatives
+\newcommand{\pd}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\pdd}[2]{\frac{\partial^2 #1}{\partial #2^2}}
+\newcommand{\pdop}[1]{\frac{\partial}{\partial #1}}
+\newcommand{\pddop}[1]{\frac{\partial^2}{\partial #1^2}}
+\newcommand{\pddmixed}[3]{\frac{\partial^2 #1}{\partial #2\partial #3}}
+\newcommand{\pddmixedop}[2]{\frac{\partial^2}{\partial #1\partial #2}}
+
+% ith
+\newcommand{\ith}{\text{i}^{\text{th}}}
+
+% lim, limsup, liminf
+\newcommand{\limn}{\text{lim}_{n \rightarrow \infty}}
+\newcommand{\limi}{\text{lim}_{i \rightarrow \infty}}
+\newcommand{\limj}{\text{lim}_{j \rightarrow \infty}}
+\newcommand{\limsupn}{\limsup_{n \rightarrow \infty}}
+\newcommand{\liminfn}{\liminf_{n \rightarrow \infty}}
+
+% Parallel symbols
+\newcommand{\parallelsum}{\mathbin{\!/\mkern-5mu/\!}}
+
+
+% Custom for absolute value
+\delimitershortfall-1sp
+\newcommand\abs[1]{\left|#1\right|}
+
+% Reference and hyperlink
+\newcommand{\source}[1]{\href{#1}{(\textbf{Source})}}
+
+% Use for define equals
+\newcommand{\delteq}{\overset{\Delta}{=}}
+
+% For nicer fonts
+\usepackage{eucal}
+
+% For Dreamer Paper
+\newcommand{\stau}{s_{\tau}}
+\newcommand{\expect}[1]{\mathbb{E}_{#1}}
+\newcommand{\indep}{\perp \!\!\! \perp}
+
+
+\title{6.801/6.866: Machine Vision, Lecture 17}
+\author{Professor Berthold Horn, Ryan Sander, Tadayuki Yoshitake \\
+        MIT Department of Electrical Engineering and Computer Science \\ 
+        Fall 2020}
+\date{}
+
+\begin{document}
+
+\maketitle
+These lecture summaries are designed to be a review of the lecture.  Though I do my best to include all main topics from the lecture, the lectures will have more elaborated explanations than these notes.  Therefore, if you're looking for the most rigorous review and treatment of these topics, we encourage you to rewatch the lecture videos.  With that said, we hope these summaries are beneficial for your learning.  If you have any feedback for these lecture summaries, please submit it \textbf{\href{https://forms.gle/itCUtP4AubAbtwQT9}{here}}.
+\section{Lecture 17: Photogrammetry, Orientation, Axes of Inertia, Symmetry, Absolute, Relative, Interior, and Exterior Orientation}
+This lecture marks a transition in what we have covered so far in the course from lower-level machine vision to higher-level problems, beginning with photogrammetry. \\ \\
+\textbf{Photogrammetry}: ``Measurements from Imagery", for example, map-making.
+\subsection{Photogrammetry Problems: An Overview}
+Four important problems in photogrammetry that we will cover are:
+\begin{itemize}
+    \item \textbf{Absolute Orientation} $3D \longleftrightarrow 3D$
+    \item \textbf{Relative Orientation} $2D \longleftrightarrow 2D$
+    \item \textbf{Exterior Orientation} $2D \longleftrightarrow 3D$
+    \item \textbf{Intrinsic Orientation} $3D \longleftrightarrow 2D$
+\end{itemize}
+Below we discuss each of these problems at a high level.  We will be discussing these problems in greater depth later in this and following lectures.
+\subsubsection{Absolute Orientation}
+We will start with covering \textbf{absolute orientation}.  This problem asks about the relationship between two or more objects (cameras, points, other sensors) in 3D.  Some examples of this problem include:
+\begin{enumerate}
+    \item Given two 3D sensors, such as lidar (light detection and ranging) sensors, our goal is to find the \textbf{transformation}, or \textbf{pose}, between these two sensors.
+    \item Given one 3D sensor, such as a lidar sensor, and two objects (note that this could be two distinct objects at a single point in time, or a single object at two distinct points in time), our goal is to find the \textbf{transformation}, or \textbf{pose}, between the two objects.
+\end{enumerate}
+\subsubsection{Relative Orientation}
+This problem asks how we can find the 2D $\longleftrightarrow$ 2D relationship between two objects, such as cameras, points, or other sensors.  This type of problem comes up frequently in machine vision, for instance, \textbf{binocular stereo}.  Two high-level applications include:
+\begin{enumerate}
+    \item Given two cameras/images that these cameras take, our goal is to extract 3D information by finding the relationship between two 2D images.
+    \item Given two cameras, our goal is to find the (relative) \textbf{transformation}, or \textbf{pose}, between the two cameras.
+\end{enumerate}
+\subsubsection{Exterior Orientation}
+This photogrammetry problem aims from going 2D $\longrightarrow$ 3D.  One common example in robotics (and other field related to machine vision) is \textbf{localization}, in which a robotic agent must find their location/orientation on a map given 2D information from a camera (as well as, possibly, 3D laser scan measurements). \\ \\
+More generally, with \textbf{localization}, our goal is to find where we are and how we are oriented in space given a 2D image and a 3D model of the world.
+\subsubsection{Interior Orientation}
+This photogrammetry problem aims from going 3D $\longrightarrow$ 2D.  The most common application of this problem is \textbf{camera calibration}.  Camera calibration is crucial for high-precision imaging, as well as solving machine and computer vision problems such as Bundle Adjustment [1].  Finding a principal point is another example of the interior orientation problem.
+\subsection{Absolute Orientation}
+We will begin our in-depth discussion and analysis of these four problems with \textbf{absolute orientation}.  Let us start by introducing binocular stereo.
+\subsubsection{Binocular Stereopsis}
+To motivate binocular stereo, we will start with a fun fact: Humans have $\approx$ 12 depth cues.  One of these is \textbf{binocular stereopsis}, or \textbf{binocular stereo} (binocular $\approx$ two sensors). \\ \\
+Binocular stereo is given by the figure below:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{figures/binocular_stereo.png}
+    \caption{The problem of binocular stereo.  Having two 2D sensors enables us to recover 3D structure (specifically, depth) from the scene we image.  A few key terms/technicalities to note here: (i) The origin is set to be halfway between the two cameras, (ii) The distance between the cameras is called the \textbf{baseline}, and (iii) \textbf{binocular disparity} refers to the phenomenon of having each camera generate a different image.  Finally, note that in practice, it is almost impossible to line up these cameras exactly.}
+    \label{fig:my_label}
+\end{figure}
+\textbf{Goal}: Calculate $X$ and $Z$.  This would not be possible with only monocular stereo (monocular $\approx$ one sensor).  Using similar triangles, we have:
+\begin{align*}
+    & \frac{X - \frac{b}{2}}{Z} = \frac{x_l}{f} \\
+    & \frac{X + \frac{b}{2}}{Z} = \frac{x_r}{f} \\
+    & \longrightarrow \frac{x_r - x_l}{f} = \frac{b}{z} \implies z = \frac{bf}{x_r - x_l} &&
+\end{align*}
+Where the \textbf{binocular disparity} is given by $(x_r - x_l)$.  Solving this system of equations becomes:
+\begin{align*}
+    X = b\frac{x_r + x_l}{x_r - x_l}, \; Z = bf\frac{1}{x_r-x_l} &&
+\end{align*}
+Note that, more generally, we can calculate in the same way as well!  From these equations, we can see that:
+\begin{itemize}
+    \item Increasing the baseline increases $X$ and $Z$ (all things equal)
+    \item Increasing the focal length increases $Z$.
+\end{itemize}
+But it is important to also be mindful of system constraints that determine what range, or the exact value, of what these variables can be.  For instance, if we have a self-driving car, we cannot simply have the baseline distance between our two cameras be 100 meters, because this would require mounting the cameras 100 meters apart.
+\subsubsection{General Case}
+All of the methods we have looked at so far assume we have already found ``interesting points", for instance, through feature detection algorithms (also known as ``descriptors") such as SIFT, SURF, ORB, or FAST+BRIEF.  In the general case, absolute orientation involves having a point in space that is measured by two separate frames of reference (could be a camera, or another sensor), and the goal is to find the \textbf{closest approach} between coordinate systems, a.k.a. the shortest line that connects them.  We will arbitrarily assign the 3 x 3 matrix $(\mb{x}_l, \mb{y}_l, \mb{z}_l) \in \Rd{3 \times 3}$ to refer to a ``lefthanded" coordinate system, and 3 x 3 matrix $(\mb{x}_r, \mb{y}_r, \mb{z}_r) \in \Rd{3 \times 3}$ to refer to a ``righthanded" coordinate system, where our goal is to find the transformation between these two coordinate systems.  The diagram below illustrates this:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth/2]{figures/absolute_orientation.png}
+    \caption{General case of absolute orientation: Given the coordinate systems $(\mb{x}_l, \mb{y}_l, \mb{z}_l) \in \Rd{3 \times 3}$ and $(\mb{x}_r, \mb{y}_r, \mb{z}_r) \in \Rd{3 \times 3}$, our goal is to find the transformation, or pose, between them using points measured in each frame of reference $\mb{p}_i$.}
+    \label{fig:my_label}
+\end{figure}
+Here, we also note the following, as they are important for establishing that we are not limited just to finding the transformation between two camera sensors:
+\begin{itemize}
+    \item ``Two cameras" does not just mean having two distinct cameras (known as ``two-view geometry"); this could also refer to having a single camera with images taken at two distinct points in time (known as ``Visual Odometry" or ``VO").
+    \item Note also that we could have the same scenario described above when introducing this problem, which is that we have either one camera and multiple objects, or multiple objects and one cameras.  Hence, there is a sense of duality here with solving these problems:
+    \begin{enumerate}
+        \item One camera, two objects?
+        \item Two cameras, one object (Two-View Geometry)?
+        \item Camera moving (VO)?
+        \item Object moving?
+    \end{enumerate}
+\end{itemize}
+To better understand this problem, it is first important to precisely define the \textbf{transformation} or \textbf{pose} (translation + rotation) between the two cameras.
+\subsubsection{Transformations and Poses}
+Recall that in 3D, we have 6 degrees of freedom (DOF), of which \textbf{3} are for \textbf{translation}, and \textbf{3} are for \textbf{rotation}.  In the general case of a $d$-dimensional system, we will have $d$ \textbf{translational} degrees of freedom, and $\frac{d(d-1)}{2}$ \textbf{rotational} degrees of freedom (which, interestingly, is also equal to $\sum_{i=0}^{d-1}i$.  Therefore, for a $d$-dimensional system, the total degrees of freedom from translation and rotation:
+\begin{align*}
+    \textbf{DOF}_{\text{T, R}}(d) = d + \frac{d(d-1)}{2} &&
+\end{align*}
+What form does our transformation take?  Since we are considering these transformations as a transformation determined by translation and rotation, then we can write our transformation as such:
+\begin{align*}
+    \mb{r}_{r} = R(\mb{r}_l) + \mb{r}_0 &&
+\end{align*}
+Where:
+\begin{itemize}
+    \item $R$ describes the rotation.  Note that this is not necessarily always an orthonormal rotation matrix, and we have more generally parameterized it as a function.
+    \item $\mb{r}_0 \in \Rd{3}$ describes the translation.
+    \item The translation vector and the rotation function comprise our unknowns.
+\end{itemize}
+When $R$ is described by an orthonormal rotation matrix $\mb{R}$, then we require this matrix to have the following properties:
+\begin{enumerate}
+    \item $\mb{R}^T\mb{R} = \mb{R}\mb{R}^T = I$, i.e. $\mb{R}^T = \mb{R}^{-1}$
+    \item $\mb{R}$ is skew-symmetric, so we end up having 3 unknowns instead of 9.  Skew-symmetric matrices take the form:
+    \begin{align*}
+        \mb{R} = \begin{bmatrix}a & b & c \\
+                                -b & d & e \\
+                                -c & -e & f \\
+                 \end{bmatrix} \in \Rd{3 \times 3} &&
+    \end{align*}
+    \item $\det|R| = +1$ (This constraint is needed to eliminate reflections.)
+    \item $\mb{R} \in \textbf{SO}(3)$ (Known as the Special Orthogonal group).  One note about this: optimization over the Special Orthogonal group (e.g. for estimating optimal rotation matrices) can be difficult, and one way that this can be done is via Singular Value Decomposition (SVD) from this group/manifold onto some Euclidean space $\Rd{d}$ where $d < 3$. 
+\end{enumerate}
+Supposing we have clusters of points from the left and righthand side, and we want to align clusters of points as closely as possible.  With a mechanical spring analog, we have the force (given by Hooke's law), and consequently the energy:
+\begin{align}
+    & F = Ke \\
+    & E = \int F = \frac{1}{2}ke^2 &&
+\end{align}
+Where $e$ (the ``error") is the distance between the measured point in the two frames of reference.  Therefore, the solution to this problem involves ``minimizing the energy" of the system.  Interestingly, energy minimization is analogous to least squares regression. \\ \\
+Using the definition of our transformation, our error for the $\ith$ point is given by:
+\begin{align*}
+    \mb{e}_i = (R(\mb{r}_{l,i}) + \mb{r}_0) - \mb{r}_{r,i} &&
+\end{align*}
+Then our objective for energy minimization and least squares regression is given by:
+\begin{align*}
+    \min_{R, \mb{r}_0}\sum_{i=1}^{N}||r_i||^{2}_2 &&
+\end{align*}
+This is another instance of solving what is known as the ``inverse" problem.  The ``forward" and ``inverse" problems are given by:
+\begin{itemize}
+    \item \textbf{Forward Problem}: $R, \mb{r}_0 \longrightarrow \{\mb{r}_{r,i}, \mb{r}_{l,i}\}_{i=1}^{N}$ \; \textbf{(Find correspondences)}
+    \item \textbf{Inverse Problem}: $\mb{r}_{l,i}\}_{i=1}^{N} \longrightarrow R, \mb{r}_0$ \; \textbf{(Find transformation)}
+\end{itemize}
+Now that we have framed our optimization problem, can we decouple the optimization over translation and rotation?  It turns out we can by setting an initial reference point.  For this, we consider two methods. \\ \\
+\subsubsection{Procedure - ``Method 1"}:
+\begin{enumerate}
+    \item Pick a measured point from one set of measured points as the origin.
+    \item Take a second point, look at the distance between them, and compute the unit vector.  Take unit vector as one axis of the system:
+    \begin{align*}
+        \mb{x}_l = \mb{r}_{l,2} - \mb{r}_{l,1} \longrightarrow \mb{\hat{x}}_l = \frac{\mb{x}_l}{||\mb{x}_l||_2} &&
+    \end{align*}
+    \item Take a third vector, and compute the component of the vector that is equal to the vector from point 1 to point 2.  Now, points 1, 2, and 3 from $(x,y)$ plane, and the removed component from point 3 forms the y-component of the coordinate system.
+    \item We can compute the $\mb{y}$ vector:
+    \begin{align*}
+        \mb{y} = (\mb{r}_{l,3} - \mb{r}_{l,1}) - (\mb{r}_{l,3}-\mb{r}_{l,1}) \cdot \mb{\hat{x}}_l &&
+    \end{align*}
+    From here, we then take the unit vector $\mb{y}_l = \frac{\mb{y}_l}{||\mb{y}_l||_2}$.  From this, we know $\mb{\hat{x}}_l \cdot \mb{\hat{y}}_l = 0$.
+    \item Obtain the $z$-axis by the cross product:
+    \begin{align*}
+        \mb{\hat{z}}_l = \mb{\hat{x}}_l \times \mb{\hat{y}}_l &&
+    \end{align*}
+    (Then we also have that $\mb{\hat{z}}_l \cdot \mb{\hat{y}}_l = 0$ and $\mb{\hat{z}}_l \cdot \mb{\hat{x}}_l = 0$.  This then defines a coordinate system $(\mb{\hat{x}}_l, \mb{\hat{y}}_l, \mb{\hat{z}}_l)$ for the left camera/point of reference.  Note that this only requires 3 points!
+    \item To calculate this for the righthand frame of reference, we can repeat steps 1-5 for the righthand side to obtain the coordinate system $(\mb{\hat{x}}_r, \mb{\hat{y}}_r, \mb{\hat{z}}_r)$.
+\end{enumerate}
+From here, all we need to do is find the transformation (rotation, since we have artificially set the origin) between the coordinate system $(\mb{\hat{x}}_r, \mb{\hat{y}}_r, \mb{\hat{z}}_r)$ and $(\mb{\hat{x}}_l, \mb{\hat{y}}_l, \mb{\hat{z}}_l)$.  Mathematically, we have the following equations:
+\begin{align*}
+    & \mb{\hat{x}}_r = R(\mb{\hat{x}}_l) \\
+    & \mb{\hat{y}}_r = R(\mb{\hat{y}}_l) \\
+    & \mb{\hat{z}}_r = R(\mb{\hat{z}}_l) &&
+\end{align*}
+We can condense these equations into a matrix equation, and subsequently a matrix inversion problem:
+\begin{align*}
+    \begin{bmatrix}
+        \xhat_r & \yhat_r & \zhat_r
+    \end{bmatrix} = R\begin{bmatrix}
+                        \xhat_l & \yhat_l & \zhat_l
+                      \end{bmatrix} &&
+\end{align*}
+Then we can solve this as a matrix inversion problem:
+\begin{align*}
+    R = \begin{bmatrix}
+            \xhat_r & \yhat_r & \zhat_r
+        \end{bmatrix}
+        \begin{bmatrix}
+            \xhat_l & \yhat_l & \zhat_l
+        \end{bmatrix}^{-1} &&
+\end{align*}
+A few notes on this system:
+\begin{itemize}
+    \item Is this system invertible?  Yes, because by construction these vectors are orthogonal to one another. 
+    \item 3 vector equalities $\longrightarrow$ 9 scalar equalities
+    \item Are we using all of these constraints?
+    \begin{itemize}
+        \item For point 1, we use all 3 constraints.
+        \item For point 2, we use 2 constraints.
+        \item For point 3, we use 1 constraint.
+    \end{itemize}
+    It turns out this system ``favors" points over one another (usually sub-optimal).
+    \item This is a somewhat ad hoc method - this could be useful for deriving a fast approximation or initial estimate, but this method is definitely suboptimal.
+\end{itemize}
+\subsubsection{Procedure - ``Method 2"}
+For this algorithm, recall our prior work with \textbf{blob analysis}.  We can look at axes of inertia (see the figure below), where the inertia of the ``blob" is given by:
+\begin{align*}
+    I = \iint_{O}r^2dm &&
+\end{align*}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth/3]{figures/2d_inertia.png}
+    \caption{Computing the axes of inertia in a 2D blob.}
+    \label{fig:my_label}
+\end{figure}
+How do we generalize this from 2D to 3D? How do we figure out these axes of inertia (see the example below)?
+\begin{align*}
+    I = \iiint_{O}r^2dm &&
+\end{align*}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth/2]{figures/3d_inertia.png}
+    \caption{Computing the axes of inertia for a 3D blob - we can generalize the notion of inertia from 2D to 3D.}
+    \label{fig:my_label}
+\end{figure}
+One trick we can use here is using the \textbf{centroid} as the origin. \\ \\
+Using the triangle figure below:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth/4]{figures/r_prime.png}
+    \caption{Triangle for computing our $\mb{r}'$ vector.}
+    \label{fig:my_label}
+\end{figure}
+Then we can compute the hypotenuse $\mb{r}'$ vector in the $\omegahat$ direction:
+\begin{align*}
+    \mb{r}' = (\mb{r} \cdot \omegahat)\omegahat &&
+\end{align*}
+Then:
+\begin{align*}
+    \rb - \rb' = \rb - (\rb \cdot \omegahat)\omegahat &&
+\end{align*}
+And we can compute $\rb^2$:
+\begin{align*}
+    \rb^2 & = (\rb - \rb') \cdot (\rb - \rb') \\
+            & = \rb \cdot \rb - 2(\rb \cdot \omegahat)^2 + (\rb \cdot \omegahat)^2(\omegahat \cdot \omegahat) \\
+            & = \rb \cdot \rb - 2(\rb \cdot \omegahat)^2 + (\rb \cdot \omegahat)^2 \\
+            & = \rb \cdot \rb - (\rb \cdot \mb{\hat{\omega}})^2 &&
+\end{align*}
+Substituting this into our inertia expression:
+\begin{align*}
+    I = \iiint_{O}(\rb \cdot \rb - (\rb \cdot \omegahat)^2)dm &&
+\end{align*}
+Let us simplify some of these formulas:
+\begin{enumerate}
+    \item $(\rb \cdot \omegahat)^2$:
+    \begin{align*}
+        (\rb \cdot \omegahat)^2 & = (\rb \cdot \omegahat)(\rb \cdot \omegahat) \\
+                                  & = (\omegahat \cdot \rb)(\rb \omegahat) \\
+                                  & = \omegahat^T(\rb\rb^T)\omegahat &&
+    \end{align*}
+    Where $\rb \rb^T \in \Rd{3 \times 3}$ is the dyadic product.
+    \item $(\rb \cdot \rb)$:
+    \begin{align*}
+        (\rb \cdot \rb) & = (\rb \cdot \rb)(\omegahat \cdot \omegahat) \\
+                            & = (\rb \cdot \rb)\omegahat^T\I{3}\omegahat &&
+    \end{align*}
+    Where $\I{3}$ is the $3 \times 3$ identity matrix.
+\end{enumerate}
+Therefore, the inertia matrix becomes:
+\begin{align*}
+    I & = \iiint_{O}(\rb \cdot \rb - (\rb \cdot \omegahat)^2)dm \\
+      & = \iiint_{O}(\rb \cdot \rb - (\rb \cdot \omegahat)^2)dm \\
+      & = \iiint_{O}(\rb \cdot \rb)\omegahat^T\I{3}\omegahat - \omegahat^T(\rb\rb^T)\omegahat)dm \\
+      & = \omegahat^T\Big(\iiint_{O}((\rb \cdot \rb)\I{3} - \rb\rb^T)dm\Big)\omegahat &&
+\end{align*}
+From this expression, we want to find the extrema.  We can solve for the extrema by solving for the minimium and maximums of this objective:
+\begin{enumerate}
+    \item \textbf{Minimum}: $\min_{\omegahat}\omegahat^TA\omegahat$
+    \item \textbf{Maximum}: $\max_{\omegahat}\omegahat^TA\omegahat$
+\end{enumerate}
+Where $A \delteq \iiint_{O}((\rb \cdot \rb)\I{3} - \rb\rb^T)dm$.  This matrix is known as the ``inertia matrix". \\ \\
+How can we solve this problem?  We can do so by looking for the \textbf{eigenvectors} of the inertia matrix:
+\begin{itemize}
+    \item For minimization, the \textbf{eigenvector} corresponding to the \textbf{smallest eigenvalue} of the inertia matrix corresponds to our solution.
+    \item For maximization, the \textbf{eigenvector} corresponding to the \textbf{largest eigenvalue} of the inertia matrix corresponds to our solution.
+    \item For finding the saddle point, our solution will be the \textbf{eigenvector} corresponding to the \textbf{middle eigenvalue}.
+\end{itemize}
+Since this is a polynomial system of degree 3, we have a closed-form solution!  These three eigenvectors will form a coordinate system for the lefthand system.  \\ \\
+Taking a step back, let us look at what we have done so far.  We have taken the cloud of points from the left frame of reference/coordinate system and have estimated a coordinate system for it by finding an \textbf{eigenbasis} from solving these optimization problems over the objective $\omegahat^TA\omegahat$.  With this, we can then repeat the same process for the righthand system. \\ \\
+\textbf{Why does this approach work better?}
+\begin{itemize}
+    \item We use all the data in both point clouds of 3D data.
+    \item We weight all the points equally, unlike in teh previous case.
+\end{itemize}
+\textbf{But why is this approach not used in practice?}
+\begin{itemize}
+    \item This approach fails under symmetry - i.e. of the inertia is hte same in all directions (for shapes such as spheres, polyhedra, octahedra, cube, etc.)
+    \item ``Double-Edged Sword" - using correspondences can provide you with more information, but can run into issues with symmetry.
+\end{itemize}
+\subsubsection{Computing Rotations}
+Next, we will dive into how we can compute and find rotations.  To do this, let us first go over the following properties of rotations:
+\begin{enumerate}
+    \item \textbf{Rotations preserve dot products}: $R(\mb{a}) \cdot R(\mb{b}) = \mb{a} \cdot \mb{b}$
+    \item \textbf{Rotations preserve length}: $R(\mb{a}) \cdot R(\mb{a}) = \mb{a} \cdot \mb{a}$
+    \item \textbf{Rotations preserve angles}: $|R(\mb{a}) \times R(\mb{b})| = |\mb{a} \times \mb{b}|$
+    \item \textbf{Rotations preserve triple products}: $[R(\mb{a}) \; R(\mb{b}) \; R(\mb{c})] = [\mb{a} \; \mb{b} \; \mb{c}]$ \;\;(Where the triple product $[\mb{a} \; \mb{b} \; \mb{c}] = \mb{a} \cdot (\mb{b} \times \mb{c})$).
+\end{enumerate}
+Using these properties, we are now ready to set this up as least squares, using correspondences between points measured between two coordinate systems: \\ \\
+\textbf{Transform}: $\mb{r}_r = R(\mb{r}_l) + \mb{r}_0$ \\ \\
+\textbf{Error}: $\mb{e}_i = \mb{r}_{r,i} - R(\mb{r}_{l,i}) - \mb{r}_0$ \\ \\
+And we can write our \textbf{optimization} as one that minimizes this error term:
+\begin{align*}
+    R^*, \mb{r}^{*}_0\sum_{i=1}^{N}||\mb{e}_i||^2 &&
+\end{align*}
+Next, we can compute the centroids of the left and right systems:
+\begin{align*}
+    \bar{\rb}_l = \frac{1}{N}\sum_{i=1}^{N}\rb_{l,i}, \; \bar{\rb}_r = \frac{1}{N}\sum_{i=1}^{N}\rb_{r,i} &&
+\end{align*}
+We can use these computed centroids from points so we do not have to worry about translation.  A new feature of this system is that the new centroid is at the origin.  To prove this, let us ``de-mean" (subtract the mean) of our coordinates in the left and righthand coordinate systems:
+\begin{align*}
+    \rb'_{l,i} = \rb_{l,i} - \bar{\rb}_{l}, \; \rb'_{r,i} = \rb_{r,i} - \bar{\rb}_{r} &&
+\end{align*}
+Because we subtract the mean, the mean of these new points now becomes zero:
+\begin{align*}
+    \hat{\rb}'_l = \frac{1}{N}\sum_{i=1}^{N}\rb'_{l,i} = 0 = \hat{\rb}'_r = \frac{1}{N}\sum_{i=1}^{N}\rb'_{r,i} &&
+\end{align*}
+Substituting this back into the objective, we can solve for an optimal rotation $R$:
+\begin{align*}
+    R^* & = \min_{R, \rb'_{0}}\sum_{i=1}^{N}||\rb'_{i} - R(\rb'_{l,i} - \rb'_{0})||^{2}_2 \\
+        & = \min_{R, \rb'_{0}}\sum_{i=1}^{N}||\rb'_{i} - R(\rb'_{l,i})||^{2}_2 - 2\rb'_{0}\sum_{i=1}^{N}(\rb'_{r,i} - R(\rb_{l,i})) + N||\rb'_{0}||^{2}_2 \\
+        & = \min_{R, \rb'_{0}}\sum_{i=1}^{N}||\rb'_{i} - R(\rb'_{l,i})||^{2}_2 + N||\rb'_{0}||^{2}_2 &&
+\end{align*}
+Since only the last term depends on $\rb'_{0}$, we can set $\rb'_{0}$ to minimize.  Moreover, we can solve for the true $\rb_{0}$ by back-solving later:
+\begin{align*}
+    \rb_{0} = \bar{\rb}_{r} - R(\bar{\rb}_{l}) &&
+\end{align*}
+Intuitively, this makes sense: the translation vector between these two coordinate systems/point clouds is the difference between the centroid of the right point cloud and the centroid of the left point cloud after it has been rotated. \\ \\
+Since we now have that $\rb'_{0} = \mb{0} \in \Rd{3}$, we can write our error term as:
+\begin{align*}
+    \mb{e}_i = \rb'_{r,i} - R(\rb'_{l,i}) &&
+\end{align*}
+Which in turn allows us to write the objective as:
+\begin{align*}
+    \min\sum_{i=1}^{N}||\mb{e}_i||^{2}_2 & = \sum_{i=1}^{N}(\rb'_{r,i} - R(\rb'_{l,i})(\rb'_{r,i}-R(\rb'_{l,i})) \\
+    & = \sum_{i=1}^{N}||\rb'_{r,i}||^{2}_2 - \sum_{i=1}^{N}(\rb'_{r,i}-R(\rb'_{l,i})) - \sum_{i=1}^{N}||\rb'_{l,i}||^{2}_2 &&
+\end{align*}
+Where the first of these terms is fixed, the second of these terms is to be maximized (since there is a negative sign in front of this term, this thereby minimizes the objective), and the third of these terms is fixed.  Therefore, our rotation problem can be simplified to:
+\begin{align}
+    \min\sum_{i=1}^{N}||\mb{e}_i||^{2}_2 = -2\sum_{i=1}^{N}(\rb'_{r,i} - R(\rb'_{l,i})) &&
+\end{align}
+To solve this objective, we could take the derivative $\der{}{R}(\cdot)$ of the objective, but constraints make this optimization problem difficult to solve (note that we are not optimizing over a Euclidean search space - rather, we are optimizing over a generalized transformation).  We will look into a different representation of $R$ for next class to find solutions to this problem!
+\subsection{References}
+\begin{enumerate}
+    \item Bundle Adjustment, https://en.wikipedia.org/wiki/Bundle\_adjustment
+\end{enumerate}
+\end{document}
+

@@ -1,0 +1,291 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[left=1.0cm,right=1.0cm, top=1.5cm, bottom=1.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{graphics}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{listings}
+\usepackage{mathtools}
+\usepackage{hyperref}
+
+% Align all equations left:
+\documentclass[fleqn]{article} 
+
+
+% Sets and quantifiers
+\newcommand{\R}{\mathbb{R}\;}
+\newcommand{\Q}{\mathbb{Q}\;}
+\newcommand{\N}{\mathbb{N}\;}
+\newcommand{\nin}{n \in \mathbb{N}}
+\newcommand{\fa}{\;\forall\;}
+\newcommand{\ex}{\;\exists\;}
+\newcommand{\nex}{\;\nexists\;}
+
+% Sequences
+\newcommand{\seq}[1]{\{#1\}}
+\newcommand{\seqx}{\seq{x_n}}
+\newcommand{\seqy}{\seq{y_n}}
+\newcommand{\seqs}{\seq{s_n}}
+
+% Subsequences
+\newcommand{\seqxni}{\seq{x_{n_i}}}
+\newcommand{\seqyni}{\seq{y_{n_i}}}
+\newcommand{\xni}{x_{n_i}}
+\newcommand{\yni}{y_{n_i}}
+\newcommand{\xnij}{x_{n_{i_j}}}
+\newcommand{\ynij}{y_{n_{i_j}}}
+\newcommand{\seqxnij}{\seq{x_{n_{i_j}}}}
+\newcommand{\seqynij}{\seq{y_{n_{i_j}}}}
+
+% Such that
+\newcommand{\st}{\;\text{such that}\;}
+
+% Vectors
+\newcommand{\xhat}{\hat{\mathbf{x}}}
+\newcommand{\yhat}{\hat{\mathbf{y}}}
+\newcommand{\zhat}{\hat{\mathbf{z}}}
+\newcommand{\nhat}{\hat{\mathbf{n}}}
+\newcommand{\shat}{\hat{\mathbf{s}}}
+\newcommand{\rhat}{\hat{\mathbf{r}}}
+\newcommand{\vhat}{\hat{\mathbf{v}}}
+\newcommand{\hatvector}[1]{\hat{\mathbf{1}}}
+\newcommand{\mb}[1]{\mathbf{#1}}
+
+% Derivatives
+\newcommand{\der}[2]{\frac{d #1}{d #2}}
+\newcommand{\dder}[2]{\frac{d^2 #1}{d #2^2}}
+\newcommand{\derop}[1]{\frac{d}{d #1}}
+\newcommand{\dderop}[1]{\frac{d^2}{d #1^2}}
+
+% Partial Derivatives
+\newcommand{\pd}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\pdd}[2]{\frac{\partial^2 #1}{\partial #2^2}}
+\newcommand{\pdop}[1]{\frac{\partial}{\partial #1}}
+\newcommand{\pddop}[1]{\frac{\partial^2}{\partial #1^2}}
+\newcommand{\pddmixed}[3]{\frac{\partial^2 #1}{\partial #2\partial #3}}
+\newcommand{\pddmixedop}[2]{\frac{\partial^2}{\partial #1\partial #2}}
+
+% lim, limsup, liminf
+\newcommand{\limn}{\text{lim}_{n \rightarrow \infty}}
+\newcommand{\limi}{\text{lim}_{i \rightarrow \infty}}
+\newcommand{\limj}{\text{lim}_{j \rightarrow \infty}}
+\newcommand{\limsupn}{\limsup_{n \rightarrow \infty}}
+\newcommand{\liminfn}{\liminf_{n \rightarrow \infty}}
+
+% Parallel symbols
+\newcommand{\parallelsum}{\mathbin{\!/\mkern-5mu/\!}}
+
+
+% Custom for absolute value
+\delimitershortfall-1sp
+\newcommand\abs[1]{\left|#1\right|}
+
+% Reference and hyperlink
+\newcommand{\source}[1]{\href{#1}{(\textbf{Source})}}
+
+% Use for define equals
+\newcommand{\delteq}{\overset{\Delta}{=}}
+
+% For nicer fonts
+\usepackage{eucal}
+
+% For Dreamer Paper
+\newcommand{\stau}{s_{\tau}}
+\newcommand{\expect}[1]{\mathbb{E}_{#1}}
+\newcommand{\indep}{\perp \!\!\! \perp}
+
+
+\title{6.801/6.866: Machine Vision, Lecture 13}
+\author{Professor Berthold Horn, Ryan Sander, Tadayuki Yoshitake \\
+        MIT Department of Electrical Engineering and Computer Science \\ 
+        Fall 2020}
+\date{}
+
+\begin{document}
+
+\maketitle
+These lecture summaries are designed to be a review of the lecture.  Though I do my best to include all main topics from the lecture, the lectures will have more elaborated explanations than these notes.  Therefore, if you're looking for the most rigorous review and treatment of these topics, we encourage you to rewatch the lecture videos.  With that said, we hope these summaries are beneficial for your learning.  If you have any feedback for these lecture summaries, please submit it \textbf{\href{https://forms.gle/itCUtP4AubAbtwQT9}{here}}.
+\section{Lecture 13: Object Detection, Recognition and Pose Determination, PatQuick (US 7,016,539)}
+In this lecture, we will begin by looking at some general problems for object detection and pose estimation of objects in an image, and also look at some optimization algorithms we can use for finding optimal matches between a ``master image" / template image, which is the object we look for, and this object in another image (perhaps in a scene).  We then look at a patent describing some of the approaches taken to solve some of these aforementioned tasks.
+\subsection{Motivation \& Preliminaries for Object Detection/Pose Estimation}
+Object detection and pose estimation builds on top of previous machine vision tasks we have covered.  Some specific tasks include:
+\begin{itemize}
+    \item Object detection - i.e. detect and locate object in an image
+    \item Recognize object
+    \item Determine pose of detected/recognized object
+    \item Inspect object
+\end{itemize}
+\textbf{Motivation for these approaches}: In machine vision problems, we often manipulate objects in the world, and we want to know what and where these objects are in the world.  In the case of these specific problems, we assume prior knowledge of the precise edge points of these objects (which, as we discussed in the two previous lectures, we know how to compute!)
+\subsubsection{``Blob Analysis"/"Binary Image Processing"}
+We can use thresholding and other algorithms such as finding a convex hull to compute elements of an object in a binary image (black/white) such as:
+\begin{itemize}
+    \item Area (moment order 0)
+    \item Perimeter
+    \item Centroid (moment order 1)
+    \item ``Shape" (generalization of different-order moments)
+    \item Euler number - In this case this is the number of blobs minus number of holes
+\end{itemize}
+A few notes about computing these different quantities of interest:
+\begin{itemize}
+    \item We have seen from previous lectures that we can compute some of these elements, such as perimeter, using \textbf{Green's Theorem}.  We can also accomplish this with \textbf{counting} - can be done simply by counting pixels based off of whether their pixel is a 0 or 1.
+    \item However, the issue with these approaches is that they require \textbf{thresholding} - i.e. removing points from any further consideration early on the process and possibly without all information available; essentially removing potentially viable points too early.
+    \item \textbf{Shape}: As introduced above, shape is often computed by computing moments of any order.  Recall the definition of moments of a 2D shape:
+    \begin{enumerate}
+        \item \textbf{O-order}: $\iint_DE(x,y)dxdy \rightarrow$ \textbf{Area}
+        \item \textbf{1-order}: $\iint_DE(x,y)xydxdy \rightarrow$ \textbf{Centroid}
+        \item \textbf{2-order}: $\iint_DE(x,y)x^2y^2dxdy \rightarrow$ \textbf{Dispersion} \\
+        $\vdots$
+        \item \textbf{k-order}: $\iint_DE(x,y)x^ky^kdxdy$
+    \end{enumerate}\
+    \item Note that these methods are oftentimes applied to \textbf{processed}, not \textbf{raw} images.
+\end{itemize}
+\subsubsection{Binary Template}
+We will discuss this more later, but this is crucial for the patent on object detection and pose estimation that we will be discussing today.  A binary template is:
+\begin{itemize}
+    \item A ``master image" to define the object of interest that we are trying to detect/estimate the pose of
+    \item You will have a template of an object that you can recognize the object and get the pose/attitude.
+\end{itemize}
+\subsubsection{Normalized Correlation}
+This methodology also plays a key role in the patent below. \\ \\
+\textbf{Idea}: Try all possible positions/configurations of the pose space to create a match between the template and runtime image of the object.  If we are interested in the squared distance between the displaced template and the image in the other object (for computational and analytic simplicity, let us only consider rotation for now), then we have the following optimization problem:
+\begin{align*}
+    \min_{\delta_x, \delta_y}\iint_{D}(E_1(x-\delta_x, y-\delta_y)-E_2(x,y))^2dxdy &&
+\end{align*}
+Where we have denoted the two images separately as $E_1$ and $E_2$. \\ \\
+In addition to framing this optimization mathematically as minimizing the squared distance between the two images, we can also conceptualize this as maximizing the correlation between the displaced image and the other image:
+\begin{align*}
+    \max_{\delta_x, \delta_y}\iint_{D}E_1(x-\delta_x, y-\delta_y)E_2(x,y)dxdy &&
+\end{align*}
+We can prove mathematically that the two are equivalent.  Writing out the first objective as $J(\delta_x, \delta_y)$ and expanding it:
+\begin{align*}
+    J(\delta_x, \delta_y) & = \iint_{D}(E(x-\delta_x, y-\delta_y)-E_2(x,y))^2dxdy \\
+    & = \iint_{D}(E^2_1(x-\delta_x, y-\delta_y) -2\iint_DE_1(x-\delta_x, y-\delta_y)E_2(x,y)dxdy + \iint_DE^2_2(x,y)dxdy \\
+    & \implies \arg\min_{\delta_x, \delta_y} J(\delta_x, \delta_y) = \arg\max_{\delta_x, \delta_y} \iint_{D}E_1(x-\delta_x, y-\delta_y)E_2(x,y)dxdy &&
+\end{align*}
+Since the first and third terms are constant, and since we are minimizing the negative of a scaled correlation objective, this is equivalent to maximizing the correlation of the second objective. \\ \\
+We can also relate this to some of the other gradient-based optimization methods we have seen using Taylor Series.  Suppose $\delta_x, \delta_y$ are small.  Then the Taylor Series Expansion of first objective gives:
+\begin{align*}
+    \iint_{D}(E_1(x-\delta_x, y-\delta_y)-E_2(x,y))^2dxdy = \iint_{D}(E_1(x,y) - \delta_x\pd{E_1}{x}-\pd{E_1}{y} + \cdots -E_2(x,y))^2dxdy &&
+\end{align*}
+If we now consider that we are looking between consecutive frames with time period $\delta_t$, then the optimization problem becomes (after simplifying out $E_1(x,y) - E_2(x,y) = -\delta_t\pd{E}{t}$):
+\begin{align*}
+    \min_{\delta_x, \delta_y}\iint_D(-\delta_xE_x - \delta_yE_y - \delta_tE_t)^2dxdy &&
+\end{align*}
+Dividing through by $\delta_t$ and taking $\lim_{\delta_t \rightarrow 0}$ gives:
+\begin{align*}
+    \min_{\delta_x, \delta_y}\iint_D(uE_x + vE_y + E_t)^2dxdy &&
+\end{align*}
+A few notes about the methods here and the ones above as well:
+\begin{itemize}
+    \item Note that the term under the square directly above looks similar to our BCCE constraint from optical flow!
+    \item Gradient-based methods are cheaper to compute but only function well for small deviations $\delta_x, \delta_y$.
+    \item Correlation methods are advantageous over least-squares methods when we have scaling between the images (e.g. due to optical setting differences): $E_1(x,y) = kE_2(x,y)$ for some $k \in \R$.
+\end{itemize}
+Another question that comes up from this: How can we match at different contrast levels?  We can do so with \textbf{normalized correlation}.  Below, we discuss each of the elements we account for and the associated mathematical transformations:
+\begin{enumerate}
+    \item \textbf{Offset}: We account for this by subtracting the mean from each brightness function:
+    \begin{align*}
+        & E^{'}_1(x,y) = E_1(x,y) - \bar{E}_1, \;\; \bar{E}_1 = \frac{\iint_DE_1(x,y)dxdy}{\iint_Ddxdy}\\
+        & E^{'}_2(x,y) = E_2(x,y) - \bar{E}_2, \;\; \bar{E}_2 = \frac{\iint_DE_2(x,y)dxdy}{\iint_Ddxdy}&&
+    \end{align*}
+    This removes offset from images that could be caused by changes to optical setup.
+    \item \textbf{Contrast}: We account for this by computing normalized correlation, which in this case is the Pearson correlation coefficient:
+    \begin{align*}
+        \frac{\iint_{D}E^{'}_1(x-\delta_x, y-\delta_y)E^{'}_2(x,y)dxdy}{\Big(\sqrt{\iint_{D}E^{'}_1(x-\delta_x, y-\delta_y)dxdy}\Big)\Big(\sqrt{\iint_{D}E^{'}_2(x, y)dxdy}\Big)} \in [-1, 1] &&
+    \end{align*}
+    Where a correlation coefficient of 1 denotes a perfect match, and a correlation coefficient of -1 denotes a perfectly imperfect match.
+\end{enumerate}
+\textbf{Are there any issues with this approach?}  If parts/whole images of objects are obscured, this will greatly affect correlation computations at these points, even with proper normalization and offsetting. \\ \\
+With these preliminaries set up, we are now ready to move into a case study: a patent for object detection and pose estimation using probe points and template images.
+\subsection{Patent 7,016,539: Method for Fast, Robust, Multidimensional Pattern Recognition}
+This patent aims to extend beyond our current framework since the described methodology can account for more than just translation, e.g. can account for:
+\begin{itemize}
+    \item Rotation
+    \item Scaling
+    \item Shearing
+\end{itemize}
+\subsubsection{Patent Overview}
+This patent describes a patent for determining the presence/absence of a pre-determined pattern in an image, and for determining the location of each found instance within a multidimensional space. \\ \\
+A diagram of the system can be found below:
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=15cm]{figures/object_pose_est_diagram.png}
+    \caption{System diagram.}
+    \label{fig:my_label}
+\end{figure}
+A few notes about the diagram/aggregate system:
+\begin{itemize}
+    \item A \textbf{match score} is computed for each configuration, and later compared with a threshold downstream.  This process leads to the construction of a high-dimensional matches surface.
+    \item We can also see in the detailed block diagram from this patent document that we greatly leverage gradient estimation techniques from the previous patent on fast and accurate edge detection.
+    \item For generalizability, we can run this at multiple scales/levels of resolution.
+\end{itemize}
+\subsubsection{High-level Steps of Algorithm}
+\begin{enumerate}
+    \item Choose appropriate level of \textbf{granularity} (defined as ``selectable size below which spatial variations in image brightness are increasingly attenuated, and below which therefore image features increasingly cannot be resolved") and store in model.
+    \item Process training/template image to obtain boundary points.
+    \item Connect neighboring boundary points that have consistent directions.
+    \item Organize connected boundary points into chains.
+    \item Remove short or weak chains.
+    \item Divide chains into segments of low curvature separated by conrner of high curvature.
+    \item Create evenly-spaced along segments and store them in model.
+    \item Determine pattern contrast and store in model.
+\end{enumerate}
+A few notes about this procedure:
+\begin{itemize}
+    \item To increase the efficiency of this approach, for storing the model, we store \textbf{probes} (along with granularity and contrast), not the image for which we have computed these quantities over.
+    \item When comparing gradients between runtime and training images, project probe points onto the other image - we do not have to look at all points in image; rather, we \textbf{compare gradients} (direction and magnitude - note that magnitude is often less viable/robust to use than gradient direction) between the training and runtime images only at the probing points.
+    \item We can also weight our probing points, either automatically or manually.  Essentially, this states that some probes are more important that others when scoring functions are called on object configurations.
+    \item This patent can also be leveraged for machine part inspection, which necessitates high degrees of consistent accuracy
+    \item An analog of probes in other machine and computer vision tasks is the notion of \textbf{keypoints}, which are used in descriptor-based feature matching algorithms such as SIFT (Scale-Invariant Feature Transform), SURF (Speeded-Up Robust Features), FAST (Features from Accelerated Segment Test), and ORB (Oriented FAST and rotated BRIEF).  Many of these aforementioned approaches rely on computing gradients at specific, ``interesting points" as is done here, and construct features for feature matching using a \textbf{Histogram of Oriented Gradients (HoG)} [1].
+    \item For running this framework at multiple scales/resolutions, we want to use different probes at different scales.
+    \item For multiscale, there is a need for running fast low-pass filtering.  Can do so with rapid convolutions, which we will be discussing in a later patent in this course.
+    \item Probes ``contribute evidence" individually, and are not restricted to being on the pixel grid.
+    \item The accuracy of this approach, similar to the other framework we looked at, is limited by the degree of quantization in the search space.
+\end{itemize}
+\subsubsection{Framework as Programming Objects}
+Let us also take a look at the object-oriented nature of this approach to better understand the framework we work with.  One of these objects is the model: \\ \\
+\textbf{Model}:  This has fields:
+\begin{itemize}
+    \item \textbf{Probes}:  This is the list of probe points.  Note that we can also use \textbf{compiled probes}.  In turn, each element in this list has fields:
+    \begin{itemize}
+        \item \textbf{Position}
+        \item \textbf{Direction}
+        \item \textbf{Weight}
+    \end{itemize}
+    \item \textbf{Granularity}: This is a scalar and is chosen during the training step.
+    \item \textbf{Contrast}: This field is set to the computed contrast of the training/template pattern.
+\end{itemize}
+We can also look at some of the fields Generalized Degree of Freedom (\textbf{Generalized DOF}) object as well:
+\begin{itemize}
+    \item \textbf{Rotation} 
+    \item \textbf{Shear} - The degree to which right angles are mapped into non-right angles.
+    \item \textbf{Log size}
+    \item \textbf{Log $x$ size}
+    \item \textbf{Log $y$ size}
+\end{itemize}
+\subsubsection{Other Considerations for this Framework}
+We should also consider how to run our \textbf{translational search}.  This search should be algorithmically conducted:
+\begin{itemize}
+    \item Efficiently
+    \item At different levels of resolution
+    \item Hexagonally, rather than on a square grid - there is a $\frac{4}{\pi}$ advantage of work done vs. resolution.  Here, hexagonal peak detection is used, and to break ties, we arbitrarily set 3 of the 6 inequalities as $\geq$, and the other 3 as $>$.
+\end{itemize}
+\textbf{What is pose?}  \\ Pose is short for position and orientation, and is usually determined with respect to a reference coordinate system.  In the patent's definition, it is the \textbf{``mapping from pattern to image coordinates that represents a specific transformation and superposition of a pattern onto an image."} \\ \\
+Next, let us look into addressing ``noise", which can cause random matches to occur.  Area under $S(\theta)$ curve captures the probability of random matches, and we can compensate by calculating error and subtracting it out of the results.  However, even with this compensation, we are still faced with additional noise in the result. \\ \\
+Instead, we can try to assign scoring weights by taking the dot product between gradient vectors: $\hat{\mb{v}}_1 \cdot \hat{\mb{v}}_2 = \cos\theta$.  But one disadvantage of this approach is that we end up quantizing pose space. \\ \\
+Finally, let us look at how we score the matches between template and runtime image configurations: \textbf{scoring functions}.  Our options are:
+\begin{itemize}
+    \item Normalized correlation (above)
+    \item Simple peak finding
+    \item Removal of random matches (this was our ``N" factor introduced above)
+\end{itemize}
+\subsection{References}
+\begin{enumerate}
+    \item Histogram of Oriented Gradients, https://en.wikipedia.org/wiki/Histogram\_of\_oriented\_gradients
+\end{enumerate}
+\end{document} 
+

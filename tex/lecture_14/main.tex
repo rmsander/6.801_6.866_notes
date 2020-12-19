@@ -1,0 +1,359 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[left=1.0cm,right=1.0cm, top=1.5cm, bottom=1.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{graphics}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{listings}
+\usepackage{mathtools}
+\usepackage{hyperref}
+
+% Align all equations left:
+\documentclass[fleqn]{article} 
+
+
+% Sets and quantifiers
+\newcommand{\R}{\mathbb{R}\;}
+\newcommand{\Q}{\mathbb{Q}\;}
+\newcommand{\N}{\mathbb{N}\;}
+\newcommand{\nin}{n \in \mathbb{N}}
+\newcommand{\fa}{\;\forall\;}
+\newcommand{\ex}{\;\exists\;}
+\newcommand{\nex}{\;\nexists\;}
+
+% Sequences
+\newcommand{\seq}[1]{\{#1\}}
+\newcommand{\seqx}{\seq{x_n}}
+\newcommand{\seqy}{\seq{y_n}}
+\newcommand{\seqs}{\seq{s_n}}
+
+% Subsequences
+\newcommand{\seqxni}{\seq{x_{n_i}}}
+\newcommand{\seqyni}{\seq{y_{n_i}}}
+\newcommand{\xni}{x_{n_i}}
+\newcommand{\yni}{y_{n_i}}
+\newcommand{\xnij}{x_{n_{i_j}}}
+\newcommand{\ynij}{y_{n_{i_j}}}
+\newcommand{\seqxnij}{\seq{x_{n_{i_j}}}}
+\newcommand{\seqynij}{\seq{y_{n_{i_j}}}}
+
+% Such that
+\newcommand{\st}{\;\text{such that}\;}
+
+% Vectors
+\newcommand{\xhat}{\hat{\mathbf{x}}}
+\newcommand{\yhat}{\hat{\mathbf{y}}}
+\newcommand{\zhat}{\hat{\mathbf{z}}}
+\newcommand{\nhat}{\hat{\mathbf{n}}}
+\newcommand{\shat}{\hat{\mathbf{s}}}
+\newcommand{\rhat}{\hat{\mathbf{r}}}
+\newcommand{\vhat}{\hat{\mathbf{v}}}
+\newcommand{\hatvector}[1]{\hat{\mathbf{1}}}
+\newcommand{\mb}[1]{\mathbf{#1}}
+
+% Derivatives
+\newcommand{\der}[2]{\frac{d #1}{d #2}}
+\newcommand{\dder}[2]{\frac{d^2 #1}{d #2^2}}
+\newcommand{\derop}[1]{\frac{d}{d #1}}
+\newcommand{\dderop}[1]{\frac{d^2}{d #1^2}}
+
+% Partial Derivatives
+\newcommand{\pd}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\pdd}[2]{\frac{\partial^2 #1}{\partial #2^2}}
+\newcommand{\pdop}[1]{\frac{\partial}{\partial #1}}
+\newcommand{\pddop}[1]{\frac{\partial^2}{\partial #1^2}}
+\newcommand{\pddmixed}[3]{\frac{\partial^2 #1}{\partial #2\partial #3}}
+\newcommand{\pddmixedop}[2]{\frac{\partial^2}{\partial #1\partial #2}}
+
+% ith
+\newcommand{\ith}{\text{i}^{\text{th}}}
+
+% lim, limsup, liminf
+\newcommand{\limn}{\text{lim}_{n \rightarrow \infty}}
+\newcommand{\limi}{\text{lim}_{i \rightarrow \infty}}
+\newcommand{\limj}{\text{lim}_{j \rightarrow \infty}}
+\newcommand{\limsupn}{\limsup_{n \rightarrow \infty}}
+\newcommand{\liminfn}{\liminf_{n \rightarrow \infty}}
+
+% Parallel symbols
+\newcommand{\parallelsum}{\mathbin{\!/\mkern-5mu/\!}}
+
+
+% Custom for absolute value
+\delimitershortfall-1sp
+\newcommand\abs[1]{\left|#1\right|}
+
+% Reference and hyperlink
+\newcommand{\source}[1]{\href{#1}{(\textbf{Source})}}
+
+% Use for define equals
+\newcommand{\delteq}{\overset{\Delta}{=}}
+
+% For nicer fonts
+\usepackage{eucal}
+
+% For Dreamer Paper
+\newcommand{\stau}{s_{\tau}}
+\newcommand{\expect}[1]{\mathbb{E}_{#1}}
+\newcommand{\indep}{\perp \!\!\! \perp}
+
+
+\title{6.801/6.866: Machine Vision, Lecture 14}
+\author{Professor Berthold Horn, Ryan Sander, Tadayuki Yoshitake \\
+        MIT Department of Electrical Engineering and Computer Science \\ 
+        Fall 2020}
+\date{}
+
+\begin{document}
+
+\maketitle
+These lecture summaries are designed to be a review of the lecture.  Though I do my best to include all main topics from the lecture, the lectures will have more elaborated explanations than these notes.  Therefore, if you're looking for the most rigorous review and treatment of these topics, we encourage you to rewatch the lecture videos.  With that said, we hope these summaries are beneficial for your learning.  If you have any feedback for these lecture summaries, please submit it \textbf{\href{https://forms.gle/itCUtP4AubAbtwQT9}{here}}.
+\section{Lecture 14: Inspection in PatQuick, Hough Transform, Homography, Position Determination, Multi-Scale}
+In this lecture, we will continue our discussion of ``PatQuick", the patent we discussed last time for object detection and pose estimation.  We will focus on elements of this patent such as scoring functions and generalized degrees of freedom (DOF), and will use this as a segway into general linear transformations and homography.  We will conclude our discussion with subsampling and Hough Transforms, which, at a high level, we can think of as a mapping from image space to parameter space.
+\subsection{Review of ``PatQuick"}
+To frame our analysis and introduction of other technical machine vision concepts, let us briefly revisit the high-level ideas of ``PatQuick".  There were three main ``objects" in this model:
+\begin{itemize}
+    \item \textbf{Training/template image}.  This produces a model consisting of probe points.
+    \item \textbf{Model}, containing probe points.
+    \item \textbf{Probe points}, which encode evidence for where to make gradient comparisons, i.e. to determine how good matches between the template image and the runtime image under the current pose configuration.
+\end{itemize}
+Once we have the model from the training step, we can summarize the process for generating matches as:
+\begin{enumerate}
+    \item Loop over/sample from configurations of the pose space (which is determined and parameterized by our degrees of freedom), and modify the runtime image according to the current pose configuration.
+    \item Using the probe points of the model, compare the gradient direction (or magnitude, depending on the scoring function) to the gradient direction (magnitude) of the runtime image under the current configuration, and score using one of the scoring functions below.
+    \item Running this for all/all sampled pose configurations from the pose space produces a multidimensional scoring surface.  We can find matches by looking for peak values in this surface.
+\end{enumerate}
+A few more notes on this framework, before diving into the math:
+\begin{itemize}
+    \item Training is beneficial here, because it allows for some degree of automated learning.
+    \item Evidence collected from the probe points is cumulative and computed using many local operations.
+    \item Accuracy is limited by the quantization level of the pose spanned.  The non-redundant components of this pose space are:
+    \begin{itemize}
+        \item 2D Translation, 2 DOF
+        \item Rotation, 1 DOF
+        \item Scaling, 1 DOF,
+        \item Skew, 1 DOF,
+        \item Aspect Ratio, 1 DOF
+    \end{itemize}
+    Together, the space of all these components compose a \textbf{general linear transformation}, or an \textbf{affine transformation}:
+    \begin{align*}
+        x' = a_{11}x + a_{12}y + a_{13} \\ 
+        y' = a_{21}x + a_{22}y + a_{23} &&
+    \end{align*}
+    While having all of these options leads to a high degree of generality, it also leads to a huge number of pose configurations, even for coarse quantization.  This is due to the fact that the number of configurations grows exponentially with the number of \textbf{DOF}.
+\end{itemize}
+\subsubsection{Scoring Functions}
+Next, let us look at the scoring functions leveraged in this framework.  Recall that there will also be random gradient matches in the background texture - we can compute this ``probability" as ``noise" given by N:
+\begin{align*}
+    N = \frac{1}{2\pi}\int_{0}^{2\pi}R_{\text{dir}}(\theta)d\theta = \frac{3}{32} \;\textbf{(Using signed values)}, \; \frac{6}{32} \;\textbf{(Using absolute values)} &&
+\end{align*}
+Where the first value ($\frac{3}{32}$) corresponds to the probability of receiving a match if we randomly select a probe point's location, the second value corresponds to taking reverse polarity into account, and the function $R_{\text{dir}}$ corresponds to the scoring function for the gradient direction, and takes as input the difference between two directions as two-dimensional vectors.  Below are the scoring functions considered.  Please take note of the following abbreviations:
+\begin{itemize}
+    \item $p_i$ denotes the two-dimensional location of the $\ith$ probe point after being projected onto the runtime image.
+    \item $d_i$ denotes the direction of the probe point in the template image.
+    \item $w_i$ denotes the weight of the $\ith$ probe point, which is typically set manually or via some procedure.
+    \item $D(\cdot)$ is a function that takes a two-dimensional point as input, and outputs the direction of the gradient at this point.
+    \item $R_{\text{dir}}$ is a scoring function that takes as input the norm of the difference between two vectors representing gradient directions, and returns a scalar.
+    \item $M(\cdot)$ is a function that computes the magnitude of the gradient in the runtime image at the point given by its two-dimensional argument.
+    \item $R_{\text{mag}}$ is a scoring function that takes as input the magnitude of a gradient and returns a scalar.  In this case, $R_{\text{mag}}$ saturates at a certain point, e.g. if $\lim_{x \rightarrow \infty}R(x) = K$ for some $K \in \R$, and for some $j \in \R$, $R(j) = K, R(j+\epsilon) = K \fa \epsilon \in [0, \infty)$.
+    \item $N$ corresponds to the ``noise" term computed above from random matches.
+\end{itemize}
+With these terms specified, we are now ready to introduce the scoring functions:
+\begin{enumerate}
+    \item \textbf{Piecewise-Linear Weighting with Direction and Normalization}: 
+    \begin{align*}
+        & S_{1_a}(a) = \frac{\sum_i\max(w_i, 0)R_{\text{dir}}(||D(a+p_i) - d_i||_2)}{\sum_i\max(w_i,0)} &&
+    \end{align*}
+    Quick note: the function $\max(0, w_i)$ is known as the Rectified Linear Unit (ReLU), and is written as $\text{ReLU}(w_i)$.  This function comes up frequently in machine learning.
+    \begin{itemize}
+        \item Works with ``compiled probes".  With these ``compiled probes", we only vary translation - we have already mapped pose according to the other DOFs above.
+        \item Used in a ``coarse step".
+    \end{itemize}
+    \item \textbf{Binary Weighting with Direction and Normalization}
+        \begin{align*}
+        & S_{1_a}(a) = \frac{\sum_i(w_i > 0) R_{\text{dir}}(||D(a+p_i) - d_i||_2)}{\sum_i(w_i > 0)} &&
+        \end{align*}
+    Where the predicate $(w_i > 0)$ returns 1 if this is true, and 0 otherwise.
+    \item \textbf{``Preferred Embodiment}:
+        \begin{align*}
+        & S_{}(a) = \frac{\sum_i(w_i > 0)(R_{\text{dir}}(||D(a+p_i) - d_i||_2)-N)}{(1-N)\sum_i(w_i > 0)} &&
+        \end{align*}
+    \item \textbf{Raw Weights with Gradient Magnitude Scaling and No Normalization}
+    \begin{align*}
+        & S_2(a) = \sum_{i}w_iM(a+p_i)R_{\text{dir}}(||D(a+p_i) - d_i||_2) &&
+    \end{align*}
+    Note that this scoring function is not normalized, and is used in the fine scanning step of the algorithm.
+    \item \textbf{Raw Weights with Gradient Magnitude Scaling and Normalization}
+    \begin{align*}
+        & S_3(a) = \frac{\sum_{i}w_iM(a+p_i)R_{\text{dir}}(||D(a+p_i) - d_i||_2)}{\sum_iw_i} &&
+    \end{align*}
+\end{enumerate}
+\subsubsection{Additional System Considerations}
+Let us focus on a few additional system features to improve our understanding of the system as well as other principles of machine vision:
+\begin{itemize}
+    \item Why do some of these approaches use normalization, but not others?  \textbf{Normalization is computationally-expensive}, and approaches that avoid a normalization step typically do this to speed up computation.  
+    \item For all these scoring functions, the granularity parameter is determined by decreasing the resolution until the system no longer performs well.
+    \item We need to ensure we get the gradient direction right.  So far, with just translation, this has not been something we need to worry about.  But with our generalized linear transform space of poses, we may have to account for this.  Specifically:
+    \begin{itemize}
+        \item Translation
+        \item Rotation
+        \item Scaling
+    \end{itemize}
+    \textbf{do not affect the gradient directions}.  However:
+    \begin{itemize}
+        \item Shear
+        \item Aspect ratio
+    \end{itemize}
+    \textbf{will both affect the gradient directions}.  We can account for this, however, using the following process:
+    \begin{enumerate}
+        \item Compute the gradient in the runtime image prior to invoking any transformations on it.
+        \item Compute the isophote in the pre-transformed runtime image by rotating 90 degrees from the gradient direction using the rotation matrix given by:
+        \begin{align*}
+            R_{\text{G} \rightarrow \text{I}} = \begin{bmatrix}0 & 1 \\ -1 & 0\end{bmatrix} &&
+        \end{align*}
+        \item Transform the isophote according to the generalized linear transformation above with the degrees of freedom we consider for our pose space.
+        \item After computing this transformed isophote, we can find the transformed gradient by finding the direction orthogonal to the transformed isophote by rotating back 90 degrees using the rotation matrix given by:
+        \begin{align*}
+            R_{\text{I} \rightarrow \text{G}} = \begin{bmatrix}0 & -1 \\ 1 & 0\end{bmatrix} &&
+        \end{align*}
+    \end{enumerate}
+\end{itemize}
+\subsubsection{Another Application of ``PatQuick": Machine Inspection}
+Let us consider some elements of this framework that make it amenable and applicable for industrial machine part inspection:
+\begin{itemize}
+    \item How do we distinguish between multiple objects (a task more generally known as multiclass object detection and classification)?  We can achieve this by using \textbf{multiple models/template images, i.e. one model/template for each type of object we want to detect and find the relative pose of}.
+    \item With this framework, we can also compute fractional matches - i.e. how well does one template match another object in the runtime image.
+    \item We can also take an edge-based similarity perspective - we can look at the runtime image's edge and compare to edge matches achieved with the model.
+\end{itemize}
+\subsection{Intro to Homography and Relative Poses}
+We will now shift gears and turn toward a topic that will also be relevant in the coming lectures on 3D.  Let's revisit our perspective projection equations when we have a camera-centric coordinate system:
+\begin{align*}
+    \frac{x}{f} = \frac{X_c}{Y_c}, \frac{y}{f} = \frac{Y_c}{Y_c} &&
+\end{align*}
+Thus far, we have only considered camera-centric coordinate systems - that is, when the coordinates are from the point of view of the camera.  But what if we seek to image points that are in a coordinate system defined by some world coordinate system that differs from the camera?  Then, we can express these camera coordinates as:
+\begin{align*}
+    & \begin{bmatrix}X_c \\ Y_c \\ Z_c \end{bmatrix} = 
+        \begin{bmatrix}r_{11} & r_{12} & r_{13} \\ 
+                       r_{21} & r_{22} & r_{23} \\ 
+                       r_{31} & r_{32} & r_{33} \\ 
+        \end{bmatrix}\begin{bmatrix}X_W \\ Y_W \\ Z_W\end{bmatrix} + \begin{bmatrix}X_0 \\ Y_0 \\ Z_0 \end{bmatrix} \\ \\
+    & \text{cam coord.} = \text{world2cam\_rot} \times \text{world coord.} + \text{world2cam\_trans} \\
+    & \text{Where} \mb{R} = \begin{bmatrix}r_{11} & r_{12} & r_{13} \\ 
+                       r_{21} & r_{22} & r_{23} \\ 
+                       r_{31} & r_{32} & r_{33} \\ 
+        \end{bmatrix} \; \text{is a rotation matrix in 3D}. &&
+\end{align*}
+Therefore, in the general case, to find the perspective projection from world coordinates onto our image, we can combine the two previous equations, carrying out the matrix multiplication along the way:
+\begin{align*}
+    & \frac{x}{f} = \frac{X_c}{Z_c} = \frac{r_{11}X_W + r_{12}Y_W + r_{13}Z_W + X_0}{r_{31}X_W + r_{32}Y_W + r_{33}Z_W + Z_0} \\ \\
+    & \frac{y}{f} = \frac{Y_c}{Z_c} = \frac{r_{21}X_W + r_{22}Y_W + r_{23}Z_W + Y_0}{r_{31}X_W + r_{32}Y_W + r_{33}Z_W + Z_0} &&
+\end{align*}
+Is there a way we can combine \textbf{rotation} and \textbf{translation} into a single operation?  Let us consider a simple case in which the the points in our world coordinate system are coplanar in the three-dimensional plane $Z_W = 0$.  Since the third column of the rotation corresponds to all zeros, we can rewrite our equation from the world coordinate frame to the camera frame as:
+\begin{align*}
+    \begin{bmatrix}X_c \\ Y_c \\ Z_c \end{bmatrix} = \begin{bmatrix}r_{11} & r_{12} & X_0 \\ 
+                       r_{21} & r_{22} & Y_0 \\ 
+                       r_{31} & r_{32} & Z_0 \\ 
+        \end{bmatrix}\begin{bmatrix}X_W \\ Y_W \\ 1 \end{bmatrix} = \mb{T} \begin{bmatrix}X_W \\ Y_W \\ 1 \end{bmatrix} = \begin{bmatrix}r_{11} & r_{12} & r_{13} \\ 
+                       r_{21} & r_{22} & r_{23} \\ 
+                       r_{31} & r_{32} & r_{33} \\ 
+        \end{bmatrix}\begin{bmatrix}X_W \\ Y_W \\ 0 \end{bmatrix} + \begin{bmatrix}X_0 \\ Y_0 \\ Z_0 \end{bmatrix} &&
+\end{align*}
+The vector $\begin{bmatrix}X_W & Y_W & 1\end{bmatrix}^T$ expresses our (now 2D) world coordinate system in \textbf{homogeneous coordinates}, which have a 1 entry appended to the final element.  \\ \\
+In this case, we can fold translation and rotation into a single matrix!  We call this matrix $\mb{T}$, and it is called a \textbf{Homography Matrix} that encodes both rotation and translation.  We will revisit this concept when we begin our discussion of 3D transformations.  Note that while our rotation matrix $\mb{R}$ is orthogonal, this homography matrix \mb{T} is not necessarily. \\ \\
+\subsubsection{How many degrees of freedom}
+For determining the relative pose between camera and world frames, let us consider the number of degrees of freedom: 
+\begin{itemize}
+    \item 3 for translation, since we can shift in x, y, and z
+    \item 3 for rotation, since our rotations can preserve the xz axis, xy axis, and yz axis
+\end{itemize}
+If we have 9 entries in the rotation matrix and 3 in the translation vector (12 unknowns total), and only 6 degrees of freedom, then how do we solve for these entries?  \textbf{There is redundancy - the rotation matrix has 6 constraints from orthonormality} (3 from constraining the rows to have unit size, and 3 from having each row being orthogonal to the other).  \\ \\
+Mathematically, these constraints appear in our \textbf{Homography matrix} $\mb{T}$ as:
+\begin{align*}
+    & r_{11}^2 + r_{21}^2 + r_{31}^2 = 1 \;\textbf{(Unit length constraint)}\\
+    & r_{12}^2 + r_{22}^2 + r_{23}^2 = 1 \;\textbf{(Unit length constraint)}\\
+    & r_{11}r_{12} + r_{21}r_{22} + r_{31}r_{32} = 0 \;\textbf{(Orthogonal columns)} &&
+\end{align*}
+A few notes here about solving for our coefficients in $\mb{T}$:
+\begin{itemize}
+    \item Do we need to enforce these constraints?  Another option is to run least squares on the calibration data.
+    \item We must be cognizant of the following: We only know the Homography matrix $\mb{T}$ up to a constant scale factor, since we are only interested in the ratio of the components of the camera coordinates for perspective projection.
+\end{itemize}
+\subsection{Hough Transforms}
+Let us switch gears and talk about another way to achieve edge finding, but more generally the estimation of parameters for any parameterized surface.  \\ \\
+\textbf{Motivation}: Edge and line detection for industrial machine vision.  This was one of the first machine vision patents (submitted in 1960, approved in 1962).  We are looking for lines in images, but our gradient-based methods may not necessarily work, e.g. due to non-contiguous lines that have ``bubbles" or other discontinuities.  These discontinuities can show up especially for smaller resolution levels. \\ \\
+\textbf{Idea}: The main idea of the \textbf{Hough Transform} is to intelligently map from image/surface space to parameter space for that surface.  Let us walk through the mechanics of how parameter estimation works for some geometric objects. \\ \\
+\textbf{Some notes on Hough Transforms}:
+\begin{itemize}
+    \item Hough transforms are often used as a subroutine in many other machine vision algorithms.
+    \item Hough transforms actually generalize beyond edge and line detection, and extend more generally into any domain in which we map a parameterized surface in image space into parameter space in order to estimate parameters.
+\end{itemize}
+\subsubsection{Hough Transforms with Lines}
+A line/edge in image space can be expressed (in two-dimensions for now, just for building intuition, but this framework is amenable for broader generalizations into higher-dimensional lines/planes): $y = mx + c$.  Note that because $y = mx + c, m = \frac{y-c}{x}$ and $c = y - mx$.  Therefore, this necessitates that:
+\begin{itemize}
+    \item A line in image space maps to a singular point in Hough parameter space.
+    \item A singular point in line space corresponds to a line in Hough parameter space.
+\end{itemize}
+To estimate the parameters of a line/accomplish edge detection, we utilize the following high-level procedure:
+\begin{enumerate}
+    \item Map the points in the image to lines in Hough parameter space and compute intersections of lines.
+    \item Accumulate points and treat them as ``evidence" using accumulator arrays.  
+    \item Take peaks of these intersections and determine what lines they correspond to, since points in Hough parameter space define parameterizations of lines in image space.  See the example below:
+    \begin{figure}[ht]
+        \centering
+        \includegraphics[width=12cm]{figures/hough_lines.png}
+        \caption{Example of finding parameters in Hough Space via the Hough Transform.}
+        \label{fig:my_label}
+    \end{figure}
+\end{enumerate}
+\subsubsection{Hough Transforms with Circles}
+Let us look at how we can find parameters for circles with Hough transforms.  \\ \\
+\textbf{Motivating example: Localization with Long Term Evolution (LTE) Network}.  Some context to motivate this application further:
+\begin{itemize}
+    \item LTE uses Time Division Multiplexing to send signals, a.k.a ``everyone gets a slot".
+    \item CDMA network does not use this.
+    \item You can triangulate/localize your location based off of how long it takes to send signals to surrounding cellular towers.
+\end{itemize}
+We can see from the diagram below that we map our circles into Hough parameter space to compute the estimate of parameters.  
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=12cm]{figures/hough_circles.png}
+    \caption{Example of using Hough Transforms to find the parameters of circles for LTE.}
+    \label{fig:my_label}
+\end{figure}
+As we have seen in other problems we have studied in this class, we need to take more than one measurement.  We cannot solve these problems with just one measurement, but a single measurement constrains the solution.  Note that this problem assumes the radius is known.
+\subsubsection{Hough Transforms with Searching for Center Position and Radius}
+Another problem of interest is finding the center of position of a circle's radius $R$ and its center position $(x,y)$, which comprise the 3 dimensions in Hough parameter space.  In Hough Transform space, this forms a cone that expands upward from $R_0 = 0$, where each cross-section of Z is the equation $(x^2 + y^2 = R^2)$ for the given values of $x, y$, and $R$. \\ \\
+Every time we find a point on the circle, we update the corresponding set of points on the cone that satisfy this equation. \\ \\
+The above results in many cone intersections with one another - as before, we collect evidence from these intersections, build a score surface, and compute the peak of this surface for our parameter estimates.
+\subsection{Sampling/Subsampling/Multiscale}
+Sampling is another important aspect for machine vision tasks, particularly for problems involving multiple scales, such as edge and line detection.  \textbf{Sampling} is equivalent to working at \textbf{different scales}.  \\ \\
+Why work at multiple scales?
+\begin{itemize}
+    \item More efficient computation when resolution is lower, and is desirable if performance does not worsen.
+    \item Features can be more or less salient at different resolutions, i.e. recall that edges are not as simple as step edges and often exhibit discontinuities or non-contiguous regions.
+\end{itemize}
+If we downsample our image by $r_n$ along the rows and $r_m$ along the columns, where $r_n, r_m \in (0, 1)$, then the total amount of work done (including the beginning image size) is given by the infinite geometric series:
+\begin{align*}
+    &\sum_{i=0}^{\infty}(r_nr_m)^i = \frac{1}{1-r_nr_m} \\
+    &\text{(Recall that} \; \sum_{i=0}^{\infty}r^i = \frac{1}{1-r} \;\text{for} \; r \in (0, 1)) &&
+\end{align*}
+What does the total work look like for some of these values?
+\begin{itemize}
+    \item $r_n = r_m = r = \frac{1}{2}$
+    \begin{align*}
+        \text{work} = \frac{1}{1-r^2} = \frac{1}{1-\frac{1}{4}} = \frac{4}{3} &&
+    \end{align*}
+    But downsampling by $\frac{1}{2}$ each time is quite aggressive, and can lead to aliasing.  Let us also look at a less aggressive sampling ratio.
+    \item $r_n = r_m = r = \frac{1}{\sqrt{2}}$
+    \begin{align*}
+        \text{work} = \frac{1}{1-r^2} = \frac{1}{1-\frac{1}{2}} = 2 &&
+    \end{align*}
+    How do we sample in this case?  This is equivalent to taking every other sample in an image when we downsample.  We can do this using a \textbf{checkerboard/chess board} pattern.  We can even see the selected result as a square grid if we rotate our coordinate system by 45 degrees. \\ \\
+    The SIFT (Scale-Invariant Feature Transform) algorithm uses this less aggressive sampling technique.  SIFT is a descriptor-based feature matching algorithm for object detection using a template image.
+\end{itemize}
+\end{document}
+

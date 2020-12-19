@@ -1,0 +1,320 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[left=1.0cm,right=1.0cm, top=1.5cm, bottom=1.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{graphics}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{listings}
+\usepackage{mathtools}
+\usepackage{hyperref}
+
+% Align all equations left:
+\documentclass[fleqn]{article} 
+
+
+% Sets and quantifiers
+\newcommand{\R}{\mathbb{R}\;}
+\newcommand{\Q}{\mathbb{Q}\;}
+\newcommand{\N}{\mathbb{N}\;}
+\newcommand{\nin}{n \in \mathbb{N}}
+\newcommand{\fa}{\;\forall\;}
+\newcommand{\ex}{\;\exists\;}
+\newcommand{\nex}{\;\nexists\;}
+
+% Sequences
+\newcommand{\seq}[1]{\{#1\}}
+\newcommand{\seqx}{\seq{x_n}}
+\newcommand{\seqy}{\seq{y_n}}
+\newcommand{\seqs}{\seq{s_n}}
+
+% Subsequences
+\newcommand{\seqxni}{\seq{x_{n_i}}}
+\newcommand{\seqyni}{\seq{y_{n_i}}}
+\newcommand{\xni}{x_{n_i}}
+\newcommand{\yni}{y_{n_i}}
+\newcommand{\xnij}{x_{n_{i_j}}}
+\newcommand{\ynij}{y_{n_{i_j}}}
+\newcommand{\seqxnij}{\seq{x_{n_{i_j}}}}
+\newcommand{\seqynij}{\seq{y_{n_{i_j}}}}
+
+% Such that
+\newcommand{\st}{\;\text{such that}\;}
+
+% lim, limsup, liminf
+\newcommand{\limn}{\text{lim}_{n \rightarrow \infty}}
+\newcommand{\limi}{\text{lim}_{i \rightarrow \infty}}
+\newcommand{\limj}{\text{lim}_{j \rightarrow \infty}}
+\newcommand{\limsupn}{\limsup_{n \rightarrow \infty}}
+\newcommand{\liminfn}{\liminf_{n \rightarrow \infty}}
+
+
+% Custom for absolute value
+\delimitershortfall-1sp
+\newcommand\abs[1]{\left|#1\right|}
+
+% Reference and hyperlink
+\newcommand{\source}[1]{\href{#1}{(\textbf{Source})}}
+
+% Use for define equals
+\newcommand{\delteq}{\overset{\Delta}{=}}
+
+% For nicer fonts
+\usepackage{eucal}
+
+% For Dreamer Paper
+\newcommand{\stau}{s_{\tau}}
+\newcommand{\expect}[1]{\mathbb{E}_{#1}}
+\newcommand{\indep}{\perp \!\!\! \perp}
+
+
+\title{6.801/6.866: Machine Vision, Lecture 3}
+\author{Professor Berthold Horn, Ryan Sander, Tadayuki Yoshitake \\
+        MIT Department of Electrical Engineering and Computer Science \\ 
+        Fall 2020}
+\date{}
+
+\begin{document}
+
+\maketitle
+These lecture summaries are designed to be a review of the lecture.  Though I do my best to include all main topics from the lecture, the lectures will have more elaborated explanations than these notes.  Therefore, if you're looking for the most rigorous review and treatment of these topics, we encourage you to rewatch the lecture videos.  With that said, we hope these summaries are beneficial for your learning.  If you have any feedback for these lecture summaries, please submit it \textbf{\href{https://forms.gle/itCUtP4AubAbtwQT9}{here}}.
+\section{Lecture 3: Time to Contact, Focus of Expansion, Direct Motion Vision Methods, Noise Gain}
+\subsection{Noise Gain}
+Example/motivation: \textbf{Indoor GPS}.  Rather than using localization of position with satellites, use indoor cellular signals. \\ \\
+\textbf{Fun fact}: EM waves travel at 1 ns/foot. \\ \\
+\textbf{Dilution of Precision}:
+\begin{itemize}
+    \item How far off GPS is w.r.t. your location.
+    \item Important to note that your dilution of precision can vary in different directions - e.g. horizontal precision is oftentimes greater than vertical position.
+\end{itemize}
+\subsection{Forward and Inverse Problems of Machine Vision}
+\subsubsection{Scalar Case}
+One way to conceptualize the goals of machine vision, as well as to highlight why noise gain is important, is by considering the following problems with some one-dimensional input $x$ and an output $y = f(x)$:
+\begin{itemize}
+    \item The \textbf{forward problem}: $x \rightarrow y \delteq f(x)$
+    \item The \textbf{inverse problem}$^*$: $y \delteq f(x) \rightarrow x$ \\
+    *(this term comes up a lot in machine vision, computer graphics, and robotics)
+\end{itemize}
+In machine vision, we oftentimes focus on solving the \textbf{inverse problem}, rather than the \textbf{forward problem}.  Intuitively, we usually observe some $y = f(x)$, and from this infer the latent parameters $x$ using our model $f$.  \\ \\
+When it is possible to express the inverse of a function in closed form or via a matrix/coefficient, we can simply solve the \textbf{inverse problem} using: $x = f^{-1}(y)$. \\ \\
+More importantly, to build a robust machine vision system to solve this inverse problem, it is critical that small perturbations in $y = f(x)$ do not need to large changes in $x$.  Small perturbations need to be taken into account in machine vision problems because the sensors we use exhibit \textbf{measurement noise}.  The concept of \textbf{noise gain} can come in to help deal with this uncertainty. \\ \\
+Consider a perturbation $\delta y$ that leads to a perturbation $\delta x$ when we solve the inverse problem.  In the limit, as $\delta \in \mathbb{R} \rightarrow 0$, then we arrive at the definition of noise gain:
+\begin{align}
+    \text{noise gain} = \frac{\delta x}{\delta y} = \frac{1}{f'(x)} = \frac{1}{\frac{df(x)}{dx}} &&
+\end{align}
+Like other concepts/techniques we've studied so far, let's understand when this system fails.  Below are two cases; we encourage to consider why they fail from both a mathematical and intuitive perspective (hint: for the mathematical component, look at the formula above, and for the intuitive component, think about how the effect on $x$ from a small change in $y$ in a curve that is nearly flat):
+\begin{itemize}
+    \item $f'(x) = 0$ (flat curve)
+    \item $f'(x) \approx 0$ (nearly flat curve)
+\end{itemize}
+\subsubsection{Vector Case}
+Now that we've analyzed this problem in the scalar case, let us now consider it in the vector/multi-dimensional case.  Since images are inherently multidimensional, this more general vector case is where we will find ourselves. \\ \\
+First, we can restate these problems:
+\begin{itemize}
+    \item \textbf{Forward Problem}: $\mathbf{x} = \mathbf{M}\mathbf{b}, \mathbf{M} \in \mathbb{R}^{m \times n} \;\text{for}\; m, n \in \mathbb{N}$
+    \item \textbf{Inverse Problem}: $\mathbf{b} = \mathbf{M}^{-1}\mathbf{x}, \mathbf{M} \in \mathbb{R}^{m \times n} \;\text{for}\; m, n \in \mathbb{N}$
+\end{itemize}
+But how good is this answer/approach?  If $\mathbf{x}$ changes, how much does $\mathbf{b}$ change?  We quantify noise gain in this case as follows:
+\begin{align}
+    ``\text{noise gain}" \rightarrow \frac{||\delta \mathbf{b}||}{||\delta \mathbf{x}||}, \delta \in \mathbb{R} &&
+\end{align}
+*\textbf{NOTE}: This multidimensional problem is more nuanced because we may be in the presence of an \textbf{anisotropic} (spatially non-uniform) noise gain - e.g. there could be little noise gain in the $x_1$ direction, but a lot of noise gain in the $x_2$ direction. \\ \\
+As in the previous case, let's analyze when this approach fails.  To do this, let's consider $M^{-1}$ to help build intuition for why this fails:
+\begin{align}
+    M^{-1} = \frac{1}{\text{det}|M|}\begin{bmatrix}\cdot & \cdot & \cdot \\
+                                                   \cdot & \cdot & \cdot \\
+                                                   \cdot & \cdot & \cdot \\
+                                    \end{bmatrix} &&
+\end{align}
+Let's ignore the specific entries of $M^{-1}$ for now, and focus on the fact that we need to compute the determinant of $M$.  When is this determinant zero?  This will be the case whenever there exists \textbf{linear dependence} in the columns of $\mathbf{M}$.  As we saw before, two cases that can yield to poor performance will be:
+\begin{itemize}
+    \item $\text{det}|M| = 0$: This corresponds to a non-invertible matrix, and also causes the noise term to blow up.
+    \item $\text{det}|M| \approx 0$: Though this matrix may be invertible, it may cause numerical instability in the machine vision system, and can also cause the noise term to blow up.
+\end{itemize}
+Let's also revisit, just as a refresher, the inverse of a 2 $\times$ 2 matrix:
+\begin{align}
+    \mathbf{A} = \begin{bmatrix}a & b \\ c & d\end{bmatrix} \\ \\
+    \mathbf{A}^{-1} = \frac{1}{\text{det}\mathbf{A}}\begin{bmatrix}d & -b \\ -c & a\end{bmatrix} = \frac{1}{ad - bc}\begin{bmatrix}d & -b \\ -c & a\end{bmatrix}&& 
+\end{align}
+Now let's verify that this is indeed the inverse:
+\begin{align}
+    \mathbf{A}^{-1}\mathbf{A} = \frac{1}{ad - bc}\begin{bmatrix}d & -b \\ -c & a\end{bmatrix}\begin{bmatrix}a & b \\ c & d\end{bmatrix} = \frac{1}{ad-bc}\begin{bmatrix}ad - bc & -ab + ab \\ cd - cd & ad - bc\end{bmatrix} = \begin{bmatrix}1 & 0 \\ 0 & 1\end{bmatrix} = \mathbf{I}_2 &&
+\end{align}
+\subsection{Review from Lecture 2}
+Before we dive into the next set of concepts, let's also revisit some of the concepts discussed in the previous lectures.  
+\subsubsection{Two-Pixel Motion Estimation, Vector Form}
+First, let's recall the two pixel motion estimation set of equations:
+\begin{align}
+    uE_{x_1} + vE_{y_1} + E_{t_1} = 0 \\
+    uE_{x_2} + vE_{y_2} + E_{t_2} = 0 &&
+\end{align}
+Rewritten in matrix form:
+\begin{align}
+    \begin{bmatrix}u \\ v\end{bmatrix} = \frac{1}{E_{x_1}E_{y_2} - E_{y_1}E_{x_2}}\begin{bmatrix}E_{y_2} & -E_{y_1} \\ -E_{x_2} & E_{x_1} \end{bmatrix} &&
+\end{align}
+Take note of the denominator on the right-hand side.  Does this term look familiar to the determinant term above?  We were indeed solving an instance of the \textbf{inverse problem}.  If this determinant-like quantity ($E_{x_1}E_{y_2} - E_{y_1}E_{x_2}$) is small, the noise is greatly amplified.  We saw that this happens when brightness gradients are similar to one another. \\ \\
+\subsubsection{Constant Brightness Assumption, and Motion Equation Derivation}
+Recall the constant brightness assumption's mathematical formulation: 
+\begin{align}
+    \textbf{Constant Brightness Assumption} \implies \frac{dE}{dt} = 0 &&
+\end{align}
+*(Please note the quantity above is a total derivative.) \\ \\
+\textbf{Intuition Behind This}: As the object/camera moves, the physical properties of the camera do not change and therefore the total derivative of the brightness w.r.t. time is 0.  From the chain rule, we can rewrite this total derivative assumption:
+\begin{align}
+    \frac{dE}{dt} = 0 \implies uE_x + vE_y + E_t = 0 &&
+\end{align}
+*(Recall this is for when $x$ and $y$ are parameterized w.r.t. time, i.e. $x = x(t), y = y(t)$.) \\ \\
+The above constraint is known as the \textbf{Brightness Change Constraint Equation (BCCE)}.
+\subsubsection{Optical Mouse Problem}
+Recall our motion estimation problem with the optical mouse, in which our objective is no longer to find the point where the \textbf{BCCE} is strictly zero (since images are frequently corrupted by noise through sensing), but to minimize the LHS of the BCCE, i.e:
+\begin{align}
+    \min_{u, v} \{J(u, v) \delteq \iint(uE_x + vE_y + E_t)^2 dxdy\}
+\end{align}
+We solve the above using unconstrained optimization and by taking a ``least-squares" approach (hence why we square the LHS of the BCCE).  Solve by setting the derivatives of the two optimizing variables to zero:
+\begin{align}
+    \frac{dJ(u, v)}{du} = 0, \frac{dJ(u, v)}{dv} = 0 &&
+\end{align}
+\subsubsection{Perspective Projection}
+Recall the perspective projection equations in the scalar form:
+\begin{align}
+    \frac{x}{f} = \frac{X}{Z} \;\textbf{(x-component)}, \frac{y}{f} = \frac{Y}{Z} \;\textbf{(y-component)}
+\end{align}
+*(Note that capital coordinates are in the world space, and lowercase coordinates are in the image space.) \\ \\
+What if these quantities are changing in the world w.r.t. time?  Take time derivatives:
+\begin{align}
+    \frac{1}{f}\frac{dx}{dt} = \frac{1}{Z}\frac{dX}{dt} - \frac{1}{Z^2}X\frac{dZ}{dt}
+\end{align}
+Writing these for $x$ and $y$:
+\begin{itemize}
+    \item \textbf{x}: $\frac{1}{f} u = \frac{1}{Z} U - \frac{W}{Z}\frac{X}{Z}$
+    \item \textbf{y}: $\frac{1}{f} v = \frac{1}{Z} V - \frac{W}{Z}\frac{Y}{Z}$
+\end{itemize}
+Note again the following definitions:
+\begin{itemize}
+    \item $u \rightarrow$ image velocity in the $x$ direction
+    \item $v \rightarrow$ image velocity in the $y$ direction
+    \item $U \rightarrow$ world velocity in the $X$ direction
+    \item $V \rightarrow$ world velocity in the $Y$ direction
+\end{itemize}
+When are these points in $(u, v)$ space interesting?  When $u = v = 0$ - this is the \textbf{Focus of Expansion (FOE)}.  The \textbf{FOE} given by $(x_0, y_0)$ in two dimensions:
+\begin{align}
+    (x_0, y_0) = (\frac{f}{Z}\frac{U}{W}, \frac{f}{Z}\frac{V}{W}) &&
+\end{align}
+\subsection{Time to Contact (TTC)}
+In the previous lecture, we discussed the derivation of Time to Contact (TTC) in terms of meters:
+\begin{align}
+    \frac{Z}{W} \delteq = \frac{Z}{\frac{dZ}{dt}} = \frac{\text{meters}}{\frac{\text{meters}}{\text{seconds}}} = \text{seconds}
+\end{align}
+Let us express the inverse of this \textbf{Time to Contact (TTC)} quantity as $C$:
+\begin{align}
+    C \delteq \frac{W}{Z} = \frac{1}{\text{TTC}} &&
+\end{align}
+Let us now suppose we parameterize our spatial velocities $u$ and $v$ according to $u = Cx, v = Cy$, where $C$ is the inverse TTC value we introduced above.  Then, substituting these into the BCCE equation, we have:
+\begin{align}
+    \textbf{Recall BCCE:} \;\;\;\;\; uE_x + vE_y + E_t = 0 \\
+    \textbf{Substitute:} \;\;\;\;\; C(xE_x + yE_y) + E_t = 0 \\
+    \textbf{Solve for $C$:} \;\;\;\;\; \;\;\;\;\;\;\;\;C = -\frac{E_t}{xE_x + yE_y} && 
+\end{align}
+The denominator in the derivation of $C$ is the \textbf{``radial gradient"}:
+\begin{align}
+    g = xE_x + yE_y = (x, y) \cdot (E_x, E_y)
+\end{align}
+\textbf{Building Intuition}: If we conceptualize 2D images as topographic maps, where brightness is the third dimension of the surface (and the spatial dimensions $x$ and $y$ comprise the other two dimensions), then the brightness gradient is the direction of steepest \textbf{ascent} up the brightness surface. \\ \\
+Another note: $(x, y)$ is a radial vector, say in a polar coordinate system.  Hence why the above dot product term is coined the name ``radial gradient".  This gradient is typically normalized by its $L_2$/Euclidean norm to illustrate the multiplication of the brightness gradients with a radial unit vector):
+\begin{align}
+    g = \sqrt{x^2 + y^2}(\frac{x}{\sqrt{x^2 + y^2}}, \frac{y}{\sqrt{x^2 + y^2}}) \cdot (E_x, E_y)
+\end{align}
+This $g$ quantity can be thought of as: ``How much brightness variation is in an outward direction from the center of the image?" \\ \\
+For a more robust estimate, let us again employ the philosophy that estimating from more data points is better.  We'll again take a least-squares approach, and minimize across the entire image using the parameterized velocities we had before.  In this case, since we are solving for inverse Time to Contact, we will minimize the error term over this quantity:
+\begin{align}
+    \min_C\{J(C) \delteq \iint (C(xE_x + yE_y) + E_t)^2 dxdy\}
+\end{align}
+Without the presence of measurement noise, the optimal value of $C$ gives us an error of zero, i.e. perfect adherence to the \textbf{BCCE}.  However, as we've seen with other cases, this is not the case in practice due to noise corruption.  We again will use unconstrained optimization to solve this problem. \\ \\
+Taking the derivative of the objective $J(C)$ and setting it to zero, we obtain:
+\begin{align}
+    \frac{dJ(C)}{dC} = 0 \implies 2\iint(C(xE_x + yE_y) + E_t)(xE_x + yE_y)dxdy = 0 &&
+\end{align}
+This in turn gives us:
+\begin{align}
+    C\iint(xE_x + yE_y)^2dxdy + \iint(xE_x + yE_y)E_tdxdy = 0 \\
+    \frac{1}{\text{TTC}} = C = -\frac{\iint(xE_x + yE_y)E_tdxdy}{\iint(xE_x + yE_y)^2dxdy} &&
+\end{align}
+A few notes here:
+\begin{itemize}
+    \item $E_t$ can be computed by taking differences between a pixel at different points in time.
+    \item To implement a framework like this, we can do so with \textbf{accumulators}.
+    \item This is an instance of \textbf{``direct computation"}.
+    \item When objects/important components of a scene are far away, we can combine image pixels and run these algorithms at \textbf{multiple scales} - this allows us to compute/analyze motion velocities over different timescales.  This can also be helpful for building more computationally-tractable motion estimation implementations, since the number of pixels over which computations must occur can be reduced quadratically with the scale.
+    \item Note one problem we run into with this approach - each pixel we apply this estimation approach to introduces one equation, but two unknowns.
+    \item Note that neighboring pixels typically exhibit similar behavior to one another.
+\end{itemize}
+Let's briefly return to the concept of the radial gradient.  When is this zero?
+\begin{itemize}
+    \item $E = 0$ everywhere (coal mine)
+    \item $(x, y) \cdot (E_x, E_y) = 0$ (radial gradient is zero)
+\end{itemize}
+Now, let's take a more general case when we have world motion, i.e. $U \neq 0, V \neq 0$.  For our two components $x$ and $y$:
+\begin{itemize}
+    \item \textbf{x-component}: \begin{align}\frac{u}{f} = \frac{U}{Z} - \frac{X}{f}\frac{W}{Z} \\
+                      u = \frac{fU}{Z} - X\frac{W}{Z} \\
+                      u = A - XC \\ \text{Where:} \; A \delteq \frac{fU}{Z}, C \delteq \frac{W}{Z} &&
+                      \end{align}
+    \item \textbf{y-component}: \begin{align}\frac{v}{f} = \frac{V}{Z} - \frac{Y}{f}\frac{W}{Z} \\
+                      v = \frac{fV}{Z} - Y\frac{W}{Z} \\
+                      v = B - YC \\ \text{Where:} \; B \delteq \frac{fV}{Z}, C \delteq \frac{W}{Z} &&
+                      \end{align}
+\end{itemize}
+Note that for the world quantities $A$ and $B$, we also have the following identities (note that the Focus of Expansion (FOE) is given by the point $(x_0, y_0)$:
+\begin{itemize}
+    \item $A = \frac{fU}{Z} = Cx_0$
+    \item $B = \frac{fV}{Z} = Cy_0$
+\end{itemize}
+\textbf{Building Intuition}: ``As I approach the wall, it will loom outward and increase in size."  \\ \\
+Now returning to our \textbf{BCCE}, this time with $A$, $B$, and $C$:
+\begin{align}
+    AE_x + BE_y + C(xE_x + yE_y) + E_t = 0 &&
+\end{align}
+We can again use least-squares to minimize the following objective enforcing the BCCE.  This time, our optimization aim is to minimize the objective function $J(A, B, C)$ using the quantities $A$, $B$, and $C$:
+\begin{align}
+    \min_{A, B, C}\{J(A, B, C)\} \delteq \iint(AE_x + BE_y + C(xE_x + yE_y) + E_t)^2dxdy\}
+\end{align}
+Use unconstrained optimzation with calculus and partial derivatives to solve.  Since we have three variables to optimize over, we have three first-order conditions (FOCs):
+\begin{itemize}
+    \item $\frac{dJ(A, B, C)}{dA} = 0$
+    \item $\frac{dJ(A, B, C)}{dB} = 0$
+    \item $\frac{dJ(A, B, C)}{dC} = 0$
+\end{itemize}
+Using the Chain rule for each of these FOCs, we can derive and rewrite each of these conditions to obtain 3 equations and 3 unknowns.  Note that $G \delteq xE_x + yE_y$.
+\begin{itemize}
+    \item \textbf{A} variable: \begin{align}
+        2\iint(AE_x + BE_y + C(xE_x + yE_y))E_x = 0 \\
+        A\iint E^2_x + B\iint E_xE_y + C\iint GE_x = -\iint E_xE_t &&
+    \end{align}
+    \item \textbf{B} variable: \begin{align}
+        2\iint(AE_x + BE_y + C(xE_x + yE_y))E_x = 0 \\
+        A\iint E_yE_x + B\iint E^2_y + C\iint GE_y = -\iint E_yE_t &&
+    \end{align}
+    \item \textbf{C} variable: \begin{align}
+        2\iint(AE_x + BE_y + C(xE_x + yE_y))E_x = 0 \\
+        A\iint GE_x + B\iint GE_y + C\iint G^2 = -\iint GE_t &&
+    \end{align}
+\end{itemize}
+Putting all of these equations together:
+\begin{align*}
+    & A\iint E^2_x + B\iint E_xE_y + C\iint GE_x = -\iint E_xE_t \\
+    & A\iint E_yE_x + B\iint E^2_y + C\iint GE_y = -\iint E_yE_t \\
+    & A\iint GE_x + B\iint GE_y + C\iint G^2 = -\iint GE_t &&
+\end{align*}
+This can be compactly written as a matrix-vector product equation:
+\begin{align*}
+    \begin{bmatrix}
+        \iint E^{2}_x & \iint E_xE_y & \iint E_xG \\
+        \iint E_yE_x & \iint E^{2}_y & \iint E_yG \\
+        \iint GE_x & \iint GE_y & \iint G^2 \\ \end{bmatrix}\begin{bmatrix}A \\ B \\ C \end{bmatrix} = -\begin{bmatrix}\iint E_xE_t \\ \iint E_yE_t \\ \iint GE_t \end{bmatrix} &&
+\end{align*}
+As in the time-to-contact problem above, this can again be implemented using \textbf{accumulators}. \\ \\
+Let's end on a fun fact: Did you know that optical mice have frame rates of 1800 fps?
+\end{document}

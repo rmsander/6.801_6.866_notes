@@ -1,0 +1,682 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[left=1.0cm,right=1.0cm, top=1.5cm, bottom=1.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{graphics}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{listings}
+\usepackage{mathtools}
+\usepackage{hyperref}
+
+% Align all equations left:
+\documentclass[fleqn]{article} 
+
+
+% Sets and quantifiers
+\newcommand{\R}{\mathbb{R}\;}
+\newcommand{\Q}{\mathbb{Q}\;}
+\newcommand{\N}{\mathbb{N}\;}
+\newcommand{\nin}{n \in \mathbb{N}}
+\newcommand{\fa}{\;\forall\;}
+\newcommand{\ex}{\;\exists\;}
+\newcommand{\nex}{\;\nexists\;}
+
+% Sequences
+\newcommand{\seq}[1]{\{#1\}}
+\newcommand{\seqx}{\seq{x_n}}
+\newcommand{\seqy}{\seq{y_n}}
+\newcommand{\seqs}{\seq{s_n}}
+
+% Subsequences
+\newcommand{\seqxni}{\seq{x_{n_i}}}
+\newcommand{\seqyni}{\seq{y_{n_i}}}
+\newcommand{\xni}{x_{n_i}}
+\newcommand{\yni}{y_{n_i}}
+\newcommand{\xnij}{x_{n_{i_j}}}
+\newcommand{\ynij}{y_{n_{i_j}}}
+\newcommand{\seqxnij}{\seq{x_{n_{i_j}}}}
+\newcommand{\seqynij}{\seq{y_{n_{i_j}}}}
+
+% Such that
+\newcommand{\st}{\;\text{such that}\;}
+
+% Vectors
+\newcommand{\xhat}{\hat{\mathbf{x}}}
+\newcommand{\yhat}{\hat{\mathbf{y}}}
+\newcommand{\zhat}{\hat{\mathbf{z}}}
+\newcommand{\nhat}{\hat{\mathbf{n}}}
+\newcommand{\shat}{\hat{\mathbf{s}}}
+\newcommand{\rhat}{\hat{\mathbf{r}}}
+\newcommand{\vhat}{\hat{\mathbf{v}}}
+\newcommand{\hatvector}[1]{\hat{\mathbf{1}}}
+\newcommand{\mb}[1]{\mathbf{#1}}
+\newcommand{\omegahat}{\boldsymbol{\hat{\mathbf{\omega}}}}
+
+% Four-vector quaternions
+\newcommand{\quat}[1]{\overset{o}{#1}}
+\newcommand{\quatconj}[1]{\overset{o}{#1}^{*}}
+
+
+% Bold vectors
+\newcommand{\xb}{\mathbf{x}}
+\newcommand{\yb}{\mathbf{y}}
+\newcommand{\zb}{\mathbf{z}}
+\newcommand{\rb}{\mathbf{r}}
+\newcommand{\qb}{\mathbf{q}}
+
+% Derivatives
+\newcommand{\der}[2]{\frac{d #1}{d #2}}
+\newcommand{\dder}[2]{\frac{d^2 #1}{d #2^2}}
+\newcommand{\derop}[1]{\frac{d}{d #1}}
+\newcommand{\dderop}[1]{\frac{d^2}{d #1^2}}
+
+% Partial Derivatives
+\newcommand{\pd}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\pdd}[2]{\frac{\partial^2 #1}{\partial #2^2}}
+\newcommand{\pdop}[1]{\frac{\partial}{\partial #1}}
+\newcommand{\pddop}[1]{\frac{\partial^2}{\partial #1^2}}
+\newcommand{\pddmixed}[3]{\frac{\partial^2 #1}{\partial #2\partial #3}}
+\newcommand{\pddmixedop}[2]{\frac{\partial^2}{\partial #1\partial #2}}
+
+% ith
+\newcommand{\ith}{\text{i}^{\text{th}}}
+
+% lim, limsup, liminf
+\newcommand{\limn}{\text{lim}_{n \rightarrow \infty}}
+\newcommand{\limi}{\text{lim}_{i \rightarrow \infty}}
+\newcommand{\limj}{\text{lim}_{j \rightarrow \infty}}
+\newcommand{\limsupn}{\limsup_{n \rightarrow \infty}}
+\newcommand{\liminfn}{\liminf_{n \rightarrow \infty}}
+
+% Parallel symbols
+\newcommand{\parallelsum}{\mathbin{\!/\mkern-5mu/\!}}
+
+
+% Custom for absolute value
+\delimitershortfall-1sp
+\newcommand\abs[1]{\left|#1\right|}
+
+% Reference and hyperlink
+\newcommand{\source}[1]{\href{#1}{(\textbf{Source})}}
+
+% Use for define equals
+\newcommand{\delteq}{\overset{\Delta}{=}}
+
+% For nicer fonts
+\usepackage{eucal}
+
+% For Dreamer Paper
+\newcommand{\stau}{s_{\tau}}
+\newcommand{\expect}[1]{\mathbb{E}_{#1}}
+\newcommand{\indep}{\perp \!\!\! \perp}
+
+
+\title{6.801/6.866: Machine Vision, Lecture 18}
+\author{Professor Berthold Horn, Ryan Sander, Tadayuki Yoshitake \\
+        MIT Department of Electrical Engineering and Computer Science \\ 
+        Fall 2020}
+\date{}
+
+\begin{document}
+
+\maketitle
+These lecture summaries are designed to be a review of the lecture.  Though I do my best to include all main topics from the lecture, the lectures will have more elaborated explanations than these notes.  Therefore, if you're looking for the most rigorous review and treatment of these topics, we encourage you to rewatch the lecture videos.  With that said, we hope these summaries are beneficial for your learning.  If you have any feedback for these lecture summaries, please submit it \textbf{\href{https://forms.gle/itCUtP4AubAbtwQT9}{here}}.
+\section{Lecture 18: Rotation and How to Represent it, Unit Quaternions, the Space of Rotations}
+Today, we will focus on rotations.  Note that unlike \textbf{translations}, \textbf{rotations} are not \textbf{commutative}, which makes fitting estimates to data, amongst other machine vision tasks, more challenging.  In this lecture, we will cover rotation in terms of:
+\begin{itemize}
+    \item Properties
+    \item Representations
+    \item Hamilton's Quaternions
+    \item Rotation as Unit Quaternion
+    \item Space of rotations
+    \item Photogrammetry
+    \item Closed-form solution of absolute quaternions
+    \item Divison algebras, quaternion analysis, space-time
+\end{itemize}
+We will start by looking at some motivations for why we might care about how we formulate and formalize rotations:  \textbf{What is rotation used for?}
+\begin{itemize}
+    \item Machine vision
+    \item Recognition/orientation
+    \item Graphics/CAD
+    \item Virtual Reality
+    \item Protein Folding
+    \item Vehicle Attitude
+    \item Robotics
+    \item Spatial Reasoning
+    \item Path Planning - Collision Avoidance
+\end{itemize}
+\subsection{Euclidean Motion and Rotation}
+Rotation and translation form Euclidean motion.  Some properties of Euclidean motion, including this property.  Euclidean motion:
+\begin{itemize}
+    \item Contains \textbf{translation} and \textbf{rotation}
+    \item Preserves distances between points
+    \item Preserves angles between lines
+    \item Preserves handedness
+    \item Preserves dot-products
+    \item Preserves triple products
+    \item Does not contain:
+    \begin{itemize}
+        \item Reflections
+        \item Skewing 
+        \item Scaling
+    \end{itemize}
+\end{itemize}
+\subsection{Basic Properties of Rotation}
+Now that we have framed rotation to be a property of Euclidean motion, we can dive further into some properties of rotation:
+\begin{itemize}
+    \item \textbf{Euler's Theorem}: There is a line of fixed points that remain the same in any rotation.  This is known as the axis of rotation.
+    \item \textbf{Parallel axis theorem}: Any rotation is equivalent to rotation through the origin along with a translation.  This allows for the decoupling between translation and rotation.
+    \item \textbf{Rotation of sphere includes rotation of space}: I.e, any rotation that is induced on a space can be induced on an equivalent-dimensional sphere.
+    \item \textbf{Attitude, Orientation - Rotation Relative to Reference}: This helps for determining the orientation of objects relative to another frame of reference.
+    \item \textbf{Degrees of Freedom (in 3D)} is 3.
+\end{itemize}
+Some additional properties that are helpful for understanding rotation:
+\begin{itemize}
+    \item \textbf{Rotational velocity} can be described by a vector.  This set of rotational vectors together form a \textbf{lie algebra}, specifically, \textbf{so}(3).  The set of rotations form the counterpart to this lie algebra, namely the \textbf{Special Orthogonal group} \textbf{SO}(3), which is a \textbf{Lie group}.  If you are not familiar with Lie groups/algebras, here are a few useful terms to get started with these concepts:
+    \begin{itemize}
+        \item A \textbf{group} is a set equipped with a binary operation that combines any two elements to form a third element in such a way that four conditions called group axioms are satisfied, namely closure, associativity, identity and invertibility [1].
+        \item A \textbf{manifold} is a $d$-dimensional topological space that locally resembles Euclidean space at each point i.e. any patch of the manifold can be ``locally" approximated as a $d$-dimensional Euclidean space [2].
+        \item A \textbf{Lie group} is a group that is also a differentiable manifold.  One key Lie group that we will study in this course is the \textbf{Special Orthogonal group}, known as \textbf{SO}(3), which is the space of orthonormal rotation matrices.
+    \end{itemize}
+    \item We can define the derivative of the radius vector $\dot{\rb}$ using \textbf{Poisson's Formula}: $\dot{\rb} = \omegahat \times \rb$
+    \item \textbf{Rotational velocities add} - this holds because these vectors belong to \textbf{Lie algebras}
+    \item \textbf{Finite rotations do not commute} - this holds because rotations are defined by \textbf{Lie groups} in a non-Euclidean space.
+    \item The \textbf{Degrees of Freedom} for rotation in dimension $\mb{n}$ is given by $\frac{n(n-1)}{2}$, which coincidentally equals 3 in 3 dimensions.
+    \item \textbf{Intuition}: Oftentimes, it is easier to think about rotation ``in planes", rather than ``about axes".  Rotations preserve points in certain planes.
+\end{itemize}
+\subsubsection{Isomorphism Vectors and Skew-Symmetric Matrices}
+A technical note that is relevant when discussing cross products: Although a cross product produces a vector in 3D, in higher dimensions the result of a cross product is a \textbf{subspace}, rather than a vector. \\ \\
+Specifically, this \textbf{subspace} that forms the result of a higher-dimensional cross product is the space that is \textbf{perpendicular/orthogonal} to the two vectors the cross product operator is applied between. \\ \\
+With this set up, we can think of cross products as producing the following isomorphism vectors and skew-symmetric matrices:
+\textbf{One Representation}:
+ \begin{align*}
+    & \mb{a} \times \mb{b} = \mb{A}\mb{b} \\
+    & \mb{A} = \begin{bmatrix}0 & -a_z & a_y \\
+                              a_z & 0 & -a_x \\
+                              -a_y & a_x & 0 \\
+               \end{bmatrix} &&
+\end{align*}
+\textbf{An Isomorphic Representation}:
+ \begin{align*}
+    & \mb{a} \times \mb{b} = \bar{\mb{B}}\mb{a} \\
+    & \mb{A} = \begin{bmatrix}0 & b_z & -b_y \\
+                              -b_z & 0 & b_x \\
+                              b_y & -b_x & 0 \\
+               \end{bmatrix} &&
+\end{align*}
+Note that while these skew-symmetric matrices have 9 elements as they are $3 \times 3$ matrices, they only have 3 DOF.
+\subsection{Representations for Rotation}
+There are a myriad of representations for rotations, highlighting that different applications/domains/problem-solving techniques demand different representations for these transformations.  Some of these representations include (we will proceed in greater detail about these later):
+\begin{enumerate}
+    \item Axis and angle
+    \item Euler Angles
+    \item Orthonormal Matrices
+    \item Exponential cross product
+    \item Stereography plus bilinear complex map
+    \item Pauli Spin Matrices
+    \item Euler Parameters
+    \item Unit Quaternions
+\end{enumerate}
+Let us delve into each of these in a little more depth.
+\subsubsection{Axis and Angle}
+This representation is composed of a vector $\omegahat$ and an angle $\theta$, along with the \textbf{Gibb's vector} that combines these given by $\omegahat\tan\big(\frac{\theta}{2}\big)$, which has magnitude $\tan\big(\frac{\theta}{2}\big)$, providing the system with an additional degree of freedom that is not afforded by unit vectors.  Therefore, we have our full 3 rotational DOF.
+\subsubsection{Euler Angles}
+A few notes about these:
+\begin{itemize}
+    \item There are over 24 definitions of Euler angles!  This is the case because these definitions are permutations - i.e. the order of the angles matters here.  The order of angular composition matters.
+    \item These rotations are defined through each axis, \textbf{roll}, \textbf{pitch}, and \textbf{yaw}.
+\end{itemize}
+\subsubsection{Orthonormal Matrices}
+We have studied these previously, but these are the matrices that have the following properties:
+\begin{enumerate}
+    \item $\mb{R}^T\mb{R} = \mb{R}\mb{R}^T = I, \mb{R}^T = \mb{R}^{-1}$ (skew-symmetric)
+    \item $\det|R| = +1$
+    \item $\mb{R} \in$ \textbf{SO}(3) (see notes on groups above) - being a member of this Special Orthogonal group is contingent on satisfying the properties above.
+\end{enumerate}
+\subsubsection{Exponential Cross Product}
+We can also write rotations in terms of a matrix exponential.  To derive this matrix exponential, let us consider the matrix first-order, homogeneous differential equation defined by:
+\begin{align*}
+    \frac{d\mb{R}}{d\theta} = \mb{\Omega}\mb{R} &&
+\end{align*}
+Has the solution given by the matrix exponential:
+\begin{align*}
+    \mb{R} = e^{\theta\mb{\Omega}} &&
+\end{align*}
+Taking the Taylor expansion of this expression, we can write this matrix exponential as:
+\begin{align*}
+    \mb{R} & = e^{\theta\mb{\Omega}} \\
+           & = \sum_{i=0}^{\infty}\frac{1}{i!}(\theta\mb{\Omega})^i \\
+           & = \sum_{i=0}^{\infty}\frac{\theta^i}{i!}(\mb{V}_{\Omega}\mb{\Lambda}^{i}_{\Omega}\mb{V}_{\Omega}^T) \;\; \textbf{(Taking an eigendecomposition of} \; \mb{\Omega} = \mb{V}_{\Omega}\mb{\Lambda}_{\Omega}\mb{V}_{\Omega}^T \textbf{)}
+\end{align*}
+(Optional) Let us look a little deeper into the mathematics behind this exponential cross product.  We can write a rotation about $\omegahat$ through angle $\theta$ as:
+\begin{align*}
+    & \rb = R(\theta)\rb_0 \\
+    & \frac{d\rb}{d\theta} = \frac{d}{d\theta}(R(\theta)\rb_0) \\
+    & \frac{d\rb}{d\theta} = \omegahat \times \rb = \mb{\Omega}\mb{r} = \mb{\Omega}R(\theta)\rb_0 \\
+    & \frac{d}{d\theta}R(\theta)\rb_0 = \mb{\Omega}R(\theta)\rb_0 &&
+\end{align*}
+Then for all $\rb_0$:
+\begin{align*}
+    \frac{d}{d\theta}R(\theta) = \mb{\Omega}R(\theta) \implies R(\theta) = e^{\theta\mb{\Omega}}
+\end{align*}
+\subsubsection{Stereography Plus Bilinear Complex Map}
+Intuitively, this notion of rotation corresponds to mapping a sphere to a complex plane, making transformations in the complex plane, and then mapping this transformed mapping from the complex plane back to the sphere.  A few points here:
+\begin{itemize}
+    \item This is an instance of \textbf{Stereography}: a \textbf{conformal} (angle-preserving) spherical mapping.
+    \item The rotation of a sphere induces the rotation of a space.
+    \item This plane is treated as a complex plane that we can apply homogeneous transforms to.
+\end{itemize}
+We can conceptually visualize this mapping from a sphere to the complex plane using the figure below:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=2\textwidth/3]{figures/bilinear_complex_map.png}}
+    \caption{Mapping from a sphere to a complex plane, which we then apply a homogeneous transformation to and map back to the sphere in order to induce a rotation.}
+    \label{fig:my_label}
+\end{figure}
+Specifically, the homogeneous transform we consider maps the complex variable $z$ to $z'$:
+\begin{align*}
+    z' = \frac{az + b}{cz + d}, \; \text{for some} \; a,b,c,d \in \mathbb{C}
+\end{align*}
+We can actually generalize this framework even further - any rotation in 3-space can be thought of as an operation in a complex plane.
+\subsubsection{Pauli Spin Matrices}
+With a physical motivation, these are $2 \times 2$ complex-valued, unitary, Hermitian matrices ($\mb{A} = \bar{\mb{A}^T}$).  All these constraints create 3 DOF for these matrices:
+\begin{align*}
+    \mb{S}_x = \frac{\hbar}{2}\begin{bmatrix}0 & 1 \\ 1 & 0\end{bmatrix}, \; \mb{S}_y = \frac{\hbar}{2}\begin{bmatrix}0 & -i \\ i & 0\end{bmatrix}, \; \mb{S}_z = \frac{\hbar}{2}\begin{bmatrix}1 & 0 \\ 0 & -1\end{bmatrix}
+\end{align*}
+\subsubsection{Euler Parameters}
+There are also known as \textbf{Rodrigues} parameters, leading to \textbf{Rodrigues formula}, which can be thought of as a rotation about the unit vector $\omegahat$ through the angle $\theta$:
+\begin{align*}
+    \rb' = (\cos\theta)\rb + (1-\cos\theta)(\omegahat \cdot \rb)\omegahat + \sin\theta(\omegahat \times \rb)
+\end{align*}
+The geometry of this problem can be understood through the following figure:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth/3]{figures/rodrigues.png}
+    \caption{Geometric interpretation of the Rodrigues formula: Rotation about the vector $\omegahat$ through an angle $\theta$.}
+    \label{fig:my_label}
+\end{figure}
+One disadvantage of this approach is that there is no way to have \textbf{compositions} of rotations. \\ \\
+Next, let us take an in-depth analysis of the Rodrigues Formula and the Exponential Cross Product:
+\begin{align*}
+    & \frac{d\mb{R}}{d\theta} = \mb{\Omega}\mb{R} \implies \mb{R} = e^{\mb{\Omega}\theta} \\ \\
+    & e^{\mb{\Omega}\theta} = \mb{I} + \theta\mb{\Omega} + \frac{1}{2!}(\theta\mb{\Omega})^2 + ... = \sum_{i=0}^{\infty}\frac{\theta^i}{i!}\mb{\Omega}^i &&
+\end{align*}
+Next, we have that:
+\begin{align*}
+    & \mb{\Omega}^2 = (\omegahat\omegahat^T - \mb{I}) \\
+    & \mb{\Omega}^3 = -\mb{\Omega} &&
+\end{align*}
+We can then write this matrix exponential as:
+\begin{align*}
+    e^{\theta\mb{\Omega}} & = \mb{I} + \mb{\Omega}(\theta - \frac{\theta^3}{3!} + \frac{\theta^5}{5!} + \cdots ) + \mb{\Omega}^2(\frac{\theta^2}{2!} - \frac{\theta^4}{4!} + \frac{\theta^6}{6!} + \cdots) \\
+    & = \mb{I} + \mb{\Omega}(\sum_{i=0}^{\infty}\frac{\theta^{2i+1}}{(2i + 1)!}(-1)^i) + \mb{\Omega}^2(\sum_{i=0}^{\infty}\frac{\theta^{2i+2}}{(2i + 2)!}(-1)^i) \\
+    & = \mb{I} + \mb{\Omega}\sin\theta + \mb{\Omega}^2(1-\cos\theta) \\
+    & = \mb{I} + (\sin\theta)\mb{\Omega} + (\omegahat\omegahat^T - \mb{I})(1-\cos\theta) \\
+    & = (\cos\theta)\mb{I} + (\sin\theta)\mb{\Omega} + (1-\cos\theta)\omegahat\omegahat^T &&
+\end{align*}
+From this, we have:
+\begin{align*}
+    & \rb = e^{\theta\mb{\Omega}}\rb \\
+    & \rb' = (\cos\theta)\rb + (1-\cos\theta)(\omegahat \cdot \rb)\omegahat + \sin\theta(\omegahat \times \rb) && 
+\end{align*}
+Where the last line is the result of the Rodrigues formula.
+\subsection{Desirable Properties of Rotations}
+We would like rotations to exhibit the following properties:
+\begin{itemize}
+    \item The ability to rotate vectors - or coordinate systems
+    \item The ability to compose rotations
+    \item Intuitive, non-redundant representation - e.g. rotation matrices have 9 entries but only 3 degrees of freedom
+    \item Computational efficiency
+    \item Interpolate orientations
+    \item Averages over range of rotations
+    \item Derivative with respect to rotations - e.g. for optimization and least squares
+    \item Sampling of rotations - uniform and random (e.g. if we do not have access to closed-form solutions)
+    \item Notion of a space of rotations
+\end{itemize}
+\subsection{Problems with Some Rotation Representations}
+Let us discuss some problems with the representations we introduced and discussed above:
+\begin{enumerate}
+    \item \textbf{Orthonormal Matrices}: Redundant, with complex constraints.
+    \item \textbf{Euler Angles}: Inability to compose rotations, ``gimbal lock" (when two axes line up, you lose a DOF, which can be disastrous for control systems).
+    \item \textbf{Gibb's Vector}: Singularity when $\theta = \pi$, since $\tan(\frac{\pi}{2})$ is not defined.
+    \item \textbf{Axis and Angle}: Inability to compose rotations
+    \item There is no notion of the ``space of rotations" (at least not in Euclidean space).
+\end{enumerate}
+How can we overcome these challenges?  One way through which we can do is to look at another representation approach, this time through Hamilton.
+\subsection{Quaternions}
+In this section, we will discuss another way to represent rotations: quaternions.
+\subsubsection{Hamilton and Division Algebras}
+\textbf{Goal}: Develop an algebra where we can use algebraic operations such as addition, subtraction, mulitplication, and division.
+\begin{enumerate}
+    \item Hamilton's representation is motivated by \textbf{Algebraic couples}, for instance, complex numbers as pairs of reals $a + bi, a - bi$
+    \item \textbf{Here, we want:} Multiplicative inverses
+    \item \textbf{Examples}: Real numbers, complex numbers
+    \item \textbf{Expected next}: Three conponents (vectors) - note that this was before Gibb's vector and 3-vectors
+\end{enumerate}
+Hamilton's insight here is that these quaternions require a ``4th dimension for the sole purpose of calculating triples".
+\subsubsection{Hamilton's Quaternions}
+Hamilton noted the following insights in order to formalize his quaternion:
+\begin{itemize}
+    \item Quaternions cannot be constructed with three components
+    \item Quaternions need additional square roots of -1
+\end{itemize}
+Thereofore, the complex components $i, j, k$ defined have the following properties:
+\begin{enumerate}
+    \item $i^2 = j^2 = k^2 = ijk = -1$
+    \item From which follows:
+    \begin{enumerate}
+        \item $ij = k$
+        \item $jk = i$
+        \item $ki = j$
+        \item $ji = -k$
+        \item $kj = -i$
+        \item $ik = -j$
+    \end{enumerate}
+    \textbf{Note}: As you can see from these properties, multiplication of the components of these quaternions is not commutatitve.
+\end{enumerate}
+\subsubsection{Representations of Quaternions}
+There are several ways through which we can represent these quaternions:
+\begin{enumerate}
+    \item \textbf{Real and imaginary parts}: $q_0 + iq_x + jq_y + kq_z$
+    \item \textbf{Scalar and 3-vector}: $(q, \qb)$
+    \item \textbf{4-vector}: $\quat{q}$
+    \item \textbf{Certain Orthogonal 4 x 4 Matrices} $\qb$ (this is an isomorphism of quaternions that allows us to do multiplications).
+    \item \textbf{Complex Composite of Two Complex Numbers}: Here, we have $(a + bi)$ and $(c + di)$, and we replace all the real constants $a, b, c, d$ with complex numbers.  We can build sophisticated algebras from these operations.
+\end{enumerate}
+\subsubsection{Representations for Quaternion Multiplication}
+With several ways to represent these quaternions, we also have several ways through which we can represent quaternion multiplication:
+\begin{enumerate}
+    \item \textbf{Real and 3 Imaginary Parts}:
+    \begin{align*}
+        (p_0 + p_xi + p_yj + p_zk)((q_0 + q_xi + q_yj + q_zk) = 
+            & (p_0q_0 - p_xq_x - p_yq_y - p_zq_z) + \\
+            & (p_0q_x + p_xq_0 + p_yq_z - p_zq_y)i + \\
+            & (p_0q_y - p_xq_z + p_yq_z + p_zq_x)j + \\
+            & (p_0q_z + p_xq_y - p_yq_x + p_zq_0)k &&
+    \end{align*}
+    \item \textbf{Scalar and 3-Vector}:
+    \begin{align*}
+        (p, \mb{p})(q, \qb) = (pq - \mb{p} \cdot \qb, p\qb + q\mb{p} + \mb{p} \times \qb) &&
+    \end{align*}
+    \textbf{Note}: This multiplication operation is not commutative.
+    \item \textbf{4-Vector}:
+    \begin{align*}
+        \begin{bmatrix}
+            p_0 & -p_x & -p_y & -p_z \\
+            p_x & p_0 & -p_z & p_y \\
+            p_y & p_z & p_0 & -p_x \\
+            p_z & -p_y & p_x & p_0
+        \end{bmatrix}\begin{bmatrix}
+            q_0 \\ q_x \\ q_y \\ q_z
+        \end{bmatrix}
+    \end{align*}
+    \textbf{Note}: Here we also have an isomorphism between the quaternion and the 4 x 4 orthogonal matrix (this matrix is orthonormal if we have unit quaternions).  Here we can show the isomorphism and relate this back to the cross product we saw before by considering the equivalence of the two following righthand-side expressions:
+    \begin{enumerate}
+        \item $\quat{p}\quat{q} = P\quat{q}$, where $P = \begin{bmatrix}
+            p_0 & -p_x & -p_y & -p_z \\
+            p_x & p_0 & -p_z & p_y \\
+            p_y & p_z & p_0 & -p_x \\
+            p_z & -p_y & p_x & p_0
+        \end{bmatrix}$
+        \item $\quat{p}\quat{q} = \bar{\qb}\quat{p}$, where $\bar{\qb} = \begin{bmatrix}
+            q_0 & -q_x & -q_y & -q_z \\
+            q_x & q_0 & q_z & -q_y \\
+            q_y & -q_z & q_0 & q_x \\
+            q_z & q_y & -q_x & q_0
+        \end{bmatrix}$
+    \end{enumerate}
+    A few notes about these matrices $\mb{P}$ and $\bar{\qb}$: 
+    \begin{itemize}
+        \item These matrices are orthonormal if quaternions are unit quaternions
+        \item $\mb{P}$ is normal if $\quat{p}$ is a unit quaternion, and $\bar{\qb}$ is normal if $\quat{q}$ is a unit quaternion.
+        \item $\mb{P}$ is skew-symmetric if $\quat{p}$ has zero scalar part, and $\bar{\qb}$ is skew-symmetric if $\quat{q}$ has zero scalar part.
+        \item $\mb{P}$ and $\bar{\qb}$ have the same signs for the first row and column, and flipped signs for off-diagonal entries in the bottom right 3 x 3 blocks of their respective matrices.
+    \end{itemize}
+\end{enumerate}
+\subsubsection{Properties of 4-Vector Quaternions}
+These properties will be useful for representing vectors and operators such as rotation later:
+\begin{enumerate}
+    \item \textbf{Not commutative}: $\quat{p}\quat{q} \neq \quat{q}\quat{p}$
+    \item \textbf{Associative}: $(\quat{p}\quat{q})\quat{r} = \quat{p}(\quat{q}\quat{r})$
+    \item \textbf{Conjugate}: $(p, \mb{p})^{*} = (p, -\mb{p}) \implies (\quat{p}\quat{q}) = \quatconj{q}\quat{p}$
+    \item \textbf{Dot Product}: $(p, \mb{p}) \cdot (q, \qb) = pq + \mb{p} + \qb$
+    \item \textbf{Norm}: $||\quat{q}||^{2}_2 = \quat{q} \cdot \quat{q}$
+    \item \textbf{Conjugate Multiplication}: $\quat{q}\quatconj{q}$:
+    \begin{align*}
+        \quat{q}\quatconj{q} & = (q, \qb)(q, -\qb) \\
+                          & = (q^2 + \qb \cdot \qb, 0) \\
+                          & = (\quat{q} \cdot \quat{q})\quat{e} &&
+    \end{align*}
+    Where $\quat{e} \delteq (1, 0)$, i.e. it is a quaternion with no vector component.  Conversely, then, we have: $\quatconj{q}\quat{q} = (\quat{q}\quat{q})\quat{e}$.
+    \item \textbf{Multiplicative Inverse}: $\quat{q}^{-1} = \frac{\quatconj{q}}{(\quat{q} \cdot \quat{q}}$ (Except for $\quat{q} = (0, \mb{0})$, which is problematic with other representations anyway.)
+\end{enumerate}
+We can also look at properties with dot products:
+\begin{enumerate}
+    \item $(\quat{p}\quat{q}) \cdot (\quat{p}\quat{q}) = (\quat{p} \cdot \quat{p}) (\quat{q} \cdot \quat{q})$
+    \item $(\quat{p}\quat{q}) \cdot (\quat{p}\quat{r}) = (\quat{p} \cdot \quat{p}) (\quat{q} \cdot \quat{r})$
+    \item $(\quat{p}\quat{q}) \cdot \quat{r} = \quat{p} \cdot (\quat{r} \quatconj{q})$
+\end{enumerate}
+We can also represent these quaternions as vectors.  Note that these quaternions all have zero scalar component.
+\begin{enumerate}
+    \item $\quat{r} = (0, \mb{r})$
+    \item $\quat{r}^{*} = (0, -\mb{r})$
+    \item $\quat{r} \cdot \quat{s} = \mb{r} \cdot \mb{s}$
+    \item $\quat{r}\quat{s} = (-\rb \cdot \mb{s}, \rb \times \mb{s})$
+    \item $(\quat{r}\quat{s}) \cdot \quat{t} = \quat{r} \cdot (\quat{s}\quat{t}) = \mb{[r \;s \;t]}$ (Triple Products)
+    \item $\quat{r}\quat{r} = -(\rb \cdot \rb)\quat{e}$
+\end{enumerate}
+Another \textbf{note}: For representing rotations, we will use unit quaternions.  We can represent scalars and vectors with:
+\begin{itemize}
+    \item \textbf{Representing scalars}: $(s, \mb{0})$
+    \item \textbf{Representing vectors}: $(0, \mb{v})$
+\end{itemize}
+\subsection{Quaternion Rotation Operator}
+To represent a rotation operator using quaternions, we need a quaternion operation that maps from vectors to vectors.  More specifically, we need an operation that maps from 4D, the operation in which quaternions reside, to 3D in order to ensure that we are in the correct for rotation in 3-space.  Therefore, our rotation operator is given:
+\begin{align*}
+    \quat{r}' = R(\quat{r}) & = \quat{q}\quat{r}\quatconj{q} \\
+                            & = (Q\quat{r})\quatconj{q} \\
+                            & = (\bar{Q}^TQ)\quat{r} &&
+\end{align*}
+Where the matrix $\bar{Q}^TQ$ is given by:
+\begin{align*}
+    \bar{Q}^TQ = 
+        \begin{bmatrix}
+            \quat{q} \cdot \quat{q} & 0 & 0 & 0 \\
+            0 & q^{2}_0 + q^{2}_x - q^{2}_y - q^{2}_z & 2(q_xq_y - q_0q_z) & 2(q_xq_z + q_0q_y) \\
+            0 & 2(q_yq_x + q_0q_z) & q^{2}_0 - q^{2}_x + q^{2}_y - q^{2}_z & 2(q_yq_z - q_0q_x) \\
+            0 & 2(q_zq_x - q_0q_y) & 2(q_zq_y + q_0q_z) & q^{2}_0 - q^{2}_x - q^{2}_y + q^{2}_z
+        \end{bmatrix}
+\end{align*}
+A few notes about this matrix:
+\begin{itemize}
+    \item Since the scalar component of $\quat{q}$ is zero, the first row and matrix of this column are sparse, as we can see above.
+    \item If $\quat{q}$ is a unit quaternion, the lower right $3 \times 3$ matrix of $\bar{Q}^TQ$ will be orthonormal (it is an orthonormal rotation matrix).
+\end{itemize}
+Let us look at more properties of this mapping $\quat{r}' = \quat{q}\quat{r}\quatconj{q}$:
+\begin{enumerate}
+    \item \textbf{Scalar Component}: $r' = r(\quat{q} \cdot \quat{q})$
+    \item \textbf{Vector Component}: $\rb' = (q^2 - \qb \cdot \qb)\rb + 2(\qb \cdot \rb)\qb + 2q(\qb \times \rb)$
+    \item \textbf{Operator Preserves Dot Products}: $\quat{r}' \cdot \quat{s}' = \quat{r} \cdot \quat{s} \implies \rb' \cdot \mb{s}' = \rb \cdot \mb{s}$
+    \item \textbf{Operator Preserves Triple Products}: $(\quat{r}' \cdot \quat{s}') \cdot \quat{t}' = (\quat{r} \cdot \quat{s}) \cdot \quat{t} \implies (\rb' \cdot \mb{s}') \mb{t}' = (\rb \cdot \mb{s}) \cdot \mb{t} \implies \mb{[r' \; s' \; t'] = [r \; s \; t]}$
+    \item \textbf{Composition (of rotations!)}: Recall before that we could not easily compose rotations with our other rotation representations.  Because of associativity, however, we can compose rotations simply through quaternion multiplication:
+    \begin{align*}
+        \quat{p}(\quat{q}\quat{r}\quatconj{q})\quatconj{p} = (\quat{p}\quat{q})\quat{r}(\quatconj{q}\quatconj{p}) = (\quat{p}\quat{q})\quat{r}(\quat{p}\quat{q})^{*} &&
+    \end{align*}
+    I.e. if we denote the product of quaternions $\quat{z} \delteq \quat{p}\quat{q}$, then we can write this rotation operator as a single rotation:
+    \begin{align*}
+        \quat{p}(\quat{q}\quat{r}\quatconj{q})\quatconj{p} = (\quat{p}\quat{q})\quat{r}(\quatconj{q}\quatconj{p}) = (\quat{p}\quat{q})\quat{r}(\quat{p}\quat{q})^{*} = \quat{z}\quat{r}\quatconj{z} &&
+    \end{align*}
+    This ability to compose rotations is quite advantageous relative to many of the other representations of rotations we have seen before (orthonormal rotation matrices can achieve this as well).
+\end{enumerate}
+\subsubsection{Relation of Quaternion Rotation Operation to Rodrigues Formula}
+Let us see how this operator relates to the Rodrigues formula and the axis-angle representation of rotations:
+\begin{align*}
+    \rb' & = (q^2 - \qb \cdot \qb)\rb + 2(\qb \cdot \rb)\qb + 2q(\qb \times \rb) \\
+         & = (\cos\theta)\rb + (1-\cos\theta)(\omegahat \cdot \rb)\omegahat + (\sin\theta)(\omegahat \times \rb) &&
+\end{align*}
+\textbf{We have that $\qb$ is parallel to $\omegahat$}.  Note the following equalities:
+\begin{itemize}
+    \item $(q^2 - \qb \cdot \qb) = \cos\theta$
+    \item $2||\qb||^{2}_2 = (1-\cos\theta)$ 
+    \item $2q||\qb||^{2}_2 = \sin\big(\frac{\theta}{2}\big)$
+    \item $q = \cos\big(\frac{\theta}{2}\big)$
+    \item $||\qb||^{2}_2 = \sin\big(\frac{\theta}{2}\big)$
+\end{itemize}
+From these statements of equality, we can conclude:
+\begin{align*}
+    \quat{q} = (\cos\big(\frac{\theta}{2}\big), \omegahat\sin\big(\frac{\theta}{2}\big)) &&
+\end{align*}
+A few notes on this:
+\begin{itemize}
+    \item We see that both the scalar and vector components of the quaternion $\quat{q}$ depend on the axis of rotation $\omegahat$ and the angle of rotation $\theta$.
+    \item The vector component of this quaternion is parallel to $\omegahat$.
+    \item This representation is one way to represent a unit quaternion.
+    \item Knowing the axis and angle of a rotation allows us to compute the quaternion.
+    \item Note that $-\quat{q}$ represents the same mapping as $\quat{q}$ since:
+    \begin{align*}
+        (-\quat{q})\quat{r}(-\quatconj{q}) = \quat{q}\quat{r}\quatconj{q}
+    \end{align*}
+\end{itemize}
+\textbf{To build intuition} with this quaternion rotation operator, one way we can conceptualize this is by considering that our space of rotations is a 3D sphere in 4D, and opposite points on this sphere represent the same rotation.
+\subsection{Applying Quaternion Rotation Operator to Photogrammetry}
+Now that we have specified this operator and its properties, we are ready to apply this to photogrammetry, specifically for \textbf{absolute orientation}.  Let us briefly review our four main problems of photogrammetry:
+\begin{enumerate}
+    \item \textbf{Absolute Orientation} (3D to 3D): Range Data
+    \item \textbf{Relative Orientation} (2D to 2D): Binocular Stereo
+    \item \textbf{Exterior Orientation} (3D to 2D): Passive Navigation
+    \item \textbf{Interior Orientation} (2D to 3D): Camera Calibration
+\end{enumerate}
+We will start by applying this to our first problem, \textbf{absolute orientation}.  Recall our goal with this photogrammetry problem is to find the 3D transformation between our coordinate systems.
+\subsubsection{Least Squares Approach to Find R}
+Recall our first attempt to solve for this transformation was done through least squares to solve for an optimal rotation matrix and a translation vector.  While we showed in lecture 17 that we can solve for an optimal translation vector that depends on the rotation matrix $R$, we could not find a closed-form solution for the rotation matrix $R$.  We review why:
+\begin{align*}
+    \min+{R}\sum_{i=1}^{n}||\mb{e}_i||^{2}_2 & = \sum_{i=1}^{n}(\rb'_{r,i} - R(\rb'_{l,i})(\rb'_{r,i}-R(\rb'_{l,i})) \\
+    & = \sum_{i=1}^{n}||\rb'_{r,i}||^{2}_2 - \sum_{i=1}^{n}(\rb'_{r,i}-R(\rb'_{l,i})) - \sum_{i=1}^{n}||\rb'_{l,i}||^{2}_2 &&
+\end{align*}
+Where the first of these terms is fixed, the second of these terms is to be maximized (since there is a negative sign in front of this term, this thereby minimizes the objective), and the third of these terms is fixed.  Therefore, our rotation problem can be simplified to:
+\begin{align}
+    R^* & = \min_{R}\sum_{i=1}^{n}||\mb{e}_i||^{2}_2 = -2\sum_{i=1}^{n}(\rb'_{r,i} - R(\rb'_{l,i})) \\
+        & = \min_{R}(-2\sum_{i=1}^{n}\rb'_{r,i} \cdot R(\rb'_{l,i})) \\
+        & = \max_{R}(\sum_{i=1}^{n}rb'_{r,i} \cdot R(\rb'_{l,i})) &&
+\end{align}
+But since we are optimizing over an orthonormal rotation matrix $R$, we cannot simply take the derivative and set it equal to zero as we usually do for these least squares optimization problems.  Though we can solve this as a Lagrangian optimization problem, specifying these constraints is difficult and makes for a much more difficult optimization problem.  It turns out this a common problem in spacecraft attitude control.  Let us see how we can use quaternions here!  
+\subsubsection{Quaternion-based Optimization}
+Solving this with our quaternion operator above, and noting the following definitions:
+\begin{itemize}
+    \item $\quat{r}'_{l,i} = (0, \rb'_{l,i})$
+    \item $\quat{r}'_{r,i} = (0, \rb'_{l,i})$
+\end{itemize}
+Then we can solve for our optimal rotation by solving for quaternions instead:
+\begin{align*}
+    R^* & = \max_{R}\sum_{i=1}^{n}rb'_{r,i} \cdot R(\rb'_{l,i}) \\
+        & = \max_{\quat{q}, ||\quat{q}||_2 = 1}\sum_{i=1}^{n}(\quat{q}\quat{r}'_{l,i}\quatconj{q}) \cdot \quat{r}'_{r,i} \\
+        & = \max_{\quat{q}, ||\quat{q}||_2 = 1}\sum_{i=1}^{n}(\quat{q}\quat{r}'_{l,i}) \cdot (\quat{r}'_{r,i}\quat{q}) \\
+        & = \max_{\quat{q}, ||\quat{q}||_2 = 1}\sum_{i=1}^{n}(\bar{R}_{l,i}\quat{q}) \cdot (R_{r,i}\quat{q}) \\
+        & = \max_{\quat{q}, ||\quat{q}||_2 = 1}\quat{q}^T\Big(\sum_{i=1}^{n}\bar{R}_{l,i}^TR_{r,i}\Big)\quat{q} \;\;\;\;\; \textbf{(Since $\quat{q}$ does not depend on $i$)}&&
+\end{align*}
+Where the term in the sum is a $4 \times 4$ matrix derived from point cloud measurements. \\ \\
+From here, we can solve for an optimal rotation quaternion through Lagrangian Optimization, with our objective given by:
+\begin{align*}
+    \max_{\quat{q}}\quat{q}^TN\quat{q}, \;\text{subject to:} \; \quat{q} \cdot \quat{q} = 1, \; N \delteq \sum_{i=1}^{n}\bar{R}_{l,i}^TR_{r,i} &&
+\end{align*}
+Then written with the Lagrangian constraints this optimization problem becomes:
+\begin{align*}
+    \max_{\quat{q}}\quat{q}^TN\quat{q} + \lambda(1-\quat{q} \cdot \quat{q}) &&
+\end{align*}
+Differentiating this expression w.r.t. $\quat{q}$ and setting the result equal to zero yields the following first-order condition:
+\begin{align*}
+    2N\quat{q} - 2\lambda\quat{q} = 0 &&
+\end{align*}
+It turns out that similarly to our inertia problem from the last lecture, the quaternion solution to this problem is the solution to an eigenvalue/eigenvector problem.  Specifically, our solution is the eigenvector corresponding to the largest eigenvalue of a $4 \times 4$ real symmetric matrix $N$ constructed from elements of the matrix given by a dyadic product of point cloud measurements from the left and righthand systems of coordinates:
+\begin{align*}
+    M = \sum_{i=1}^{n}\rb'_{l,i}\rb'_{r,i}^T &&
+\end{align*}
+This matrix $M$ is an asymmetric $3 \times 3$ real matrix.  A few other notes about this:
+\begin{itemize}
+    \item The \textbf{eigenvalues} of this problem are the \textbf{Lagrange Multipliers} of this objective, and the eigenvectors are derived from the eiegenvectors of $N$, our matrix of observations.
+    \item This analytic solution leads to/requires solving a quartic polynomial - fortunately, we have closed-form solutions of polynomials up to a quartic degree!  Therefore, a closed-form solution exists.  Specifically, the characteristic equation in this case takes the form:
+    \begin{align*}
+        \lambda^4 + c_3\lambda^3 + c_2\lambda^2 + c_1\lambda + c_0 = 0
+    \end{align*}
+    Because the matrix of point cloud measurements $N$ is symmetric, this characteristic equation simplifies and we get the following coefficients:
+    \begin{enumerate}
+        \item $c_3 = \text{tr}(N) = 0$
+        \item $c_2 = -2\text{tr}(M^TM)$
+        \item $c_1 = -8\det|M|$
+        \item $c_0 = \det|N|$
+    \end{enumerate}
+\end{itemize}
+In addition to solving \textbf{absolute orientation} problems with quaternions, this approach has applications to other problems as well, such as:
+\begin{itemize}
+    \item Relative Orientation (Binocular Stereo)
+    \item Camera Calibration
+    \item Manipulator Kinematics
+    \item Manipulator Fingerprinting
+    \item Spacecraft Dynamics
+\end{itemize}
+\subsection{Desirable Properties of Quaternions}
+Next, let us look at what propreties we would like to obtain from using quaternions, and let us see how well these properties are satisfied:
+\begin{itemize}
+    \item \textbf{The ability to rotate a vector or coordinate system} \\
+    Yes!
+    \item \textbf{Ability to compose rotations} \\
+    Yes!
+    \item \textbf{Intuitive, non-redundant representations} \\
+    There is some redundancy (but note that this is solved by using unit quaternions!), and this representation is not the most intuitive.
+    \item \textbf{Computational efficiency} \\
+    We will discuss this in more detail further below.
+    \item \textbf{Ability to Interpolate Orientations} \\
+    Yes!
+    \item \textbf{Ability to average over rotations} \\
+    Yes!
+    \item \textbf{Ability to take derivative w.r.t. rotation - e.g. for optimization and least squares} \\
+    Yes!
+    \item \textbf{Ability to sample rotations} \\
+    Yes!
+    \item \textbf{Notion of a space of rotations} \\
+    Yes!
+\end{itemize}
+\subsubsection{Computational Issues for Quaternions}
+One helpful metric we can compare different representations for rotation on is their computational efficiency.  Below, we compare quaternions for rotation with orthonormal matrices for rotation in several important operations:
+\begin{itemize}
+    \item \textbf{Operation: Composition of Rotations}: $\quat{p}\quat{q}$ \\
+    This is given by:
+    \begin{align*}
+        \quat{p}\quat{q} = (p, \mb{p})(q, \qb) = (pp - \mb{p}\qb, p\qb + q\mb{p} + \mb{p} \times \qb) &&
+    \end{align*}
+    Carrying this out naively requires \textbf{16 multiplications and 12 additions}. \\ \\
+    Compared with orthonormal matrices, composing quaternions is \textbf{faster} for this operation (orthonormal matrices require \textbf{27 multiplications and  18 additions}.
+    \item \textbf{Operation: Rotating Vectors}: $\quat{q}\quat{r}\quatconj{q}$ \\
+    This is given by:
+    \begin{align*}
+        \quat{q}\quat{r}\quatconj{q} \rightarrow & \rb' = (q^2 - \rb \cdot \qb)\rb + 2(\qb \cdot \rb)\qb + 2q(\qb \times \rb) \\
+        & \rb' = \rb + 2q(\qb \times \rb) + 2\qb \times (\qb \times \rb) \;\;\textbf{(More efficient implementation)}
+    \end{align*}
+    Carrying this out naively requires \textbf{15 multiplications and 12 additions}. \\ \\
+    Compared with orthonormal matrices, composing quaternions is \textbf{slower} for this operation (orthonormal matrices require \textbf{9 multiplications and  6 additions}.
+    \item \textbf{Operation: Renormalization}
+    This operation is used when we compose many rotations, and the quaternion (if we are using a quaternion) or the orthonormal matrix is not quite an orthonormal matrix due to floating-point arithmetic.  Since this operation requires matrix inversion (see below) for orthonormal matrices, it is much faster to carry out this operation with quaternions. \\ \\
+    \textbf{Nearest Unit Quaternion}: $\frac{\quat{q}}{\sqrt{\quat{q} \cdot \quat{q}}}$ \\ \\
+    \textbf{Nearest Orthonormal Matrix}: $M(M^TM)^{-\frac{1}{2}}$
+\end{itemize}
+\subsubsection{Space of Rotations}
+We will conclude today's lecture by discussing the space of rotations, now that we have a representation for it:
+\begin{itemize}
+    \item $S^3$ (the unit sphere $\in \mathbb{R}^3$) with antipodal points identified
+    \item Projective space $P^3$
+    \item \textbf{Sampling}: Sampling in this space can be done in regular and random intervals
+    \item \textbf{Finite rotation groups}: These include the platonic solids with 12, 24, 60 elements - we can have rotation groups for (i) tetrahedron, (ii) hexahedron/octahedron, and (iii) dodecahedron/icosahedron
+    \item \textbf{Finer-grade Sampling} can be achieved by sub-dividing the simplex in the rotation space
+    \item If $\{\quat{q}_i\}_{i=1}^{N}$ is a group, then so is $\{\quat{q}'_i\}_{i=1}^{N}$, where $\quat{q}'_i = \quat{q}_0\quat{q}_i$.
+\end{itemize}
+\subsection{References}
+\begin{enumerate}
+    \item Group, https://en.wikipedia.org/wiki/Group\_(mathematics)
+    \item Manifold, https://en.wikipedia.org/wiki/Manifold
+\end{enumerate}
+\end{document}
+

@@ -1,0 +1,291 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[left=1.0cm,right=1.0cm, top=1.5cm, bottom=1.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{graphics}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{listings}
+\usepackage{mathtools}
+\usepackage{hyperref}
+
+% Align all equations left:
+\documentclass[fleqn]{article} 
+
+
+% Sets and quantifiers
+\newcommand{\R}{\mathbb{R}\;}
+\newcommand{\Q}{\mathbb{Q}\;}
+\newcommand{\N}{\mathbb{N}\;}
+\newcommand{\nin}{n \in \mathbb{N}}
+\newcommand{\fa}{\;\forall\;}
+\newcommand{\ex}{\;\exists\;}
+\newcommand{\nex}{\;\nexists\;}
+
+% Sequences
+\newcommand{\seq}[1]{\{#1\}}
+\newcommand{\seqx}{\seq{x_n}}
+\newcommand{\seqy}{\seq{y_n}}
+\newcommand{\seqs}{\seq{s_n}}
+
+% Subsequences
+\newcommand{\seqxni}{\seq{x_{n_i}}}
+\newcommand{\seqyni}{\seq{y_{n_i}}}
+\newcommand{\xni}{x_{n_i}}
+\newcommand{\yni}{y_{n_i}}
+\newcommand{\xnij}{x_{n_{i_j}}}
+\newcommand{\ynij}{y_{n_{i_j}}}
+\newcommand{\seqxnij}{\seq{x_{n_{i_j}}}}
+\newcommand{\seqynij}{\seq{y_{n_{i_j}}}}
+
+% Such that
+\newcommand{\st}{\;\text{such that}\;}
+
+% Machine Vision
+\newcommand{\xhat}{\hat{\mathbf{x}}}
+\newcommand{\yhat}{\hat{\mathbf{y}}}
+\newcommand{\zhat}{\hat{\mathbf{z}}}
+\newcommand{\nhat}{\hat{\mathbf{n}}}
+\newcommand{\shat}{\hat{\mathbf{s}}}
+\newcommand{\rhat}{\hat{\mathbf{r}}}
+\newcommand{\vhat}{\hat{\mathbf{v}}}
+\newcommand{\hatvector}[1]{\hat{\mathbf{1}}}
+\newcommand{\mb}[1]{\mathbf{#1}}
+\newcommand{\pd}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand\numberthis{\addtocounter{equation}{1}\tag{\theequation}}
+
+% lim, limsup, liminf
+\newcommand{\limn}{\text{lim}_{n \rightarrow \infty}}
+\newcommand{\limi}{\text{lim}_{i \rightarrow \infty}}
+\newcommand{\limj}{\text{lim}_{j \rightarrow \infty}}
+\newcommand{\limsupn}{\limsup_{n \rightarrow \infty}}
+\newcommand{\liminfn}{\liminf_{n \rightarrow \infty}}
+
+% Parallel symbols
+\newcommand{\parallelsum}{\mathbin{\!/\mkern-5mu/\!}}
+
+
+% Custom for absolute value
+\delimitershortfall-1sp
+\newcommand\abs[1]{\left|#1\right|}
+
+% Reference and hyperlink
+\newcommand{\source}[1]{\href{#1}{(\textbf{Source})}}
+
+% Use for define equals
+\newcommand{\delteq}{\overset{\Delta}{=}}
+
+% For nicer fonts
+\usepackage{eucal}
+
+% For Dreamer Paper
+\newcommand{\stau}{s_{\tau}}
+\newcommand{\expect}[1]{\mathbb{E}_{#1}}
+\newcommand{\indep}{\perp \!\!\! \perp}
+
+
+\title{6.801/6.866: Machine Vision, Lecture 9}
+\author{Professor Berthold Horn, Ryan Sander, Tadayuki Yoshitake \\
+        MIT Department of Electrical Engineering and Computer Science \\ 
+        Fall 2020}
+\date{}
+\begin{document}
+
+\maketitle
+These lecture summaries are designed to be a review of the lecture.  Though I do my best to include all main topics from the lecture, the lectures will have more elaborated explanations than these notes.  Therefore, if you're looking for the most rigorous review and treatment of these topics, we encourage you to rewatch the lecture videos.  With that said, we hope these summaries are beneficial for your learning.  If you have any feedback for these lecture summaries, please submit it \textbf{\href{https://forms.gle/itCUtP4AubAbtwQT9}{here}}.
+\section{Lecture 9: Shape from Shading, General Case - from First Order Nonlinear PDE to five ODEs}
+In this lecture, we will begin by exploring some applications of magnification, shape recovery, and optics through Transmission and Scanning Electron Microscopes (TEMs and SEMs, respectively).  Then, we will discuss how we can derive shape from shading using needle diagrams, which capture surface orientations at each $(x, y)$ pixel in the image.  This procedure will motivate the use of Green's Theorem, ``computational molecules", and a discrete approach to our standard unconstrained optimization problem.  We will conclude by discussing more about recovering shape from shading for Hapke surfaces using initial curves and rotated coordinate systems.
+\subsection{Example Applications: Transmission and Scanning Electron Microscopes (TEMs and SEMs, respectively)}
+We will begin with a few motivating questions/observations:
+\begin{itemize}
+    \item \textbf{How do TEMs achieve amazing magnification?} They are able to do so due to the fact that these machines are not restricted by the wavelength of the light they use for imaging (since they are active sensors, they image using their own ``light", in this case electrons.  
+    \item \textbf{What are SEM images more enjoyable to look at than TEM images?}  This is because SEM images reflect shading, i.e. differences in brightness based off of surface orientation.  TEM images do not do this.
+    \item \textbf{How do SEMs work?}  Rely on an electron source/beam, magnetic-based scanning mechanisms, photodiode sensors to measure secondary electron current.  Specifically:
+    \begin{itemize}
+        \item Many electrons lose energy and create secondary electrons.  Secondary electrons are what allow us to make measurements.
+        \item Secondary electron currents vary with surface orientation.
+        \item Objects can be scanned in a raster-like format.
+        \item Electron current is used to modulate a light ray.  Magnification is determined by the degree of deflection.
+        \item Gold plating is typically used to ensure object is conductive in a vacuum. 
+        \item Inclines/angles can be used for perturbing/measuring different brightness values.
+        \item From a \textbf{reflectance map} perspective, measuring brightness gives is the \textbf{slope} (a scalar), but it does not give us the gradient (a vector).  This is akin to knowing speed, but not the velocity.
+    \end{itemize}
+\end{itemize}
+\subsection{Shape from Shading: Needle Diagram to Shape}
+This is another class of problems from the overarching ``Shape from Shading" problem.  Let us first begin by defining what a needle diagram is: \\ \\
+A \textbf{needle diagram} is a 2D representation of the surface orientation of an object for every pixel in an image, i.e. for every $(x, y)$ pair, we have a surface orientation $(p, q)$, where $p \delteq \frac{dz}{dt}, q \delteq \frac{dz}{dy}$.  Recall from photometric stereo that we cannot simply parameterize $Z(x, y)$; we can only parameterize the surface gradients $p(x, y)$ and $q(x, y)$. \\ \\
+In this problem, our goal is that given $(p, q)$ for each pixel (i.e. given the needle diagram), recover $z$ for each pixel.  Note that this leads to an overdetermined problem (more constraints/equations than unknowns) [1].  This actually will allow us to reduce noise and achieve better results. \\ \\
+For estimating $z$, we have:
+\begin{align*}
+    x: & \;z(x) = z(0) + \int_{0}^{x}pdx' \\
+    y: & \; z(y) = z(0) + \int_{0}^{y}qdy' \\
+    x \& y: & \; z(x, y) = z(0, 0) + \int pdx' + qdy' &&
+\end{align*}
+Let us define $\delta x' = pdx' + qdy$.  Next, we construct a contour in the $(x, y)$ plane of our $(p, q)$ measurements, where the contour starts and ends at the origin, and passes through a measurement.  Our goal is to have the integrals of $p$ and $q$ be zero over these contours, i.e.
+\begin{align*}
+    \oint(pdx' + qdy') = 0 &
+\end{align*}
+This is equivalent to ``$z$ being conserved" over the contour.  \\ \\
+But note that these measurements are noisy, and since we estimate $p$ and $q$ to obtain estimates for $z$, this is not necessarily true. \\ \\
+Note that an easy way to break this problem down from one large problem into many smaller problems (e.g. for computational parallelization, greater accuracy, etc.) is to decompose larger contours into smaller ones - if $z$ is conserved for a series of smaller loops, then this implies $z$ is conserved for the large loop as well.  \\ \\
+\subsubsection{Derivation with Taylor Series Expansion}
+Let us now suppose we have a point (x, y), centered around a square loop with lengths equal to $\delta$.  Then, applying the formula above, we have that:
+\begin{align*}
+    p\Big(x, y - \frac{\delta y}{2}\Big)\delta x + q\Big(x + \frac{\delta x}{2}, y\Big)\delta y - p\Big(x, y + \frac{\delta y}{2}\Big)\delta x - q\Big(x - \frac{\delta x}{2}, y\Big)\delta y = 0 &&
+\end{align*}
+If we now take the first-order Taylor Series Expansion of this equation above, we have:
+\begin{align*}
+    & \textbf{Expansion}: \;\; \Big(p(x,y) - \frac{\delta y}{2}\pd{p(x,y)}{y}\Big)\delta x + \Big(q(x,y) + \frac{\delta x}{2}\pd{q(x,y)}{x}\Big)\delta y - \Big(p(x,y) + \frac{\delta y}{2}\pd{p(x,y)}{y}\Big)\delta x - \Big(q(x,y) - \frac{\delta x}{2}\pd{q(x,y)}{x}\Big)\delta y = 0 \\ \\
+    & \textbf{Rewriting}: \;\; p(x, y)\delta x - \frac{\delta y \delta x}{2}\pd{p(x, y)}{y} + q(x, y)\delta y + \frac{\delta x \delta y}{2}\pd{q(x, y)}{x} = p(x, y)\delta x + \frac{\delta y \delta x}{2}\pd{p(x, y)}{y} + q(x, y)\delta y - \frac{\delta x \delta y}{2}\pd{q(x, y)}{x} \\ \\
+    & \textbf{Simplifying}: \;\; \delta y\delta x \pd{p(x, y)}{y} = \delta x \delta y\pd{q(x,y)}{x} \\ \\
+    & \textbf{Solution}: \;\; \pd{p(x,y)}{y} = \pd{q(x,y)}{x} &&
+\end{align*}
+This is consistent with theory, because since our parameters $p \approx \pd{z}{x}$ and $q \approx \pd{z}{y}$, then the condition approximately becomes (under perfect measurements):
+\begin{align*}
+    & \pd{p(x,y)}{y} = \frac{\partial}{\partial y}(\pd{z}{x}) = \frac{\partial^2z}{\partial y \partial x} \\ \\
+    & \pd{q(x,y)}{x} = \frac{\partial}{\partial x}(\pd{z}{y}) = \frac{\partial^2z}{\partial x \partial y} \\ \\
+    & \pd{p(x,y)}{y} = \pd{q(x,y)}{x} \implies \frac{\partial^2z}{\partial y \partial x} = \frac{\partial^2z}{\partial x \partial y}, \;\; \text{Which is consistent with Fubini's Theorem as well [2]}. &&
+\end{align*}
+Though this will not be the case in practice we are measuring p \& q, and thus we will encounter some measurement noise.  
+\subsubsection{Derivation with Green's Theorem}
+We can now show the same result via Green's Theorem, which relates contour integrals to area integrals:
+\begin{align*}
+    \oint_L(Ldx + Mdy) = \iint_D\Big(\pd{M}{x} - \pd{L}{y}\Big)dxdy &&
+\end{align*}
+Where the term $Ldx + Mdy$ on the lefthand side is along the boundary of the contour of interest, and the term $\pd{M}{x} - \pd{L}{y}$ is along the interior of the contour. \\ \\
+Green's Theorem is highly applicable in machine vision because we can reduce two-dimensional computations to one-dimensional computations.  For instance, Green's Theorem can be helpful for:
+\begin{itemize}
+    \item Computing the area of a contoured object/shape
+    \item Computing the centroid of a blob or object in two-dimensional space, or more generally, geometric moments of a surface.  Moments can generally be computed just by going around the boundary of a contour.
+\end{itemize}
+Let us now apply Green's Theorem to our problem:
+\begin{align*}
+    \oint_L(pdx + qdy) = \iint_D\Big(\pd{q(x,y)}{x} - \pd{p(x,y)}{y}\Big)dxdy = 0 &&
+\end{align*}
+This requires $\pd{q(x,y)}{x} - \pd{p(x,y)}{y} = 0 \implies \pd{q(x,y)}{x} = \pd{p(x,y)}{y} \fa x, y \in D$. \\ \\
+We could solve for estimates of our unknowns of interest, $p$ and $q$, using unconstrained optimization, but this will be more difficult than before.  Let us try using a different tactic, which we will call ``Brute Force Least Squares":
+\begin{align*}
+    \min_{z(x,y)}\iint_D\Big(\pd{z}{x} - p\Big)^2 + \Big(\pd{z}{y} - q\Big)^2dxdy &&
+\end{align*}
+I.e. we are minimizing the squared distance between the partial derivatives of $z$ with respect to $x$ and $y$ and our respective parameters over the entire image domain $D$. \\ \\
+However, this minimization approach requires having a finite number of variables, but here we are optimizing over a continuous function (which has an infinite number of variables).  Therefore, we have infinite degrees of freedom.  We can use \textbf{calculus of variations} here to help us with this.  Let us try solving this as a discrete problem first.  
+\subsubsection{Shape with Discrete Optimization}
+For this, let us first take a grid of unknowns $\{z_{ij}\}_{(i,j) \in D}$.  Our goal is to minimize the errors of spatial derivatives of $z$ with respect to $p$ and $q$, our measurements in this case (given by $\{p_{ij}, q_{ij}\}_{(i,j) \in D}$.  Our objective for this can then be written as:
+\begin{align*}
+    \min_{\{z_{ij}\}} \sum_i\sum_j\Big(\frac{z_{i,j+1} - z_{i,j}}{\epsilon} - p_{i,j}\Big)^2 + \Big(\frac{z_{i+1,j} - z_{i,j}}{\epsilon} - q_{i,j}\Big)^2 &&
+\end{align*}
+Note that these discrete derivatives of $z$ with respect to $x$ and $y$ present in the equation above use finite forward differences. \\ \\
+Even though we are solving this discretely, we can still think of this as solving our other unconstrained optimization problems, and therefore can do so by taking the first-order conditions of each of our unknowns, i.e. $\fa (k, l) \in D$.  The FOCs are given by $|D|$ equations (these will actually be linear!):
+\begin{align*}
+    \frac{\partial}{\partial z_{k,l}}(J(\{z_{i,j}\}_{(i,j) \in D}) = 0 \fa (k, l) \in D &&
+\end{align*}
+Let us take two specific FOCs and use them to write a partial differential equation:
+\begin{itemize}
+    \item \textbf{(k, l) = (i, j)}: 
+    \begin{align*}
+        \frac{\partial}{\partial z_{k, l}}(J(\{z_{,j}\}_{(i,j) \in D}) = \frac{2}{\epsilon}\Big(\frac{z_{k,l+1} - z_{k, l}}{\epsilon} - p_{k, l}\Big) + \frac{2}{\epsilon}\Big(\frac{z_{k+1,l} - z_{k,l}}{\epsilon} - q_{k,l}\Big) = 0 &&
+    \end{align*}
+    \item \textbf{(k, l) = (i+1, j+1)}: 
+    \begin{align*}
+        \frac{\partial}{\partial z_{k, l}}(J(\{z_{,j}\}_{(i,j) \in D}) = \frac{2}{\epsilon}\Big(\frac{z_{k,l} - z_{k, l-1}}{\epsilon} - p_{k, l-1}\Big) + \frac{2}{\epsilon}\Big(\frac{z_{k,l} - z_{k-1,l}}{\epsilon} - q_{k-1,l}\Big) = 0 &&
+    \end{align*}
+\end{itemize}
+Gathering all terms (we can neglect the $zs$):
+\begin{align*}
+    & \textbf{(1)} \;\; \frac{p_{k,l} - p_{k, l-1}}{\epsilon} \approx \pd{p}{x} \\
+    & \textbf{(2)} \;\; \frac{q_{k,l} - q_{k-1, l}}{\epsilon} \approx \pd{q}{y} \\
+    & \textbf{(3)} \;\; \frac{1}{\epsilon^2}((-z_{k, l+1} - z_{k+1, l} - z_{k, l-1} - z_{k-1,l}) + 4z_{k, l}) = 0 \approx -\Delta z = -\nabla^2z  \;\;\textbf{The Laplacian of} \;z \\
+    & \text{Where} \;\textbf{(1)} + \textbf{(2)} + \textbf{(3)} = 0 &&
+\end{align*}
+Using the approximations of these three terms, our equation becomes:
+\begin{align*}
+    \pd{p}{x} + \pd{q}{y} - \Delta z = 0 \implies \pd{p}{x} + \pd{q}{y} = \Delta z &&
+\end{align*}
+This approach motivates the use of ``computational molecules".
+\subsubsection{``Computational Molecules"}
+These are computational molecules that use finite differences [3] to estimate first and higher-order derivatives.  They can be thought of as filters, functions, and operators that can be applied to images or other multidimensional arrays capturing spatial structural.  Some of these are (please see the handwritten lecture notes for what these look like graphically):
+\begin{enumerate}
+    \item $z_x = \frac{1}{\epsilon}(z(x,y) - z(x-1,y))$ (Backward Difference), $\frac{1}{\epsilon}(z(x+1,y) - z(x,y))$ (Forward Difference)
+    \item $z_y = \frac{1}{\epsilon}(z(x,y) - z(x,y-1))$ (Backward Difference), $\frac{1}{\epsilon}(z(x,y+1) - z(x,y))$ (Forward Difference)
+    \item $\Delta z = \nabla^2z = \frac{1}{\epsilon^2}(4z(x, y) - (z(x-1,y) + z(x+1, y) + z(x, y-1) + z(x, y+1)))$
+    \item $z_{xx} = \frac{\partial^2z}{\partial x^2} = \frac{1}{\epsilon^2}(z(x-1,y) - 2(x,y) + z(x+1,y))$
+    \item $z_{yy} = \frac{\partial^2z}{\partial y^2} = \frac{1}{\epsilon^2}(z(x,y-1) - 2(x,y) + z(x,y+1))$
+\end{enumerate}
+These computational molecules extend to much higher powers as well.  Let us visit the Laplacian operator $\Delta (\cdot)$.  This operator comes up a lot in computer vision:
+\begin{itemize}
+    \item Definition: $\Delta z = \nabla^2 z = (\pd{z}{x}, \pd{z}{y})^T(\pd{z}{x}, \pd{z}{y}) = \frac{\partial^2 z}{\partial x^2} + \frac{\partial^2 z}{\partial y^2}$
+    \item The Laplacian is the lowest dimensional \textbf{rotationally-invariant} linear operator, i.e. for a rotated coordinate system $(x', y')$ rotated from $(x, y)$ by some rotation matrix $\mb{R} \in SO(2)$, we have:
+    \begin{align*}
+        z_{x'x'} + z_{y'y'} = z_{xx} + z_{yy} &&
+    \end{align*}
+    I.e. the result of the Laplacian is the same in both coordinate systems.
+\end{itemize}
+As we can see, the Laplacian is quite useful in our derived solution above.
+\subsubsection{Shape with Discrete Optimization Cont.}
+Let us return to our discrete optimization problem.  Our derivation above is a \textbf{least-squares} solution.  This turns out to be the discrete version of our original continuous problem.  Since these first-order equations are linear, we can solve them as a system of linear equations with Gaussian elimination.  But note that these processes take $O(N^3)$ time.  We can avoid this complexity by taking advantage of the sparsity in these equations. \\ \\
+\textbf{Iterative Approach}:  The sparse structure in our First-Order Equations allows us to use an iterative approach for shape estimation.  Our ``update equation" updates the current depth/shape estimate $z_{k,l}$ using its neighboring indices in two dimensions:
+\begin{align*}
+    z^{(n+1)}_{k, l} = \frac{1}{4}(z^{(n)}_{k, l+1} + z^{(n)}_{k + 1, l} + z^{(n)}_{k, l-1} + z^{(n)}_{k-1, l}) - \epsilon(p_{k, l} - p_{k, l-1}) - \epsilon(q_{k, l} - q_{k-1, l}) &&
+\end{align*}
+A few terminology/phenomenological notes about this update equation:
+\begin{itemize}
+    \item The superscripts $n$ and $n+1$ denote the number of times a given indexed estimate has been updated (i.e. the number of times this update equation has been invoked).  It is essentially the iteration number.
+    \item The subscripts $k$ and $l$ refer to the indices.
+    \item The first term on the righthand side $\frac{1}{4}(\cdot)$ is the local average of $z_{k, l}$ using its neighbors.
+    \item This iterative approach converges to the solution much more quickly than Gaussian elimination.
+    \item This iterative approach is also used in similar ways for solving problems in the \textbf{Heat and Diffusion Equations} (also PDEs).
+    \item This procedure can be parallelized so long as the computational molecules do not overlap/touch each other.  For instance, we could divide this into blocks of size 3 x 3 in order to achieve this.
+    \item From this approach, we can develop robust surface estimates!
+\end{itemize}
+\subsubsection{Reconstructing a Surface From a Single Image}
+Recall this other shape from brightness problem we solved for Hapke surfaces (Lecture 8).  For Hapke surfaces, we have that our brightness in the image (radiance) $L$ is given by:
+\begin{align*}
+    L = \sqrt{\frac{\cos\theta_i}{\cos\theta_e}} = \sqrt{\frac{\nhat \cdot \shat}{\nhat \cdot \vhat}} &&
+\end{align*}
+Recall from our last lecture that this gives us a simple reflectance map of straight lines in gradient $(p, q)$ space.  By rotating this gradient space coordinate system from $(p, q) \rightarrow (p', q')$, we can simplify our estimates for shape. \\ \\
+With this rotation, we also claimed that rotating the system in gradient space is equivalent to using the same rotation matrix $\mb{R}$ in our image space $(x, y)$.  Here we prove this:
+\begin{align*}
+    & \textbf{Rotating Points}: \;\; x'= x\cos\theta - y\sin\theta, \;\; y' = x\sin\theta + y\cos\theta \\
+    & \textbf{Reverse Rotating Points}: \;\; x = x'\cos\theta + y'\sin\theta, \;\; y = -x'\sin\theta + y'\cos\theta \\
+    & \textbf{Taking Derivatives}: \;\;\pd{z}{x'} = \pd{z}{x}\pd{x}{x'} + \pd{z}{y}\pd{y}{x'}, \;\; \pd{z}{y'} = \pd{z}{x}\pd{x}{y'} + \pd{z}{y}\pd{y}{y'} \\ \\
+    & \textbf{Combining the Above}: p' = p\cos\theta - q\sin\theta, \;\;q' = p\sin\theta + q\cos\theta &&
+\end{align*}
+Then, in our rotated coordinate system where $p'$ is along the brightness gradient, we have that:
+\begin{align*}
+    p' = \frac{p_sp + q_sq}{\sqrt{p^2_s + q^2_s}} = \frac{r_sE^2 - 1}{\sqrt{p^2_s + q^2_s}} &&
+\end{align*}
+(Where $p' \delteq \pd{z}{x'}$ is the slope of the surface of interest in a particular direction.  This phenomenon only holds for Hapke surfaces with linear isophotes.  We can integrate this expression out for surface estimation:
+\begin{align*}
+    z(x) = z(x_0) + \int_{x}^{x_0}p'(x)dx &&
+\end{align*}
+Integrating out as above allows us to build a surface height profile of our object of interest.  Can do this for the y-direction as well:
+\begin{align*}
+    z(x,y) = z(x_0, y) + \int_{x}^{x_0}p'(x, y)dx &&
+\end{align*}
+A few notes from this, which we touched on in lecture 8 as well:
+\begin{itemize}
+    \item Adding a constant to $z$ does not change our profile integrals, except by an offset.  Therefore, in order to obtain absolute height measurements of z, we need to include initial values.
+    \item In this case, we need an initial condition for every horizontal row/profile.  This is the same as requiring an ``initial curve", and allows us to effectively reduce our computations from 2D to 1D.  Note from our previous lecture that these initial conditions are needed to determine the surface orientation/shape at interfaces between these different profiles. 
+    \item Let us examine what this looks like when we parameterize an initial curve with $\eta$:
+    \begin{align*}
+        & \text{Take} \; x(\eta), y(\eta), z(\eta), \;\text{and rotate with}\; \xi &&
+    \end{align*}
+    Then we can compute $\delta z$ to recover shape, along with $\delta x$ and $\delta y$:
+    \begin{enumerate}
+        \item $\delta x = \frac{q_s}{\sqrt{p^2_s + q^2_s}}\delta \xi$
+        \item $\delta y = \frac{p_s}{\sqrt{p^2_s + q^2_s}}\delta \xi$
+        \item $\delta z = \frac{[r_sE^2(x,y)-1]}{\sqrt{p^2_s + q^2_s}}\delta \xi$
+    \end{enumerate}
+    Note that we can adjust the speed of motion here by adjusting the parameter $\delta$.
+\end{itemize}
+Next time, we will generalize this from Hapke reflectance maps to arbitrary reflectance maps!
+\subsection{References}
+\begin{enumerate}
+    \item Overdetermined System, https://en.wikipedia.org/wiki/Overdetermined\_system
+    \item Fubini's Theorem, https://en.wikipedia.org/wiki/Fubini\%27s\_theorem
+    \item Finite Differences, https://en.wikipedia.org/wiki/Finite\_difference
+\end{enumerate}
+\end{document} 
