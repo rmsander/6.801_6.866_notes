@@ -1,0 +1,523 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[left=1.0cm,right=1.0cm, top=1.5cm, bottom=1.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{graphics}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{listings}
+\usepackage{mathtools}
+\usepackage{hyperref}
+
+% Align all equations left:
+\documentclass[fleqn]{article} 
+
+
+% Sets and quantifiers
+\newcommand{\R}{\mathbb{R}\;}
+\newcommand{\Q}{\mathbb{Q}\;}
+\newcommand{\N}{\mathbb{N}\;}
+\newcommand{\nin}{n \in \mathbb{N}}
+\newcommand{\fa}{\;\forall\;}
+\newcommand{\ex}{\;\exists\;}
+\newcommand{\nex}{\;\nexists\;}
+
+% Multidimensional sets
+\newcommand{\Rd}[1]{\mathbb{R}^{#1}}
+\newcommand{\Qd}[1]{\mathbb{Q}^{#1}}
+\newcommand{\Nd}[1]{\mathbb{N}^{#1}}
+
+% Sequences
+\newcommand{\seq}[1]{\{#1\}}
+\newcommand{\seqx}{\seq{x_n}}
+\newcommand{\seqy}{\seq{y_n}}
+\newcommand{\seqs}{\seq{s_n}}
+
+% Subsequences
+\newcommand{\seqxni}{\seq{x_{n_i}}}
+\newcommand{\seqyni}{\seq{y_{n_i}}}
+\newcommand{\xni}{x_{n_i}}
+\newcommand{\yni}{y_{n_i}}
+\newcommand{\xnij}{x_{n_{i_j}}}
+\newcommand{\ynij}{y_{n_{i_j}}}
+\newcommand{\seqxnij}{\seq{x_{n_{i_j}}}}
+\newcommand{\seqynij}{\seq{y_{n_{i_j}}}}
+
+% Such that
+\newcommand{\st}{\;\text{such that}\;}
+
+% Vectors
+\newcommand{\xhat}{\hat{\mathbf{x}}}
+\newcommand{\yhat}{\hat{\mathbf{y}}}
+\newcommand{\zhat}{\hat{\mathbf{z}}}
+\newcommand{\nhat}{\hat{\mathbf{n}}}
+\newcommand{\shat}{\hat{\mathbf{s}}}
+\newcommand{\rhat}{\hat{\mathbf{r}}}
+\newcommand{\vhat}{\hat{\mathbf{v}}}
+\newcommand{\hatvector}[1]{\hat{\mathbf{1}}}
+\newcommand{\mb}[1]{\mathbf{#1}}
+\newcommand{\omegahat}{\boldsymbol{\hat{\mathbf{\omega}}}}
+
+% Four-vector quaternions
+\newcommand{\quat}[1]{\overset{o}{#1}}
+\newcommand{\quatconj}[1]{\overset{o}{#1}^{*}}
+
+
+% Bold vectors
+\newcommand{\xb}{\mathbf{x}}
+\newcommand{\yb}{\mathbf{y}}
+\newcommand{\zb}{\mathbf{z}}
+\newcommand{\rb}{\mathbf{r}}
+\newcommand{\qb}{\mathbf{q}}
+\newcommand{\pb}{\mathbf{q}}
+
+
+% Matrices
+\newcommand{\I}[1]{\mb{I}_{#1}}
+
+% Derivatives
+\newcommand{\der}[2]{\frac{d #1}{d #2}}
+\newcommand{\dder}[2]{\frac{d^2 #1}{d #2^2}}
+\newcommand{\derop}[1]{\frac{d}{d #1}}
+\newcommand{\dderop}[1]{\frac{d^2}{d #1^2}}
+
+% Partial Derivatives
+\newcommand{\pd}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\pdd}[2]{\frac{\partial^2 #1}{\partial #2^2}}
+\newcommand{\pdop}[1]{\frac{\partial}{\partial #1}}
+\newcommand{\pddop}[1]{\frac{\partial^2}{\partial #1^2}}
+\newcommand{\pddmixed}[3]{\frac{\partial^2 #1}{\partial #2\partial #3}}
+\newcommand{\pddmixedop}[2]{\frac{\partial^2}{\partial #1\partial #2}}
+
+% ith
+\newcommand{\ith}{\text{i}^{\text{th}}}
+
+% lim, limsup, liminf
+\newcommand{\limn}{\text{lim}_{n \rightarrow \infty}}
+\newcommand{\limi}{\text{lim}_{i \rightarrow \infty}}
+\newcommand{\limj}{\text{lim}_{j \rightarrow \infty}}
+\newcommand{\limsupn}{\limsup_{n \rightarrow \infty}}
+\newcommand{\liminfn}{\liminf_{n \rightarrow \infty}}
+
+% Parallel symbols
+\newcommand{\parallelsum}{\mathbin{\!/\mkern-5mu/\!}}
+
+
+% Custom for absolute value
+\delimitershortfall-1sp
+\newcommand\abs[1]{\left|#1\right|}
+
+% Reference and hyperlink
+\newcommand{\source}[1]{\href{#1}{(\textbf{Source})}}
+
+% Use for define equals
+\newcommand{\delteq}{\overset{\Delta}{=}}
+
+% For nicer fonts
+\usepackage{eucal}
+
+% For Dreamer Paper
+\newcommand{\stau}{s_{\tau}}
+\newcommand{\expect}[1]{\mathbb{E}_{#1}}
+\newcommand{\indep}{\perp \!\!\! \perp}
+
+% Fourier Transform pairs
+\newcommand{\ftpair}{\xleftrightarrow{\mathcal{F}}}
+
+% Plot functions
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usetikzlibrary{datavisualization}
+\usetikzlibrary{arrows}
+\tikzstyle{int}=[draw, fill=blue!20, minimum size=2em]
+\tikzstyle{init} = [pin edge={to-,thin,black}]
+
+
+\title{6.801/6.866: Machine Vision, Lecture 19}
+\author{Professor Berthold Horn, Ryan Sander, Tadayuki Yoshitake \\
+        MIT Department of Electrical Engineering and Computer Science \\ 
+        Fall 2020}
+\date{}
+
+\begin{document}
+
+\maketitle
+These lecture summaries are designed to be a review of the lecture.  Though I do my best to include all main topics from the lecture, the lectures will have more elaborated explanations than these notes.  Therefore, if you're looking for the most rigorous review and treatment of these topics, we encourage you to rewatch the lecture videos.  With that said, we hope these summaries are beneficial for your learning.  If you have any feedback for these lecture summaries, please submit it \textbf{\href{https://forms.gle/itCUtP4AubAbtwQT9}{here}}.
+\section{Lecture 19: Absolute Orientation in Closed Form, Outliers and Robustness, RANSAC}
+This lecture will continue our discussion of photogrammetry topics - specifically, covering more details with the problem of \textbf{absolute orientation}.  We will also look at the effects of outliers on the robustness of closed-form absolute orientation, and how algorithms such as RANSAC can be leveraged as part of an absolute orientation, or, more generally, photogrammetry pipeline to improve the robustness of these systems.
+\subsection{Review: Absolute Orientation}
+Recall our four main problems of photogrammetry:
+\begin{itemize}
+    \item \textbf{Absolute Orientation} $3D \longleftrightarrow 3D$
+    \item \textbf{Relative Orientation} $2D \longleftrightarrow 2D$
+    \item \textbf{Exterior Orientation} $2D \longleftrightarrow 3D$
+    \item \textbf{Intrinsic Orientation} $3D \longleftrightarrow 2D$
+\end{itemize}
+In the last lecture, we saw that when solving \textbf{absolute orientation} problems, we are mostly interested in finding \textbf{transformations} (translation + rotation) between two coordinate systems, where these coordinate systems can correspond to objects or sensors moving in time (recall this is where we saw duality between objects and sensors).  \\ \\
+Last time, we saw that one way we can find an optimal \textbf{transformation} between two coordinate systems in 3D is to decompose the optimal transformation into an optimal \textbf{translation} and an optimal \textbf{rotation}.  We saw that we could solve for optimal translation in terms of rotation, and that we can mitigate the constraint issues with solving for an orthonormal rotation matrix by using \textbf{quaternions} to carry out rotation operations.
+\subsubsection{Rotation Operations}
+Relevant to our discussion of quaternions is identifying the critical operations that we will use for them (and for orthonormal rotation matrices).  Most notably, these are:
+\begin{enumerate}
+    \item \textbf{Composition of rotations}: $\quat{p}\quat{q} = (p, \pb)(q, \qb) = (pq - \pb \cdot \qb, p\qb + q\pb + \pb \times \qb)$
+    \item \textbf{Rotating vectors}: $\quat{r}' = \quat{q}\quat{r}\quatconj{q} = (q^2 - \qb \cdot \qb)\rb + 2(\qb \cdot \rb)\qb + 2q(\qb \times \rb)$
+\end{enumerate}
+Recall from the previous lecture that operation \textbf{(1) was faster} than using orthonormal rotation matrices, and operation \textbf{(2) was slower}.
+\subsubsection{Quaternion Representations: Axis-Angle Representation and Orthonormal Rotation Matrices}
+From our previous discussion, we saw that another way we can represent quaternions is through the axis-angle notation (known as the Rodrigues formula):
+\begin{align*}
+    \rb' = (\cos\theta)\rb + (1-\cos\theta)(\omegahat \cdot \rb)\omegahat + \sin\theta(\omegahat \times \rb) &&
+\end{align*}
+Combining these equations from above, we have the following axis-angle representation:
+\begin{align*}
+    \quat{q} \Longleftrightarrow \omegahat, \theta, \;\; q = \cos\left(\frac{\theta}{2}\right), \;\qb = \omegahat\sin\left(\frac{\theta}{2}\right) \implies \quat{q} = \left(\cos\left(\frac{\theta}{2}\right), \omegahat\sin\left(\frac{\theta}{2}\right)\right) &&
+\end{align*}
+We also saw that we can convert these quaternions to orthonormal rotation matrices.  Recall that we can write our vector rotation operation as:
+\begin{align*}
+    & \quat{q}\quat{r}\quatconj{q} = (\bar{Q}^TQ)\quat{r}, \; \text{where} \\ \\
+    & \bar{Q}^TQ = \begin{bmatrix}
+            \quat{q} \cdot \quat{q} & 0 & 0 & 0 \\
+            0 & q^{2}_0 + q^{2}_x - q^{2}_y - q^{2}_z & 2(q_xq_y - q_0q_z) & 2(q_xq_z + q_0q_y) \\
+            0 & 2(q_yq_x + q_0q_z) & q^{2}_0 - q^{2}_x + q^{2}_y - q^{2}_z & 2(q_yq_z - q_0q_x) \\
+            0 & 2(q_zq_x - q_0q_y) & 2(q_zq_y + q_0q_z) & q^{2}_0 - q^{2}_x - q^{2}_y + q^{2}_z
+        \end{bmatrix} &&
+\end{align*}
+The matrix $\bar{Q}^TQ$ has \textbf{skew-symmetric} components and \textbf{symmetric components}.  This is useful for conversions.  Given a \textbf{quaternion}, we can compute orthonormal rotations more easily.  For instance, if we want an \textbf{axis} and \textbf{angle} representation, we can look at the lower right $3 \times 3$ submatrix, specifically its trace:
+\begin{align*}
+    \text{Let} \; R = [\bar{Q}^TQ]_{3 \times 3, \text{lower}}, \; \text{then}: \\
+    \text{tr}(R) & = 3q^{2}_0 - (q^{2}_x + q^{2}_y + q^{2}_z) \\
+                 & = 3\cos^2\left(\frac{\theta}{2}\right) - (\sin^2\left(\frac{\theta}{2}\right) \; \textbf{(Substituting our axis-angle representation)} \\
+                 & - \cos^2\left(\frac{\theta}{2}\right) + \sin^2\left(\frac{\theta}{2}\right) - 1 \; \textbf{(Subtracting Zero)} \\
+                 & \rightarrow 2\cos^2\left(\frac{\theta}{2}\right) - \sin^2\left(\frac{\theta}{2}\right) - 1 \\
+                 & = 2\cos\theta - 1 \\
+                 & \implies \cos\theta = \frac{1}{2}(\text{tr}(R) - 1) &&
+\end{align*}
+While this is one way to get the angle (we can solve for $\theta$ through $\arccos$ of the expression above), it is not the best way to do so: we will encounter problems near $\theta \approx 0, \pi$.  Instead, we can use the \textbf{off-diagonal} elements, which depend on $\sin\left(\frac{\theta}{2}\right)$ instead.  Note that this works because at angles $\theta$ where $\cos\left(\frac{\theta}{2}\right)$ is ``bad" (is extremely sensitive), $\sin\left(\frac{\theta}{2}\right)$ is ``good" (not as sensitive), and vice versa.
+\subsection{Quaternion Transformations/Conversions}
+Next, let us focus on how we can convert between quaternions and orthonormal rotation matrices.  Given a $3 \times 3$ orthonormal rotation matrix $r$, we can compute sums and obtain the following system of equations:
+\begin{align*}
+    1 + r_{11} + r_{22} + r_{33} = 4q^{2}_0 \\
+    1 + r_{11} - r_{22} - r_{33} = 4q^{2}_x \\
+    1 - r_{11} + r_{22} - r_{33} = 4q^{2}_y \\
+    1 - r_{11} - r_{22} + r_{33} = 4q^{2}_z &&
+\end{align*}
+This equation can be solved by taking square roots, but due to the number of solutions (8 by Bezout's theorem, allowing for the flipped signs of quaternions, we should not use this set of equations alone to find the solution). \\ \\
+Instead, we can compute these equations, evaluate them, take the largest for numerical accuracy, arbitrarily select to use the positive version (since there is sign ambiguity with the signs of the quaternions), and solve for this.  We will call this selected righthand side $q_i$. \\ \\
+For off-digaonals, which have \textbf{symmetric} and \textbf{non-symmetric} components, we derive the following equations:
+\begin{align*}
+    & r_{32} - r_{23} = 4q_0q_x \\
+    & r_{13} - r_{31} = 4q_0q_y \\
+    & r_{21} - r_{12} = 4q_0q_x \\
+    & r_{21} + r_{12} = 4q_xq_y \\ 
+    & r_{32} + r_{23} = 4q_yq_z \\
+    & r_{13} + r_{31} = 4q_zq_z &&
+\end{align*}
+Adding/subtracting off-diagonals give us 6 relations, of which we only need 3 (since we have 1 relation from the diagonals).  For instance, if we have $q_i = q_y$, then we pick off-diagonal relations involving $q_y$, and we solve the four equations given by:
+\begin{align*}
+    & 1 - r_{11} + r_{22} - r_{33} = 4q^{2}_y \\
+    & r_{13} - r_{31} = 4q_0q_y \\
+    & r_{32} + r_{23} = 4q_yq_z \\
+    & r_{13} + r_{31} = 4q_zq_z &&
+\end{align*}
+This system of four equations gives us a direct way of going from quaternions to an orthonormal rotation matrix.  Note that this could be 9 numbers that could be noisy, and we want to make sure we have best fits.
+\subsection{Transformations: Incorporating Scale}
+Thus far, for our problem of absolute orientation, we have considered \textbf{transformations} between two coordinate systems of being composed of $\textbf{translation}$ and $\textbf{rotation}$.  This is often sufficient, but in some applications and domains, such as satellite imaging fr topographic reconstruction, we may be able to better describe these transformations taking account not only \textbf{translation} and \textbf{rotation}, but also \textbf{scaling}. \\ \\
+Taking scaling into account, we can write the relationship between two point clouds corresponding to two different coordinate systems as:
+\begin{align*}
+    \rb'_{r} = sR(\rb'_{l}) &&
+\end{align*}
+Where rotation is again given by $R \in \textbf{SO}(3)$, and the scaling factor is given by $s \in \Rd{+}$ (where $\Rd{+} \delteq \{x: x \in \R, x > 0\}$).  Recall that $\rb'_{r}$ and $\rb'_{l}$ are the centroid-subtracted variants of the point clouds in both frames of reference.
+\subsubsection{Solving for Scaling Using Least Squares: Asymmetric Case}
+As we did before, we can write this as a least-squares problem over the scaling parameter $s$:
+\begin{align*}
+    \min_{s}\sum_{i=1}^{n}||\rb'_{r,i} - sR(\rb'_{l,i})||^{2}_2 &&
+\end{align*}
+As we did for translation and rotation, we can solve for an optimal scaling parameter:
+\begin{align*}
+    s^* & = \arg\min_{s}\sum_{i=1}^{n}||\rb'_{r,i} - sR(\rb'_{l,i})||^{2}_2 \\
+        & = \arg\min_{s}\sum_{i=1}^{n}\left(||\rb'_{r,i}||^{2}_{2}\right) - 2s\sum_{i=1}^{n}\left(\rb'_{r,i}R(\rb'_{l,i})\right) + s^2\sum_{i=1}^{n}||R(\rb'_{l,i})||^{2}_2 \\
+        & = \arg\min_{s}\sum_{i=1}^{n}\left(||\rb'_{r,i}||^{2}_{2}\right) - 2s\sum_{i=1}^{n}\left(\rb'_{r,i}R(\rb'_{l,i})\right) + s^2\sum_{i=1}^{n}||\rb'_{l,i}||^{2}_2 \;\;\; \textbf{(Rotation preserves vector lengths)} &&
+\end{align*}
+Next, let us define the following terms:
+\begin{enumerate}
+     \item $s_r \delteq \sum_{i=1}^{n}\left(||\rb'_{r,i}||^{2}_{2}\right)$
+     \item $D \delteq \sum_{i=1}^{n}\left(\rb'_{r,i}R(\rb'_{l,i})\right)$
+     \item $s_l \delteq \sum_{i=1}^{n}||\rb'_{l,i}||^{2}_2$
+\end{enumerate}
+Then we can write this objective for the optimal scaling factor $s^*$ as:
+\begin{align*}
+    s^* & = \arg\min_{s}\{J(s) \delteq s_r - 2sD + s^2s_l\} &&
+\end{align*}
+Since this is an unconstrained optimization problem, we can solve this by taking the derivative w.r.t. $s$ and setting it equal to 0:
+\begin{align*}
+    \der{J(s)}{s} & = \frac{d}{ds}\left(s_r - 2sD + s^2s_l\right) = 0 \\
+                  & = -2D + s^2s_l = 0 \implies s = \frac{D}{s_l} &&
+\end{align*}
+As we also saw with rotation, this does not give us an exact answer without finding the orthonormal matrix $R$, but now we are able to remove scale factor and back-solve for it later using our optimal rotation.
+\subsubsection{Issues with Symmetry}
+\textbf{Symmetry question}: What if instead of going from the left coordinate system to the right one, we decided to go from right to left?  In theory, this should be possible: we should be able to do this simply by \textbf{negating translation} and \textbf{inverting our rotation and scaling terms}.  But in general, doing this in practice with our OLS approach above does not lead to $s_{\text{inverse}} = \frac{1}{s}$ - i.e. inverting the optimal scale factor does not give us the scale factor for the reverse problem. \\ \\
+Intuitively, this is the case because the version of OLS we used above ``cheats" and tries to minimize error by shriking the scale by more than it should be shrunk.  This occurs because it brings the points closer together, thereby minimizing, on average, the error term.  Let us look at an alternative formulation for our error term that accounts for this optimization phenomenon.
+\subsubsection{Solving for Scaling Using Least Squares: Symmetric Case}
+Let us instead write our objective as:
+\begin{align*}
+    \mb{e}_i = \frac{1}{\sqrt{s}}\rb'_{r,i} = \sqrt{s}R(\rb'_{l,i}) &&
+\end{align*}
+Then we can write our objective and optimization problem over scale as:
+\begin{align*}
+    s^* & = \arg\min_{s}\sum_{i=1}^{n}||\frac{1}{\sqrt{s}}\rb'_{r,i} - \sqrt{s}R(\rb'_{l,i})||^{2}_2 \\
+        & = \arg\min_{s}\sum_{i=1}^{n}\left(\frac{1}{s}||\rb'_{r,i}||^{2}_{2}\right) - 2\sum_{i=1}^{n}\left(\rb'_{r,i}R(\rb'_{l,i})\right) + s\sum_{i=1}^{n}||R(\rb'_{l,i})||^{2}_2 \\
+        & = \arg\min_{s}\frac{1}{s}\sum_{i=1}^{n}\left(||\rb'_{r,i}||^{2}_{2}\right) - 2\sum_{i=1}^{n}\left(\rb'_{r,i}R(\rb'_{l,i})\right) + s\sum_{i=1}^{n}||\rb'_{l,i}||^{2}_2 \;\;\; \textbf{(Rotation preserves vector lengths)} &&
+\end{align*}
+We then take the same definitions for these terms that we did above:
+\begin{enumerate}
+     \item $s_r \delteq \sum_{i=1}^{n}\left(||\rb'_{r,i}||^{2}_{2}\right)$
+     \item $D \delteq \sum_{i=1}^{n}\left(\rb'_{r,i}R(\rb'_{l,i})\right)$
+     \item $s_l \delteq \sum_{i=1}^{n}||\rb'_{l,i}||^{2}_2$
+\end{enumerate}
+Then, as we did for the asymmetric OLS case, we can write this objective for the optimal scaling factor $s^*$ as:
+\begin{align*}
+    s^* & = \arg\min_{s}\{J(s) \delteq \frac{1}{s}s_r - 2D + ss_l\} &&
+\end{align*}
+Since this is an unconstrained optimization problem, we can solve this by taking the derivative w.r.t. $s$ and setting it equal to 0:
+\begin{align*}
+    \der{J(s)}{s} & = \frac{d}{ds}\left(\frac{1}{s}s_r - 2D + ss_l\right) = 0 \\
+                  & = -\frac{1}{s^2}s_r + s_l = 0 \implies s^2 = \frac{s_l}{s_r} &&
+\end{align*}
+Therefore, we can see that going in the reverse direction preserves this inverse (you can verify this mathematically and intuitively by simply setting $\rb'_{r,i} \leftrightarrow \rb'_{l,i} \fa i \in \{1, ..., n\}$ and noting that you will get $s^{2}_{\text{inverse}} = \frac{s_r}{s_l}$).  Since this method better preserves symmetry, it is preferred. \\ \\
+\textbf{Intuition}: Since $s$ no longer depends on correspondences (matches between points in the left and right point clouds), then the scale simply becomes the ratio of the point cloud sizes in both coordinate systems (note that $s_l$ and $s_r$ correspond to the summed vector lengths of the centroid-subtracted point clouds, which means they reflect the variance/spread/size of the point cloud in their respective coordinate systems.  \\ \\
+We can deal with translation and rotation in a correspondence-free way, while also allowing for us to decouple rotation.  Let us also look at solving rotation, which is covered in the next section.
+\subsection{Solving for Optimal Rotation in Absolute Orientation}
+Recall for rotation (see lecture 18 for details) that we switched from optimizing over orthonormal rotation matrices to optimizing over quaternions due to the lessened number of optimization constraints that we must adhere to.  With our quaternion optimization formulation, our problem becomes:
+\begin{align*}
+    \max_{\quat{q}}\quat{q}^TN\quat{q}, \;\;\text{subject to} \;\; \quat{q}^T\quat{q} = 1 &&
+\end{align*}
+If this were an unconstrained optimization problem, we could solve by taking the derivative of this objective w.r.t. our quaternion $\quat{q}$ and setting it equal to zero.  Note the following helpful identities with matrix and vector calculus:
+\begin{enumerate}
+    \item $\der{}{\mb{a}}(\mb{a} \cdot \mb{b}) = \mb{b}$
+    \item $\der{}{\mb{a}}(\mb{a}^TM\mb{b}) = 2M\mb{b}$
+\end{enumerate}However, since we are working with quaternions, we must take this constraint into account.  We saw in lecture 18 that we did this with using \textbf{Lagrange Multiplier} - in this lecture it is also possible to take this specific kind of vector length constraint into account using \textbf{Rayleigh Quotients}. \\ \\
+\textbf{What are Rayliegh Quotients}?  The intuitive idea behind them: How do I prevent my parameters from becoming too large) positive or negative) or too small (zero)?  We can accomplish this by dividing our objective by our parameters, in this case our constraint.  In this case, with the Rayleigh Quotient taken into account, our objective becomes:
+\begin{align*}
+    \frac{\quat{q}^TN\quat{q}}{\quat{q}^T\quat{q}} \;\;\left(\textbf{Recall that} \; N \delteq \sum_{i=1}^{n}R^{T}_{l,i}R_{r,i}\right) &&
+\end{align*}
+How do we solve this?  Since this is now an unconstrained optimization problem, we can solve this simply using the rules of calculus:
+\begin{align*}
+    J(\quat{q}) \delteq = \frac{\quat{q}^TN\quat{q}}{\quat{q}^T\quat{q}} \\
+    \der{J(\quat{q})}{\quat{q}} & = \der{}{\quat{q}}\frac{\quat{q}^TN\quat{q}}{\quat{q}^T\quat{q}} = 0 \\
+                                & = \frac{\der{}{\quat{q}}(\quat{q}^TN\quat{q})\quat{q}^T\quat{q} - \quat{q}^TN\quat{q}\der{}{\quat{q}}(\quat{q}^T\quat{q})}{(\quat{q}^T\quat{q})^2} = 0 \\
+                                & = \frac{2N\quat{q}}{\quat{q}^T\quat{q}} - \frac{2\quat{q}}{(\quat{q}^T\quat{q})^2}(\quat{q}^TN\quat{q}) = 0 &&
+\end{align*}
+From here, we can write this first order condition result as:
+\begin{align*}
+    N\quat{q} = \frac{\quat{q}^TN\quat{q}}{\quat{q}^T\quat{q}}\quat{q} &&
+\end{align*}
+Note that $\frac{\quat{q}^TN\quat{q}}{\quat{q}^T\quat{q}} \in \R$ (this is our objective).  Therefore, we are searching for a vector of quaternion coefficients such applying the rotation matrix to this vector simply produces a scalar multiple of it - i.e. an eigenvector of the matrix $N$.  Letting $\lambda \delteq \frac{\quat{q}^TN\quat{q}}{\quat{q}^T\quat{q}}$, then this simply becomes $N\quat{q} = \lambda \quat{q}$.  Since this optimization problem is a maximization problem, this means that we can pick the \textbf{eigenvector} of $N$ that corresponds to the \textbf{largest eigenvalue} (which in turn maximizes the objective consisting of the Rayleigh quotient $\frac{\quat{q}^TN\quat{q}}{\quat{q}^T\quat{q}}$, which is the eigenvalue. \\ \\
+Even though this quaternion-based optimization approach requires taking this Rayleigh Quotient into account, it is much easier to do this optimization than to solve for orthonormal matrices, which either require a complex Lagrangian (if we solve with Lagrange multipliers) or an SVD decomposition from Euclidean space to the $\textbf{SO}(3)$ group (which also happens to be a manifold). \\ \\
+\textbf{This approach raises a few questions}:
+\begin{itemize}
+    \item How many correspondences are needed to solve these optimization problems?  Recall a correspondence is when we say two 3D points in different coordinate systems belong to the same point in 3D space, i.e. the same point observed in two separate frames of reference.
+    \item When do these approaches fail?
+\end{itemize}
+We cover these two questions in more detail below.
+\subsubsection{How Many Correspondences Do We Need?}
+Recall that we are looking for 6 parameters (for translation and rotation) or 7 parameters (for translation, rotation, and scaling).  Since each correspondence provides three constraints (since we equate the 3-dimensional coordinates of two 3D points in space), assuming non-redundancy, then we can solve this with two correspondences.  \\ \\
+Let us start with two correspondences: if we have two objects corresponding to the correspondences of points in the 3D world, then if we rotate one object about axis, we find this does not work, i.e. we have an additional degree of freedom.  Note that the distance between correspondences is fixed.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth/4]{figures/DOF_short.png}
+    \caption{Using two correspondences leads to only satisfying 5 of the 6 needed constraints to solve for translation and rotation between two point clouds.}
+    \label{fig:my_label}
+\end{figure}
+Because we have one more degree of freedom, this accounts for only 5 of the 6 needed constraints to solve for translation and rotation, so we need to have \textbf{at least 3 correspondences}. \\ \\
+With 3 correspondences, we get 9 constraints, which leads to some redundancies.  We can add more constraints by incorporating \textbf{scaling} and generalizing the allowable transformations between the two coordinate systems to be the \textbf{generalized linear transformation} - this corresponds to allowing non-orthonormal rotation transformations.  This approach gives us 9 unknowns!
+\begin{align*}
+    \begin{bmatrix}
+        a_{11} & a_{12} & a_{13} \\
+        a_{21} & a_{22} & a_{23} \\
+        a_{31} & a_{32} & a_{33}
+    \end{bmatrix}\begin{bmatrix}x \\ y \\ z\end{bmatrix} + \begin{bmatrix}a_{14} \\ a_{24} \\ a_{34}\end{bmatrix} &&
+\end{align*}
+But we also have to account for translation, which gives us another 3 unknowns, giving us 12 in total and therefore requiring at least 4 non-redundant correspondences in order to compute the full general linear transformation.  Note that this doesn't have any constraints as well! \\ \\
+On a practical note, this is often not needed, especially for finding the absolute orientation between two cameras, because oftentimes the only transformations that need to be considered due to the design constraints of the system (e.g. an autonomous car with two lidar systems, one on each side) are \textbf{translation} and \textbf{rotation}.
+\subsubsection{When do These Approaches Fail?}
+These approaches can fail when we do not have enough correspondences.  In this case, the matrix $N$ will become singular, and will produce eigenvalues of zero.  A more interesting failure case occurs when the points of one or both of the point clouds are \textbf{coplanar}.  Recall that we solve for the eigenvalues of a matrix ($N$ in this case) using the characteristic equation given by:
+\begin{align*}
+    & \textbf{Characteristic Equation}: \; \det|N-\lambda \mb{I}| = 0 \\
+    & \textbf{Leads to 4th-order polynomial}: \; \lambda^4 + c_{3}\lambda^3 + c_{2}\lambda^2 + c_{1}\lambda + c_0 = 0 &&
+\end{align*}
+Recall that our matrix $N$ composed of the data has some special properties:
+\begin{enumerate}
+    \item $c_3 = \text{tr}(N) = 0$ (This is actually a great feature, since usually the first step in solving 4th-order polynomial systems is eliminating the third-order term).
+    \item $c_2 = 2\text{tr}(M^TM)$, where $M$ is defined as the sum of dyadic products between the points in the point clouds:
+    \begin{align*}
+        M \delteq \left(\sum_{i=1}^{n}\rb'_{l,i}\rb'_{r,i}^T\right) \in \Rd{3 \times 3} &&
+    \end{align*}
+    \item $c_1 = 8\det|M|$
+    \item $c_0 = \det|N|$
+\end{enumerate}
+What happens if $\det|M| = 0$, i.e. the matrix $M$ is singular?  Then using the formulas above we must have that the coefficient $c_1 = 0$.  Then this problem reduces to:
+\begin{align*}
+    \lambda^4 + c_{2}\lambda^2 + c_0 = 0 &&
+\end{align*}
+This case corresponds to a special geometric case/configuration of the point clouds - specifically, when points are \textbf{coplanar}.
+\subsubsection{What Happens When Points are Coplanar?}
+When points are coplanar, we have that the matrix $N$, composed of the sum of dyadic products between the correspondences in the two point clouds, will be singular.  \\ \\
+To describe this plane in space, we need only find a normal vector $\nhat$ that is orthogonal to all points in the point cloud - i.e. the component of each point in the point cloud in the $\nhat$ direction is 0.  Therefore, we can describe the plane by the equation:
+\begin{align*}
+    \rb'_{r,i} \cdot \nhat = 0 \fa i \in \{1, ..., n\} &&
+\end{align*}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth/3]{figures/point_cloud_plane.png}
+    \caption{A coplanar point cloud can be described entirely by a surface normal of the plane $\nhat$.}
+    \label{fig:my_label}
+\end{figure}
+\textbf{Note}: In the absence of measurement noise, if one point cloud is coplanar, the the other point cloud must be as well (assuming that the transformation between the point clouds is a linear transformation).  This does not necessarily hold when measurement noise is introduced. \\ \\
+Recall that our matrix $M$, which we used above to compute the coefficients of the characteristic polynomial describing this system, is given by:
+\begin{align*}
+    M \delteq \sum_{i=1}^{n}\rb'_{r,i}\rb'_{l,i}^T &&
+\end{align*}
+Then, rewriting our equation for the plane above, we have:
+\begin{align*}
+    \rb'_{r,i} \cdot \nhat = 0 \implies M\nhat & = \left(\sum_{i=1}^{n}\rb'_{r,i}\rb'_{l,i}^T\right)\nhat \\
+                                               & = \sum_{i=1}^{n}\rb'_{r,i}\rb'_{l,i}^T\nhat \\
+                                               & = \sum_{i=1}^{n}\rb'_{r,i}0 \\
+                                               & = 0 &&
+\end{align*}
+Therefore, when a point cloud is coplanar, the \textbf{null space} of $M$ is non-trivial (it is given by at least $\text{Span}(\{\nhat\})$, and therefore $M$ is singular. Recall that a matrix $M \in \Rd{n \times d}$ is singular if $\exists \; \mb{x} \in \Rd{d}, \mb{x} \neq \mb{0}$ such that $M\mb{x} = \mb{0}$, i.e. the matrix has a non-trivial null space.
+\subsubsection{What Happens When Both Coordinate Systems Are Coplanar}
+Visually, when two point clouds are coplanar, we have:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=3\linewidth/7]{figures/double_coplanar.png}
+    \caption{Two coplanar point clouds.  This particular configuration allows us to estimate rotation in two simpler steps.}
+    \label{fig:my_label}
+\end{figure}
+In this case, we can actually decompose finding the right rotation into two simpler steps!
+\begin{enumerate}
+    \item Rotate one plane so it lies on top of the other plane.  We can read off the \textbf{axis} and \textbf{angle} from the unit normal vectors of these two planes describing the coplanarity of these point clouds, given respectively by $\nhat_1$ and $\nhat_2$:
+    \begin{itemize}
+        \item \textbf{Axis}: We can find the axis by noting that the axis vector will be parallel to the cross product of $\nhat_1$ and $\nhat_2$, simply scaled to a unit vector:
+        \begin{align*}
+            \omegahat = \frac{\nhat_1 \times \nhat_2}{||\nhat_1 \times \nhat||_2} &&
+        \end{align*}
+        \item \textbf{Angle}: We can also solve for the angle using the two unit vectors $\nhat_1$ and $\nhat_2$:
+        \begin{align*}
+            & \cos\theta = \nhat_1 \cdot \nhat_2 \\
+            & \sin\theta = \nhat_1 \times \nhat_2 \\
+            & \theta = \arctan2\left(\frac{\sin\theta}{\cos\theta}\right) &&
+        \end{align*}
+    \end{itemize}
+    We now have an axis angle representation for rotation between these two planes, and since the points describe each of the respective point clouds, therefore, a rotation between the two point clouds!  We can convert this axis-angle representation into a quaternion with the formula we have seen before:
+    \begin{align*}
+        \quat{q} = \left(\cos\frac{\theta}{2}, \sin\frac{\theta}{2}\omegahat\right) &&
+    \end{align*}
+    \item Perform an in-plane rotation.  Now that we have the quaternion representing the rotation between these two planes, we can orient two planes on top of each other, and then just solve a 2D least-squares problem to solve for our in-place rotation.
+\end{enumerate}
+With these steps, we have a rotation between the two point clouds!
+
+\subsection{Robustness}
+In many methods in this course, we have looked at the use of \textbf{Least Squares} methods to solve for estimates in the presence of noise and many data points.  Least squares produces an unbiased, minimum-variance estimate if (along with a few other assumptions) the dataset/measurement noise is Gaussian (Gauss-Markov Theorem) [1].  But what if the measurement noise is non-Gaussian?  How do we deal with outliers in this case? \\ \\
+It turns out that \textbf{Least Squares} methods are not robust to outliers.  One alternative approach is to use absolute error instead.  Unfortunately, however, using absolute error does not have a closed-form solution.  What are our other options for dealing with outliers?  One particularly useful alternative is \textbf{RANSAC}. \\ \\
+\textbf{RANSAC}, or \textbf{Random Sample Consensus}, is an algorithm for robust estimation with \textbf{least squares} in the presence of outliers in the measurements.  The goal is to find a least squares estimate that includes, within a certain threshold band, a set of inliers corresponding to the inliers of the dataset, and all other points outside of this threshold bands as outliers.  The high-level steps of RANSAC are as follows:
+\begin{enumerate}
+    \item \textbf{Random Sample}: Sample the minimum number of points needed to fix the transformation (e.g. 3 for absolute orientation; some recommend taking more).
+    \item \textbf{Fit random sample of points}: Usually this involves running least squares on the sample selected.  This fits a line (or hyperplane, in higher dimensions), to the randomly-sampled points.
+    \item \textbf{Check Fit}: Evaluate the line fitted on the randomly-selected subsample on the rest of the data, and determine if the fit produces an estimate that is consistent with the ``inliers" of your dataset.  If the fit is good enough accept it, and if it is not, run another sample.  Note that this step has different variations - rather than just immediately terminating once you have a good fit, you can run this many times, and then take the best fit from that. \\ \\
+    Furthermore, for step 3, we threshold the band from the fitted line/hyperplane to determine which points of the dataset are inliers, and which are outliers (see figure below).  This band is usually given by a $2\epsilon$ band around the fitted line/hyperplane.  Typically, this parameter is determined by knowing some intrinsic structure about the dataset.
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=\linewidth/2]{figures/ransac_inlier_bands.png}
+        \caption{To evaluate the goodness of fit of our sampled points, as well as to determine inliers and outliers from our dataset, we have a $2\epsilon$ thick band centered around the fitted line.}
+        \label{fig:my_label}
+    \end{figure}
+\end{enumerate}
+Another interpretation of RANSAC: counting the ``maximimally-occupied" cell in Hough transform parameter space!  Another way to find the best fitting line that is robust to outliers:
+\begin{enumerate}
+    \item Repeatedly sample subsets from the dataset/set of measurements, and fit these subsets of points using least squares estimates. 
+    \item For each fit, map the points to a discretized Hough transform parameter space, and have an accumulator array that keeps track of how often a set of parameters falls into a discretized cell.  Each time a set of parameters falls into a discretized cell, increment it by one.
+    \item After $N$ sets of random samples/least squares fits, pick the parameters corresponding to the cell that is ``maximally-occupied", aka has been incremented the most number of times!  Take this as your outlier-robust estimate.
+\end{enumerate}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth/2]{figures/ransac_hough.png}
+    \caption{Another way to perform RANSAC using Hough Transforms: map each fit from the subsamples of measurements to a discretized Hough Transform (parameter) space, and look for the most common discretized cell in parameter space to use for an outlier-robust least-squares estimate.}
+    \label{fig:my_label}
+\end{figure}
+\subsection{Sampling Space of Rotations}
+Next, we will shift gears to discuss the \textbf{sampling space of rotations}. \\ \\
+\textbf{Why are we interested in this space?}  Many orientation problems we have studied so far do not have a closed-form solution and may require sampling.  How do we sample from the space of rotations? 
+\subsubsection{Initial Procedure: Sampling from a Sphere}
+Let us start by \textbf{sampling from a unit sphere} (we will start in 3D, aiming eventually for 4D, but our framework will generalize easily from 3D to 4D).  Why a sphere?  Recall that we are interested in sampling for the coefficients of a unit quaternion $\quat{q} = (q_0, q_x, q_y, q_z), ||\quat{q}||^{2}_2 = 1$.  \\ \\
+One way to sample from a sphere is with latitude and longitude, given by $(\theta_i, \phi_i)$, respectively.  The problem with this approach, however, is that we sample points that are close together at the poles.  Alternatively, we can generate random longitude $\theta_i$ and $\phi_i$, where:
+\begin{itemize}
+    \item $-\frac{\pi}{2} \leq \theta_i \leq \frac{\pi}{2} \fa i$
+    \item $-\pi \leq \phi_i \leq \pi \fa i$
+\end{itemize}
+But this approach suffers from the same problem - it samples too strongly from the poles.  Can we do better?
+\subsubsection{Improved Approach: Sampling from a Cube}
+To achieve more uniform sampling from a sphere, what if we sampled from a unit cube (where the origin is given the center of the cube), and map the sampled points to an enscribed unit sphere within the cube? \\ \\
+\textbf{Idea}: Map all points (both inside the sphere and outside the sphere/inside the cube) onto the sphere by connecting a line from the origin to the sampled point, and finding the point where this line intersects the sphere.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth/7]{figures/sphere_sampling.png}
+    \caption{Sampling from a sphere by sampling from a cube and projecting it back to the sphere.}
+    \label{fig:my_label}
+\end{figure}
+\textbf{Problem with this approach}: This approach disproportionately samples more highly on/in the direction of the cube's edges.  We could use sampling weights to mitigate this effect, but better yet, we can simply discard any samples that fall outside the sphere.  To avoid numerical issues, it is also best to discard points very close to the sphere. \\ \\
+\textbf{Generalization to 4D}: As we mentioned above, our goal is to generalize this from 3D to 4D. Cubes and spheres simply become 4-dimensional - enabling us to sample quaternions.
+\subsubsection{Sampling From Spheres Using Regular and Semi-Regular Polyhedra}
+We saw the approach above requires discarding samples, which is computationally-undesirable because it means we will probabilistically have to generate more samples than if we were able to sample from the sphere alone.  To make this more efficient, let us consider shapes that form a ``tighter fit" around the sphere - for instance: \textbf{polyhedra}!  Some polyhedra we can use:
+\begin{itemize}
+    \item \textbf{Tetrahedra} (4 faces)
+    \item \textbf{Hexahedra} (6 faces)
+    \item \textbf{Octahedra} (8 faces)
+    \item \textbf{Dodecahedra} (12 faces)
+    \item \textbf{Icosahedra} (20 faces)
+\end{itemize}
+These polyhedra are also known as the \textbf{regular solids}. \\ \\
+As we did for the cube, we can do the same for polyhedra: to sample from the sphere, we can sample from the polyhedra, and then \textbf{project} onto the point on the sphere that intersects the line from the origin to the sampled point on the polyhedra.  From this, we get \textbf{great circles} from the edges of these polyhedra on the sphere when we project. \\ \\
+\textbf{Fun fact}: Soccer balls have 32 faces!  More related to geometry: soccer balls are part of a group of \textbf{semi-regular} solids, specifically an \textbf{icosadodecahedron}.
+\subsubsection{Sampling in 4D: Rotation Quaternions and Products of Quaternions}
+Now we are ready to apply these shapes for sampling quaternions in 4D.  Recall that our goal with this sampling task is to find the rotation between two point clouds, e.g. two objects.  We need a uniform way of sampling this spae.  We can start with the hexahedron.  Below are 10 elementary rotations we use (recall that a quaternion is given in axis-angle notation by $\quat{q} = (\cos\left(\frac{\theta}{2}\right), \sin\left(\frac{\pi}{2}\right)\omegahat)$):
+\begin{enumerate}
+    \item \textbf{Identity rotation}: $\quat{q} = (1, 0)$
+    \item $\mb{\pi}$ \textbf{about} $\xhat$: $\quat{q} = (\cos\left(\frac{\pi}{2}\right), \sin\left(\frac{\pi}{2}\right)\xhat) = (0, \xhat)$
+    \item $\mb{\pi}$ \textbf{about} $\yhat$: $\quat{q} = (\cos\left(\frac{\pi}{2}\right), \sin\left(\frac{\pi}{2}\right)\yhat) = (0, \yhat)$
+    \item $\mb{\pi}$ \textbf{about} $\zhat$: $\quat{q} = (\cos\left(\frac{\pi}{2}\right), \sin\left(\frac{\pi}{2}\right)\zhat) = (0, \zhat)$
+    \item $\mb{\frac{\pi}{2}}$ \textbf{about} $\xhat$: $\quat{q} = (\cos\left(\frac{\pi}{4}\right), \sin\left(\frac{\pi}{4}\right)\xhat) = \frac{1}{\sqrt{2}}(1, \xhat)$
+    \item $\mb{\frac{\pi}{2}}$ \textbf{about} $\yhat$: $\quat{q} = (\cos\left(\frac{\pi}{4}\right), \sin\left(\frac{\pi}{4}\right)\yhat) = \frac{1}{\sqrt{2}}(1, \yhat)$
+    \item $\mb{\frac{\pi}{2}}$ \textbf{about} $\zhat$: $\quat{q} = (\cos\left(\frac{\pi}{4}\right), \sin\left(\frac{\pi}{4}\right)\zhat) = \frac{1}{\sqrt{2}}(1, \zhat)$
+    \item $\mb{-\frac{\pi}{2}}$ \textbf{about} $\xhat$: $\quat{q} = (\cos\left(-\frac{\pi}{4}\right), \sin\left(-\frac{\pi}{4}\right)\xhat) = \frac{1}{\sqrt{2}}(1, -\xhat)$
+    \item $\mb{-\frac{\pi}{2}}$ \textbf{about} $\yhat$: $\quat{q} = (\cos\left(-\frac{\pi}{4}\right), \sin\left(-\frac{\pi}{4}\right)\yhat) = \frac{1}{\sqrt{2}}(1, -\yhat)$
+    \item $\mb{-\frac{\pi}{2}}$ \textbf{about} $\zhat$: $\quat{q} = (\cos\left(-\frac{\pi}{4}\right), \sin\left(-\frac{\pi}{4}\right)\zhat) = \frac{1}{\sqrt{2}}(1, -\zhat)$
+\end{enumerate}
+These 10 rotations by themselves give us 10 ways to sample the rotation space.  How can we construct more samples?  We can do so by \textbf{taking quaternion products}, specifically, products of these 10 quaternions above.  Let us look at just a couple of these products:
+\begin{enumerate}
+    \item $(0, \xhat)(0,\yhat)$: 
+    \begin{align*}
+        (0, \xhat)(0,\yhat) & = (0-\xhat \cdot \yhat, 0\xhat + 0\yhat + \xhat \times \yhat) \\
+                            & = (-\xhat \cdot \yhat, \xhat \times \yhat) \\
+                            & = (0, \zhat) &&
+    \end{align*}
+    We see that this simply produces the third axis, as we would expect.  This does not give us a new rotation to sample from.  Next, let us look at one that does.
+    \item $\frac{1}{\sqrt{2}}(1,\xhat)\frac{1}{\sqrt{2}}(1,\yhat)$:
+    \begin{align*}
+        \frac{1}{\sqrt{2}}(1,\xhat)\frac{1}{\sqrt{2}}(1,\yhat) & = \frac{1}{2}(1-\xhat \cdot \yhat, \yhat + \xhat + \xhat \times \yhat) \\
+                                                               & = \frac{1}{2}(1, \xhat + \yhat + \xhat \times \yhat) &&
+    \end{align*}
+    This yields the following axis-angle representation:
+    \begin{itemize}
+        \item \texfbf{Axis}: $\frac{1}{\sqrt{3}}(1 \; 1\; 1)$
+        \item \texfbf{Angle}: $\cos\left(\frac{\theta}{2}\right) = \frac{1}{2} \implies \frac{\theta}{2} = \frac{\pi}{3} \implies \theta = \frac{2\pi}{3}$
+    \end{itemize}
+    Therefore, we have produced a new rotation that we can sample from!
+\end{enumerate}
+These are just a few of the pairwise quaternion products we can compute.  It turns out that these pairwise quaternion products produce a total of \textbf{24 new rotations} from the original 10 rotations.  These are helpful for achieving greater sampling granularity when sampling the rotation space.
+\subsection{References}
+\begin{enumerate}
+    \item Gauss-Markov Theorem, https://en.wikipedia.org/wiki/Gauss\%E2\%80\%93Markov\_theorem
+\end{enumerate}
+\end{document}

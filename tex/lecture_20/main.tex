@@ -1,0 +1,453 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[left=1.0cm,right=1.0cm, top=1.5cm, bottom=1.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{graphics}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{listings}
+\usepackage{mathtools}
+\usepackage{hyperref}
+
+% Align all equations left:
+\documentclass[fleqn]{article} 
+
+
+% Sets and quantifiers
+\newcommand{\R}{\mathbb{R}\;}
+\newcommand{\Q}{\mathbb{Q}\;}
+\newcommand{\N}{\mathbb{N}\;}
+\newcommand{\nin}{n \in \mathbb{N}}
+\newcommand{\fa}{\;\forall\;}
+\newcommand{\ex}{\;\exists\;}
+\newcommand{\nex}{\;\nexists\;}
+
+% Multidimensional sets
+\newcommand{\Rd}[1]{\mathbb{R}^{#1}}
+\newcommand{\Qd}[1]{\mathbb{Q}^{#1}}
+\newcommand{\Nd}[1]{\mathbb{N}^{#1}}
+
+% Sequences
+\newcommand{\seq}[1]{\{#1\}}
+\newcommand{\seqx}{\seq{x_n}}
+\newcommand{\seqy}{\seq{y_n}}
+\newcommand{\seqs}{\seq{s_n}}
+
+% Subsequences
+\newcommand{\seqxni}{\seq{x_{n_i}}}
+\newcommand{\seqyni}{\seq{y_{n_i}}}
+\newcommand{\xni}{x_{n_i}}
+\newcommand{\yni}{y_{n_i}}
+\newcommand{\xnij}{x_{n_{i_j}}}
+\newcommand{\ynij}{y_{n_{i_j}}}
+\newcommand{\seqxnij}{\seq{x_{n_{i_j}}}}
+\newcommand{\seqynij}{\seq{y_{n_{i_j}}}}
+
+% Such that
+\newcommand{\st}{\;\text{such that}\;}
+
+% Vectors
+\newcommand{\xhat}{\hat{\mathbf{x}}}
+\newcommand{\yhat}{\hat{\mathbf{y}}}
+\newcommand{\zhat}{\hat{\mathbf{z}}}
+\newcommand{\nhat}{\hat{\mathbf{n}}}
+\newcommand{\shat}{\hat{\mathbf{s}}}
+\newcommand{\rhat}{\hat{\mathbf{r}}}
+\newcommand{\vhat}{\hat{\mathbf{v}}}
+\newcommand{\hatvector}[1]{\hat{\mathbf{1}}}
+\newcommand{\mb}[1]{\mathbf{#1}}
+\newcommand{\omegahat}{\boldsymbol{\hat{\mathbf{\omega}}}}
+
+% Four-vector quaternions
+\newcommand{\quat}[1]{\overset{o}{#1}}
+\newcommand{\quatconj}[1]{\overset{o}{#1}^{*}}
+
+
+% Bold vectors
+\newcommand{\xb}{\mathbf{x}}
+\newcommand{\yb}{\mathbf{y}}
+\newcommand{\zb}{\mathbf{z}}
+\newcommand{\rb}{\mathbf{r}}
+\newcommand{\qb}{\mathbf{q}}
+
+
+% Matrices
+\newcommand{\I}[1]{\mb{I}_{#1}}
+
+% Derivatives
+\newcommand{\der}[2]{\frac{d #1}{d #2}}
+\newcommand{\dder}[2]{\frac{d^2 #1}{d #2^2}}
+\newcommand{\derop}[1]{\frac{d}{d #1}}
+\newcommand{\dderop}[1]{\frac{d^2}{d #1^2}}
+
+% Partial Derivatives
+\newcommand{\pd}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\pdd}[2]{\frac{\partial^2 #1}{\partial #2^2}}
+\newcommand{\pdop}[1]{\frac{\partial}{\partial #1}}
+\newcommand{\pddop}[1]{\frac{\partial^2}{\partial #1^2}}
+\newcommand{\pddmixed}[3]{\frac{\partial^2 #1}{\partial #2\partial #3}}
+\newcommand{\pddmixedop}[2]{\frac{\partial^2}{\partial #1\partial #2}}
+
+% ith
+\newcommand{\ith}{\text{i}^{\text{th}}}
+
+% lim, limsup, liminf
+\newcommand{\limn}{\text{lim}_{n \rightarrow \infty}}
+\newcommand{\limi}{\text{lim}_{i \rightarrow \infty}}
+\newcommand{\limj}{\text{lim}_{j \rightarrow \infty}}
+\newcommand{\limsupn}{\limsup_{n \rightarrow \infty}}
+\newcommand{\liminfn}{\liminf_{n \rightarrow \infty}}
+
+% Parallel symbols
+\newcommand{\parallelsum}{\mathbin{\!/\mkern-5mu/\!}}
+
+
+% Custom for absolute value
+\delimitershortfall-1sp
+\newcommand\abs[1]{\left|#1\right|}
+
+% Reference and hyperlink
+\newcommand{\source}[1]{\href{#1}{(\textbf{Source})}}
+
+% Use for define equals
+\newcommand{\delteq}{\overset{\Delta}{=}}
+
+% For nicer fonts
+\usepackage{eucal}
+
+% For Dreamer Paper
+\newcommand{\stau}{s_{\tau}}
+\newcommand{\expect}[1]{\mathbb{E}_{#1}}
+\newcommand{\indep}{\perp \!\!\! \perp}
+
+% Fourier Transform pairs
+\newcommand{\ftpair}{\xleftrightarrow{\mathcal{F}}}
+
+% Plot functions
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usetikzlibrary{datavisualization}
+\usetikzlibrary{arrows}
+\tikzstyle{int}=[draw, fill=blue!20, minimum size=2em]
+\tikzstyle{init} = [pin edge={to-,thin,black}]
+
+
+\title{6.801/6.866: Machine Vision, Lecture 20}
+\author{Professor Berthold Horn, Ryan Sander, Tadayuki Yoshitake \\
+        MIT Department of Electrical Engineering and Computer Science \\ 
+        Fall 2020}
+\date{}
+
+\begin{document}
+
+\maketitle
+These lecture summaries are designed to be a review of the lecture.  Though I do my best to include all main topics from the lecture, the lectures will have more elaborated explanations than these notes.  Therefore, if you're looking for the most rigorous review and treatment of these topics, we encourage you to rewatch the lecture videos.  With that said, we hope these summaries are beneficial for your learning.  If you have any feedback for these lecture summaries, please submit it \textbf{\href{https://forms.gle/itCUtP4AubAbtwQT9}{here}}.
+\section{Lecture 20: Space of Rotations, Regular Tessellations, Critical Surfaces in Motion Vision and Binocular Stereo}
+In this lecture, we will transition from solving problems of \textbf{absolute rotation} (which, if you recall, finds the transformation between two 3D coordinate systems) into \textbf{relative orientation}, which finds the transformation between two 2D coordinate systems.  We will start by covering the problem of \textbf{binocular stereo}, and in the process talk about tessellations from solids, critical surfaces.
+\subsection{Tessellations of Regular Solids}
+As a brief review from the last lecture, recall that we saw we can encode rotations as 4D points on the unit sphere, where the coordinates of these 4D points correspond to our coefficients for the unit quaternion. \\ \\
+\textbf{What are tessellations?}  ``A filling or tessellations of a flat surface is the covering of a plane using one or more geometric shapes (polygons)." [1].
+\textbf{Tessellations} of the surface of the sphere can be based on \textbf{platonic solids}, with 4, 6, 8, 12, and 20 faces.  Each of the tessellations from the platonic solids results in equal area projections on the sphere, but the division is somewhat coarse. \\ \\
+For \textbf{greater granularity}, we can look at the 14 \textbf{Archimedean solids}.  This allows for having multiple polygons in each polyhedra (e.g. squares and triangles), resulting in unequal area in the tessellations on the unit sphere. \\ \\
+Related, we are also interested in the \textbf{rotation groups} (recall \textbf{groups} are mathematical sets that obey certain algebras, e.g. the \textbf{Special Orthogonal} group) of these regular polyhedra:
+\begin{itemize}
+    \item 12 elements in rotation group for \textbf{tetrahedron}.
+    \item 24 elements in rotation group for \textbf{hexahedron}.
+    \item 60 elements in rotation group for \textbf{dodecahedron}.
+    \item The \textbf{octahedron} is the dual of the \textbf{cube} and therefore occupies the same rotation group as it.
+    \item The \textbf{icosahedron} is the dual of the \textbf{dodecahedron} and therefore occupies the same rotation group as it.
+\end{itemize}
+A few other notes on tessellations:
+\begin{itemize}
+    \item One frequently-used method for creating tessellations is to divide each face into many \textbf{triangular} or \textbf{hexagonal} areas.
+    \item Histograms can be created in tessellations in planes by taking square sub-divisions of the region.
+    \item \textbf{Hexagonal tessellations} are a dual of \textbf{triangular tessellations}.
+\end{itemize}
+\subsection{Critical Surfaces}
+\textbf{What are Critical Surfaces?} Critical surfaces are geometric surfaces - specifically, hyperboloids of one sheet, that lead to ambiguity in the solution space for relative orientation problems. \\ \\
+\textbf{Why are Critical Surfaces important?}  Critical surfaces can negatively impact the performance of relative orientation systems, and understanding their geometry can enable us to avoid using strategies that rely on these types of surfaces in order to find the 2D transformation, for instance, between two cameras. \\ \\
+We will discuss more about these at the end of today's lecture.  For now, let's introduce \textbf{quadrics} - geometric shapes/surfaces defined by second-order equations in a 3D Cartesian coordinate system:
+\begin{enumerate}
+    \item \textbf{Ellipsoid}: $\frac{x^2}{a^2} + \frac{y^2}{b^2} + \frac{z^2}{c^2} = 1$
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.2\textwidth]{figures/ellipse.png}
+        \caption{3D geometric depiction of an ellipsoid, one member of the quadric family.}
+        \label{fig:my_label}
+    \end{figure}
+    \item \textbf{Sphere}: $x^2 + y^2 + z^2 = 1$ (or more generally, $ = r \in \R$)
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.2\textwidth]{figures/sphere.png}
+        \caption{3D geometric depiction of a sphere, another member of the quadric family and a special case of the ellipse.}
+        \label{fig:my_label}
+    \end{figure}
+    \item \textbf{Hyperboloid of One Sheet}: $x^2 + y^2 - z^2 = 1$ \\ \\
+    This quadric surface is \textbf{ruled}: we can embed straight lines in the surface, despite its quadric function structure.
+    \begin{figure}[H]
+        \centering
+\includegraphics[width=0.2\textwidth]{figures/hyperboloid_one_sheet.png}
+        \caption{3D geometric depiction of a hyperboloid of one sheet, another member of the quadric family and a special case of the ellipse.}
+        \label{fig:my_label}
+    \end{figure}
+    \item \textbf{Hyperboloid of Two Sheets}: $x^2 - y^2 - z^2 = 1$ \\ \\
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.2\textwidth]{figures/hyperboloid_two_sheets.png}
+        \caption{3D geometric depiction of a hyperboloid of one sheet, another member of the quadric family and a special case of the ellipse.}
+        \label{fig:my_label}
+    \end{figure}
+    \item \textbf{Cone}: $\frac{z^2}{c^2} = \frac{x^2}{a^2} + \frac{y^2}{b^2}$ \\ \\
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.2\textwidth]{figures/cone.png}
+        \caption{3D geometric depiction of a cone, another member of the quadric family and a special case of the hyperboloid of one sheet.}
+        \label{fig:my_label}
+    \end{figure}
+    \item \textbf{Elliptic Paraboloid}: $\frac{z}{c} = \frac{x^2}{a^2} + \frac{y^2}{b^2}$ \\ \\
+    Note that this quadric surface has a linear, rather than quadratic dependence, on $z$.
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.2\textwidth]{figures/elliptic_paraboloid.png}
+        \caption{3D geometric depiction of a elliptic paraboloid, another member of the quadric family and a special case of the hyperboloid of one sheet.}
+        \label{fig:my_label}
+    \end{figure}
+    \item \textbf{Hyperbolic Paraboloid}: $\frac{z}{c} = \frac{x^2}{a^2} - \frac{y^2}{b^2}$ \\ \\
+    Note that this quadric surface also has a linear, rather than quadratic dependence, on $z$.
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.2\textwidth]{figures/hyperbolic_paraboloid.png}
+        \caption{3D geometric depiction of a hyperbolic paraboloid, another member of the quadric family and a special case of the hyperboloid of one sheet.}
+        \label{fig:my_label}
+    \end{figure}
+\end{enumerate}
+Another special case is derived through \textbf{planes}.  You may be wondering - how can we have a quadratic structure from planes?  We can derive a surface with quadratic terms by considering the intersection of two planes.  This intersection of planes is computed analytically as a product of two linear equations, resulting in a quadratic equation.
+\subsection{Relative Orientation and Binocular Stereo}
+\textbf{Problem of interest}: Computing 3D from 3D using two cameras - a problem known as \textbf{binocular stereo}.  We found this problem was easy to solve if the geometry of the two cameras, in this case known as the \textbf{two-view geometry}, is known and calibrated (usually this results in finding a calibration matrix $K$).  To achieve high-performing binocular stereo systems, we need to find the relative orientation between the two cameras.  A few other notes on this:
+\begin{itemize}
+    \item Calibration is typically for \textbf{binocular stereo} using \textbf{baseline calibration}.
+    \item Recall that like absolute orientation, we have \textbf{duality} in te problems we solve: we are able to apply the same machine vision framework regardless of ``if the camera moved of it the world moved".
+    \item Therefore, the dual problem to \textbf{binocular stereo} is \textbf{structure from motion}, also known as \textbf{Visual Odometry (VO)}.  This involves finding transformations over time from camera (i.e. one moving camera at different points in time).
+\end{itemize}
+\subsubsection{Binocular Stereo}
+Recall that our goal with binocular stereo is to find the \textbf{translation} (known as the \textbf{baseline}, given by $\mb{b} \in \Rd{3}$.  The diagram below illustrates our setup with two cameras, points in the world, and the translation between the two cameras given as this aforementioned baseline $\mb{b}$.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth/3]{figures/binocular_stereo_setup.png}
+    \caption{Binocular stereo system set up.  For this problem, recall that one of our objectives is to measure the translation, or baseline, between the two cameras.}
+    \label{fig:my_label}
+\end{figure}
+When we search for correspondences, we need only search along a line, which gives us a measure of \textbf{binocular disparity} that we can then use to measure distance between the cameras. \\ \\
+The lines defined by these correspondences are called \textbf{epipolar lines}.  Places that pass through \textbf{epipolar lines} are called \textbf{epipolar planes}, as given below:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth/3]{figures/epipolar_planes.png}
+    \caption{Epipolar planes are planes that pass through epipolar lines.}
+    \label{fig:my_label}
+\end{figure}
+Next, in the image, we intersect the image plane with our set of epipolar planes, and we look at the intersections of these image planes (which become lines).  The figure below illustrates this process for the left and right cameras in our binocular stereo system.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth/2]{figures/image_plane_intersections.png}
+    \caption{After finding the epipolar planes, we intersect these planes with the image plane, which gives us a set of lines in both the left and righthand cameras/coordinate systems of our binocular stereo system.}
+    \label{fig:my_label}
+\end{figure}
+A few notes on this process:
+\begin{itemize}
+    \item For system convergence, we want as much overlap as possible between the two sets of lines above, depicted in Figure 10.
+    \item The entire baseline $\mb{b}$ projects to a single point in each image.
+    \item As we stated before, there are line correspondences if we already know the geometry, i.e. if we want correspondences between the lines in red above, we need only look along the red lines in each image.
+    \item Recall that our goal is to find the \textbf{transformation} between two cameras - i.e. \textbf{baseline} (or \textbf{translation}, in dual structure from motion problem).
+    \item Recall, as we saw for absolute orientation, that we also solve for \textbf{rotation} in addition to the \textbf{baseline}/\textbf{translation}.  Together, these translation + rotation variables lead us to think that we are solving a problem of 6 degrees of freedom (DOF), but because of \textbf{scale factor ambiguity} (we cannot get absolute sizes of objects/scenes we image), we cannot get absolute length of the baseline $\mb{b}$, and therefore, we treat the baseline as a unit vector.  Treating the baseline as a unit vector results in one less DOF and 5 DOF for the system overall (since we now only have 2 DOF for the unit vector baseline).
+\end{itemize}
+\subsubsection{How Many Correspondences Do We Need?}
+As we have done so for other systems/problems, we consider the pertinent question: \textbf{How many correspondences do we need to solve the binocular stereo/relative orientation problem?}. To answer this, let us consider what happens when we are given different numbers of correspondences:
+\begin{itemize}
+    \item With 1 correspondence, we have many degrees of freedom left - i.e. not enough constraints for the number of unknowns remaining.  This makes sense considering that each correspondence imposes a maximum of 3 DOF for the system.
+    \item With 2 correspondences, we still have the ability to rotate one of the cameras without changing the correspondence, which implies that only 4 out of the 5 constraints are satisfied.  This suggests we need more constraints.
+\end{itemize}
+It turns out we need \textbf{5 correspondences} needed to solve the binocular stereo/relative orientation problem - each correspondence gives you \textbf{1 constraint}.  Why?  Each image has a \textbf{disparity}, with two components (this occurs in practice).  There are two types of disparity, each corresponding to each of the 2D dimensions.  Note that \textbf{disparity} computes pixel discrepancies between correspondences between images.
+\begin{itemize}
+    \item \textbf{Horizontal disparity} corresponds to depth.
+    \item \textbf{Vertical disparity} corresponds to differences in orientation, and actually takes the constraints into account.  In practice, vertical disparity is tuned out first using an iterative sequence of 5 moves.
+\end{itemize}
+In practice, we would like to use \textbf{more correspondences for accuracy}.  With more correspondences, we no longer try to find exact matches, but instead minimize a sum of squared errors using least squares methods.  We minimize sum of squares of error in \textbf{image position}, not in the 3D world. \\ \\
+However, one issue with this method is \textbf{nonlinearity}:
+\begin{itemize}
+    \item This problem setup results in 7 second-order equations, which, by Bezout's Theorem, gives $2^7 = 128$ different solutions to this problem.
+    \item Are there really 128 solutions?  There are methods that have gotten this down to 20.  With more correspondences and more background knowledge of your system, it becomes easier to determine what the true solution is.
+\end{itemize}
+\subsubsection{Determining Baseline and Rotation From Correspondences}
+To determine baseline and rotation for this binocular stereo problem, we can begin with the figure below:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth/5]{figures/baseline_from_correspondences.png}
+    \caption{Epipolar plane for the binocular stereo system.}
+    \label{fig:my_label}
+\end{figure}
+The vectors $\rb'_{l,i}$ (the left system measurement after the rotation transformation has been applied), $\rb_{r,i}$, and $\mb{b}$ are all coplanar in a perfect system.  Therefore, if we consider the triple product of these 3 vectors, the volume of the parallelipiped, which can be constructed from the \textbf{triple product}, should have \textbf{zero volume} because these vectors are coplanar (note that this is the ideal case).  This is known as the \textbf{coplanarity condtion}:
+\begin{align*}
+    V = [\rm'_{l,i} \; \rb_{r,i} \; \mb{b}] = 0 &&
+\end{align*}
+A potential solution to find the optimal baseline (and rotation): we can use least squares to minimize the volume of the parallelipiped corresponding to the triple product of these three (hopefully near coplanar) vectors.  This is a feasible approach, but also have a \textbf{high noise gain/variance}. \\ \\
+This leads us to an important question: What, specifically, are we trying to minimize?  Recall that we are \textbf{matching correspondences in the image, not in the 3D world.}  Therefore, the volume of the parallelipiped is \textbf{proportional to the error}, but does not match it exactly.  When we have measurement noise, the rays from our vectors in the left and righthand systems no longer intersect, as depicted in the diagram below:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth/2]{figures/error_binocular_stereo.png}
+    \caption{With measurement noise, our rays do not line up exactly.  We will use this idea to formulate our optimization problem to solve for optimal baseline and rotation.}
+    \label{fig:my_label}
+\end{figure}
+We can write that the error is perpendicular to the cross product between the rotated left and the right rays:
+\begin{align*}
+    \rb'_{l,i} \times \rb_{r} &&
+\end{align*}
+And therefore, we can write the equation for the ``loop" (going from the rotated left coordinate system to the right coordinate system) as:
+\begin{align*}
+    \alpha \rb'_{l} + \gamma(\rb'_{l} \times \rb_{r}) = \mb{b} + \beta \rb_{r} &&
+\end{align*}
+Where the error we seek to minimize $(\rb'_{l} \times \rb_{r})$ is multiplied by a parameter $\gamma$. \\ \\
+To solve for our parameters $\alpha, \beta$, and $\gamma$, we can transform this vector equation into 3 scalar equations by taking dot products.  We want to take dot products that many many terms drop to zero, i.e. where orthogonality applies.  Let's look at these 3 dot products:
+\begin{enumerate}
+    \item $\cdot (\rb'_{l} \times \rb_{r})$:  This yields the following:
+    \begin{align*}
+        & \textbf{Lefthand side}: \;\; (\alpha \rb'_{l} + \gamma (\rb'_{l} \times \rb_{r})) \cdot  (\rb'_{l} \times \rb_{r}) = \gamma||\rb'_{l} \times \rb_{r}||^{2}_2 \\
+        & \textbf{Righthand side}: \;\; (\mb{b} + \beta \rb_{r}) \cdot  (\rb'_{l} \times \rb_{r}) = \mb{b} \cdot \rb'_{l} \times \rb_{r} + 0 = [\mb{b} \; \rb'_{l} \; \rb_{r}] \\
+        & \textbf{Combining}: \;\; \gamma||\rb'_{l} \times \rb_{r}||^{2}_2 = [\mb{b} \; \rb'_{l} \; \rb_{r}] &&
+    \end{align*}
+    Intuitively, this says that the error we see is proportional to teh triple product (the volume of the parallelipiped).  Taking our equation with this dot product allows us to isolate $\gamma$.
+    \item $\cdot (\rb'_{l} \times (\rb'_{l} \times \rb_{r}))$:  This yields the following:
+    \begin{align*}
+        & \textbf{Lefthand side}: \;\; (\alpha \rb'_{l} + \gamma (\rb'_{l} \times \rb_{r})) \cdot  ((\rb'_{l} \times (\rb'_{l} \times \rb_{r})) = \beta||\rb'_{l} \times \rb_{r}||^{2}_2 \\
+        & \textbf{Righthand side}: \;\; (\mb{b} + \beta \rb_{r}) \cdot  ((\rb'_{l} \times (\rb'_{l} \times \rb_{r})) = (\mb{b} \times \rb'_{l}) \cdot (\rb'_{l} \times \rb_{r}) \\
+        & \textbf{Combining}: \;\; \beta||\rb'_{l} \times \rb_{r}||^{2}_2 = (\mb{b} \times \rb'_{l}) \cdot (\rb'_{l} \times \rb_{r}) &&
+    \end{align*}
+    Taking this dot product with our equation allows us to find $\beta$.  We can repeat an analogous process to solve for $\alpha$.
+    \item $\cdot (\rb_{r} \times (\rb'_{l} \times \rb_{r}))$:  This yields the following:
+    \begin{align*}
+        & \textbf{Lefthand side}: \;\; (\alpha \rb'_{l} + \gamma (\rb'_{l} \times \rb_{r})) \cdot  ((\rb_{r} \times (\rb'_{l} \times \rb_{r})) = \alpha||\rb'_{l} \times \rb_{r}||^{2}_2 \\
+        & \textbf{Righthand side}: \;\; (\mb{b} + \beta \rb_{r}) \cdot  ((\rb_{r} \times (\rb'_{l} \times \rb_{r})) = (\mb{b} \times \rb_{r}) \cdot (\rb'_{l} \times \rb_{r}) \\
+        & \textbf{Combining}: \;\; \alpha||\rb'_{l} \times \rb_{r}||^{2}_2 = (\mb{b} \times \rb_{r}) \cdot (\rb'_{l} \times \rb_{r}) &&
+    \end{align*}
+    Taking this dot product with our equation allows us to find $\alpha$.
+\end{enumerate}
+With this, we have now isolated all three of our desired parameters.  We can then take these 3 equations to solve for our 3 unknowns $\alpha, \beta$, and $\gamma$.  We want $|\gamma|$ to be as small as possible.  We also require $\alpha$ and $\beta$ to be non-negative, since these indicate the scalar multiple of the direction along the rays in which we (almost) get an intersection between the left and right coordinate systems.  Typically, a negative $\alpha$ and/or $\beta$ results in intersections behind the camera, which is often not physically feasible. \\ \\
+It turns out that one of the ways discard some of the 20 solutions produced by this problem is to throw out solutions that result in negative $\alpha$ and/or $\beta$. \\ \\
+Next, we can consider the distance this vector corresponding to the offset represents.  This distance is given by:
+\begin{align*}
+    d = \gamma||\rb'_{l} \times \rb_{r}||_2 = \frac{[\mb{b} \; \rb'_{l} \; \rb_{r}]}{||\rb'_{l} \times \rb_{r}||_2} &&
+\end{align*}
+\textbf{Closed-Form Solution}: Because this is a system involving 5 second-order equations, and the best we can do is reduce this to a single 5th-order equation, which we do not (yet) have the closed-form solutions to, we cannot solve for this problem in closed-form.  However, we can still solve for it numerically. We can also look at solving this through a weighted least-squares approach below.
+\subsubsection{Solving Using Weighted Least Squares}
+Because our distance $d$ can get very large without a huge error in image position, $d$ is not representative of our error of interest.  However, it is still proportional.  We can account for this difference by using a weighting factor $w_i$, which represents the conversion factor from 3D error to 2D image error).  We will denote the $\ith$ weight as $w_i$. \\ \\
+Therefore, incorporating this weighting factor, our least squares optimization problem becomes:
+\begin{align*}
+    \min_{\mb{b}, R(\cdot)}\sum_{i=1}^{n}w_i[\mb{b} \; \rb'_{l} \; \rb_{r}]^2, \; \text{subject to} \; \mb{b} \cdot \mb{b} = ||\mb{b}||^{2}_2 = 1 &&
+\end{align*}
+How do we solve this?  Because $w_i$ will change as our candidate solution changes, we will solve this problem iteratively and in an alternating fashion - we will alternate between updated our conversion weights $w_i$ and solving for a new objective given the recent update of weights.  Therefore, we can write this optimization problem as:
+\begin{align*}
+    \mb{b}^*, R^* & = \arg\min_{\mb{b}, ||\mb{b}||^{2}_2 = 1, R(\cdot)}\sum_{i=1}^{n}w_i[\mb{b} \; \rb'_{l} \; \rb_{r}]^2 \\
+   & = \arg\min_{\mb{b}, ||\mb{b}||^{2}_2 = 1, R(\cdot)}\sum_{i=1}^{n}w_i\left((\rb_{r,i} \times \mb{b}) \cdot \rb'_{l,i}\right)^2 &&
+\end{align*}
+\textbf{Intuition for these weights}: Loosely, we can think of the weights as being the conversion factor from 3D to 2D error, and therefore, they can roughly be thought of as $w = \frac{f}{Z}$, where $f$ is the focal length and $Z$ is the 3D depth. \\ \\
+Now that we have expressed a closed-form solution to this problem, we are ready to build off of the last two lectures and apply our unit quaternions to solve this problem.  Note that because we express the points from the left coordinate system in a rotated frame of reference (i.e. with the rotation already applied), then we can incorporate the quaternion into this definition to show how we can solve for our optimal set of parameters given measurements from both systems:
+\begin{align*}
+    \quat{r}'_{l} = \quat{q}\quat{r}_{l}\quatconj{q} &&
+\end{align*}
+Then we can solve for this as $t$:
+\begin{align*}
+    t & = (\rb_r \times \mb{b}) \cdot \rb'_{l} \\
+      & = \quat{r}_r\quat{b} \cdot \quat{q}\quat{r}_l\quatconj{q} \\
+      & = \quat{r}_r(\quat{b}\quat{q}) \cdot \quat{q}\quat{r}_{l} \\
+      & = \quat{r}_d\quat{d} \cdot \quat{q}\quat{r}_l, \;\; \text{where} \; \quat{d} \delteq \quat{b}\quat{q}, \; \text{which we can think of as a product of baseline and rotation.} &&
+\end{align*}
+Recall that our goal here is to find the \textbf{baseline} $\quat{b}$ - this can be found by solving for our quantity $\quat{d}$ and multiplying it on the righthand side by $\quatconj{q}$:
+\begin{align*}
+    & \quat{d}\quatconj{q} = \quat{b}\quat{q}\quatconj{q} = \quat{b}\quat{e} = \quat{b} \\
+    & (\text{Recall that} \; \quat{e} = (1, 0) = \quat{q}\quatconj{q}) &&
+\end{align*}
+At first glance, it appears we have 8 unknowns, with 5 constraints.  But we can add additional constraints to the system to make the number of constraints equal the number of DOF:
+\begin{enumerate}
+    \item \textbf{Unit quaternions}: $||\quat{q}||_2 = \quat{q} \cdot \quat{q} = 1$
+    \item \textbf{Unit baseline}: $||\quat{b}||_2 = \quat{b} \cdot \quat{b} = 1$
+    \item \textbf{Orthogonality of} $\quat{q}$ \textbf{and} $\quat{d}$: $\quat{q} \cdot \quat{d} = 0$
+\end{enumerate}
+Therefore, with these constraints, we are able to reach a system with 8 constraints.  Note that we have more constraints to enforce than with the absolute orientation problem, making the relative orientation problem more difficult to solve.
+\subsubsection{Symmetries of Relative Orientation Approaches}
+We can interchange the left and right coordinate system rays.  We can do this for this problem because we have \textbf{line intersections} rather than \textbf{line rays}.  These symmetries can be useful for our numerical approaches.  The equation below further demonstrates this symmetry by showing we can interchange the order of how $\quat{d}$ and $\quat{q}$ interact with our measurements to produce the same result.
+\begin{align*}
+    t & = \quat{r}_r\quat{d} \cdot \quat{q}\quat{r}_{l} \\
+      & = \quat{r}_r\quat{q} \cdot \quat{d}\quat{r}_l &&
+\end{align*}
+Given these symmetries, we can come up with some sample solutions:
+\begin{enumerate}
+    \item $\{\quat{q}, \quat{d}\}$
+    \item $\{-\quat{q}, \quat{d}\}$ ($\times 2$)
+    \item $\{\quat{q}, -\quat{d}\}$ ($\times 2$)
+    \item $\{\quat{d}, \quat{q}\}$ ($\times 2$)
+\end{enumerate}
+\textbf{How do we avoid having to choose from all these solutions?}  One approach: Assume/fix one of the two unknowns $\quat{d}$ or $\quat{q}$.  This results in a linear objective and a linear problem to solve, which, as we know, can be solved with \textbf{least squares} approaches, giving us a closed-form solution:
+\begin{itemize}
+    \item \textbf{Option 1}: Assume $\quat{q}$ is known and fix it $\longrightarrow$ solve for $\quat{d}$
+    \item \textbf{Option 2}: Assume $\quat{d}$ is known and fix it $\longrightarrow$ solve for $\quat{q}$
+\end{itemize}
+Note that both of the approaches above can be solved with least squares! \\ \\
+While this is one approach, a better approach is to use \textbf{nonlinear optimization}, such as \textbf{Levenberg-Marquadt} (often called LM in nonlinear optimization packages).  An optional brief intro to Levenberg-Marquadt is presented at the end of this lecture summary. \\ \\
+\textbf{Levenberg-Marquadt} (LM) optimization requires a non-redundant parameterization, which can be achieved with either \textbf{Gibbs vectors} or \textbf{quaternions} (the latter of which we can circumvent the redundancies of Hamilton's quaternions by treating the redundancies of this representation as extra constraints.  Recall that Gibbs vectors, which are given as $(\cos\left(\frac{\theta}{2}\right), \sin\left(\frac{\theta}{2}\right)\omegahat)$, have a singularity at $\theta = \pi$.
+\subsubsection{When Does This Fail?  Critical Surfaces}
+Like all the other machine vision approaches we have studied so far, we would like to understand when and why this system fails:
+\begin{itemize}
+    \item Recall that we need at least 5 correspondences to solve for the \textbf{baseline} and \textbf{rotation}.  With less correspondences, we don't have enough constraints to find solutions.
+    \item \textbf{Gef\"{a}rliche Fla\"{a}chen}, also known as \textbf{``dangerous or critical surfaces"}: There exist surfaces that make the relative orientation problem difficult to solve due to the additional ambiguity that these surfaces exhibit.  One example: \textbf{Plane flying over a valley with landmarks:}
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=\textwidth/3]{figures/valley.png}
+        \caption{A plane flying over a valley is an instance of a critical surface.  This is because we can only observe angles, and not points.  Therefore, locations of two landmarks are indistinguishable.}
+        \label{fig:my_label}
+    \end{figure}
+    To account for this, pilots typically plan flight paths over ridges rather than valleys for this exact reason:
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=\textwidth/2]{figures/ridge.png}
+        \caption{When planes fly over a ridge rather than a valley, the angles between two landmarks do change, allowing for less ambiguity for solving relative orientation problems.}
+        \label{fig:my_label}
+    \end{figure}
+    How do we generalize this case to 3D?  We will see that this type of surface in 3D is a \textbf{hyperboloid of one sheet}.  We need to ensure sections of surfaces you are looking at do not closely resemble sections of hyperboloids of one sheet. \\ \\
+    There are also other types of \textbf{critical surfaces} that are far more common that we need to be mindful of when considering relative orientation problems - for instance, the intersection of two planes.  In 2D, this intersection of two planes can be formed by the product of their two equations:
+    \begin{align*}
+        (ax + by + c)(dx + ey + f) = adx^2 + aexy + afx + bdxy + bey^2 + bfy + cdx + cey + cf = 0 &&
+    \end{align*}
+    We can see that this equation is indeed second order with respect to its spatial coordinates, and therefore belongs to the family of quadric surfaces and critical surfaces.
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=\textwidth/4]{figures/intersection_of_planes.png}
+        \caption{The intersection of two planes is another type of critical surface we need to be mindful of.  It takes a second-order form because we multiply the two equations of the planes together to obtain the intersection.}
+        \label{fig:my_label}
+    \end{figure}
+\end{itemize}
+\subsubsection{(Optional) Levenberg-Marquadt and Nonlinear Optimization}
+Levenberg-Marquadt (LM) and Gauss-Newton (GN) are two nonlinear optimization procedures used for deriving solutions to nonlinear least squares problems.  These two approaches are largely the same, except that LM uses an additional \textbf{regularization term} to ensure that a solution exists by making the closed-form matrix to invert in the normal equations positive semidefinite.  The normal equations, which derive the closed-form solutions for GN and LM, are given by:
+\begin{enumerate}
+    \item \textbf{GN}: $(J(\mb{\theta})^TJ(\mb{\theta}))^{-1}\mb{\theta} = J(\mb{\theta})^Te(\mb{\theta}) \implies \mb{\theta} = (J(\mb{\theta})^TJ(\mb{\theta}))^{-1}J(\mb{\theta})^Te(\mb{\theta})$
+    \item \textbf{LM}: $(J(\mb{\theta})^TJ(\mb{\theta}) + \lambda I)^{-1}\mb{\theta} = J(\mb{\theta})^Te(\mb{\theta}) \implies \mb{\theta} = (J(\mb{\theta})^TJ(\mb{\theta}) + \lambda I)^{-1}J(\mb{\theta})^Te(\mb{\theta})$
+\end{enumerate}
+Where:
+\begin{itemize}
+    \item $\mb{\theta}$ is the vector of parameters and our solution point to this nonlinear optimization problem.
+    \item $J(\mb{\theta})$ is the Jacobian of the nonlinear objective we seek to optimize.
+    \item $e(\theta)$ is the residual function of the objective evaluated with the current set of parameters.
+\end{itemize}
+Note the $\lambda I$, or regularization term, in Levenberg-Marquadt.  If you're familiar with ridge regression, LM is effectively ridge regression/regression with L2 regularization for nonlinear optimization problems.  Often, these approaches are solved iteratively using gradient descent:
+\begin{enumerate}
+    \item \textbf{GN}: $\theta^{(t+1)} \leftarrow \theta^{(t)} - \alpha(J(\mb{\theta^{(t)}})^TJ(\mb{\theta^{(t)}}))^{-1}J(\mb{\theta^{(t)}})^Te(\mb{\theta^{(t)}})$
+    \item \textbf{LM}: $\theta^{(t+1)} \leftarrow \theta^{(t)} - \alpha(J(\mb{\theta^{(t)}})^TJ(\mb{\theta^{(t)}}) + \lambda I)^{-1}J(\mb{\theta^{(t)}})^Te(\mb{\theta^{(t)}})$
+\end{enumerate}
+Where $\alpha$ is the step size, which dictates how quickly the estimates of our approaches update.
+\subsection{References}
+\begin{enumerate}
+    \item Tesselation, https://en.wikipedia.org/wiki/Tessellation
+\end{enumerate}
+\end{document}
+

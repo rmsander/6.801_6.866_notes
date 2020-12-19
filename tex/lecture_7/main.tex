@@ -1,0 +1,265 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[left=1.0cm,right=1.0cm, top=1.5cm, bottom=1.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{graphics}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{listings}
+\usepackage{mathtools}
+\usepackage{hyperref}
+
+% Align all equations left:
+\documentclass[fleqn]{article} 
+
+
+% Sets and quantifiers
+\newcommand{\R}{\mathbb{R}\;}
+\newcommand{\Q}{\mathbb{Q}\;}
+\newcommand{\N}{\mathbb{N}\;}
+\newcommand{\nin}{n \in \mathbb{N}}
+\newcommand{\fa}{\;\forall\;}
+\newcommand{\ex}{\;\exists\;}
+\newcommand{\nex}{\;\nexists\;}
+
+% Sequences
+\newcommand{\seq}[1]{\{#1\}}
+\newcommand{\seqx}{\seq{x_n}}
+\newcommand{\seqy}{\seq{y_n}}
+\newcommand{\seqs}{\seq{s_n}}
+
+% Subsequences
+\newcommand{\seqxni}{\seq{x_{n_i}}}
+\newcommand{\seqyni}{\seq{y_{n_i}}}
+\newcommand{\xni}{x_{n_i}}
+\newcommand{\yni}{y_{n_i}}
+\newcommand{\xnij}{x_{n_{i_j}}}
+\newcommand{\ynij}{y_{n_{i_j}}}
+\newcommand{\seqxnij}{\seq{x_{n_{i_j}}}}
+\newcommand{\seqynij}{\seq{y_{n_{i_j}}}}
+
+% Such that
+\newcommand{\st}{\;\text{such that}\;}
+
+% lim, limsup, liminf
+\newcommand{\limn}{\text{lim}_{n \rightarrow \infty}}
+\newcommand{\limi}{\text{lim}_{i \rightarrow \infty}}
+\newcommand{\limj}{\text{lim}_{j \rightarrow \infty}}
+\newcommand{\limsupn}{\limsup_{n \rightarrow \infty}}
+\newcommand{\liminfn}{\liminf_{n \rightarrow \infty}}
+
+% Parallel symbols
+\newcommand{\parallelsum}{\mathbin{\!/\mkern-5mu/\!}}
+
+
+% Custom for absolute value
+\delimitershortfall-1sp
+\newcommand\abs[1]{\left|#1\right|}
+
+% Reference and hyperlink
+\newcommand{\source}[1]{\href{#1}{(\textbf{Source})}}
+
+% Use for define equals
+\newcommand{\delteq}{\overset{\Delta}{=}}
+
+% For nicer fonts
+\usepackage{eucal}
+
+% For Dreamer Paper
+\newcommand{\stau}{s_{\tau}}
+\newcommand{\expect}[1]{\mathbb{E}_{#1}}
+\newcommand{\indep}{\perp \!\!\! \perp}
+
+
+% Machine Vision
+\newcommand{\xhat}{\hat{\mathbf{x}}}
+\newcommand{\yhat}{\hat{\mathbf{y}}}
+\newcommand{\zhat}{\hat{\mathbf{z}}}
+\newcommand{\nhat}{\hat{\mathbf{n}}}
+\newcommand{\shat}{\hat{\mathbf{s}}}
+\newcommand{\mb}[1]{\mathbf{#1}}
+
+
+\title{6.801/6.866: Machine Vision, Lecture 7}
+\author{Professor Berthold Horn, Ryan Sander, Tadayuki Yoshitake \\
+        MIT Department of Electrical Engineering and Computer Science \\ 
+        Fall 2020}
+\date{}
+
+\begin{document}
+
+\maketitle
+These lecture summaries are designed to be a review of the lecture.  Though I do my best to include all main topics from the lecture, the lectures will have more elaborated explanations than these notes.  Therefore, if you're looking for the most rigorous review and treatment of these topics, we encourage you to rewatch the lecture videos.  With that said, we hope these summaries are beneficial for your learning.  If you have any feedback for these lecture summaries, please submit it \textbf{\href{https://forms.gle/itCUtP4AubAbtwQT9}{here}}.
+\section{Lecture 7: Gradient space, Reflectance Map, Image Irradiance Equation, Gnomonic Projection}
+This lecture continues our treatment of the photometric stereo problem, and how we can estimate motion graphically by finding intersections of curves in $(p, q)$ (spatial derivative) space.  Following this, we discuss concepts from photometry and introduce the use of lenses.
+\subsection{Surface Orientation Estimation (Cont.) \& Reflectance Maps}
+Let's review a couple of concepts from the previous lecture:
+\begin{itemize}
+    \item Recall our spatial gradient space given by $(p, q) = (\frac{\partial z}{\partial x}, \frac{\partial z}{\partial y})$.
+    \item We also discussed \textbf{Lambertian surfaces}, or surfaces in which the viewing angle doesn't change brightness, only the angle between the light source and the object affects the brightness.  Additionally, the relation between the source/object angle is proportional to: $E \propto \cos \theta_i$, where $\theta_i$ is the angle between the light source and the object.
+    \item Recall our derivation of the isophotes of Lambertian surfaces:
+    \begin{align*}
+    \nhat \cdot \shat = \frac{\begin{bmatrix}-p & -q & 1 \end{bmatrix}^T}{\sqrt{p^2 + q^2 + 1}} \cdot \frac{\begin{bmatrix}-p_s & -q_s & 1 \end{bmatrix}^T}{\sqrt{p^2_s + q^2_s + 1}} = c &&
+    \end{align*}
+    Where $c$ is a constant brightness level.  Carrying out this dot product:
+    \begin{align*}
+        \frac{1 + p_sp + q_sq}{\sqrt{p^2 + q^2 + 1}\sqrt{p^2_s + q^2_s + 1}} = c &&
+    \end{align*}
+    We can generate plots of these isophotes in surface orientation/$(p, q)$ space.  This is helpful in computer graphics, for instance, because it allows us to find not only surface heights, but also the local spatial orientation of the surface.  In practice, we can use \textit{lookup tables} for these \textit{reflectance maps} to find different orientations based off of a measured brightness.
+\end{itemize}
+\subsubsection{Forward and Inverse Problems}
+As discussed previously, there are two problems of interest that relate surface orientation to brightness measurements:
+\begin{enumerate}
+    \item \textbf{Forward Problem}: $(p, q) \rightarrow E$ (Brightness from surface orientation)
+    \item \textbf{Inverse Problem}: $E \rightarrow (p, q)$ (Surface orientation from brightness)
+\end{enumerate}
+In most settings, the second problem is of stronger interest, namely because it is oftentimes much easier to measure brightness than to directly measure surface orientation.  To measure the surface orientation, we need many pieces of information about the local geometries of the solid, at perhaps many scales, and in practice this is hard to implement.  But it is straightforward to simply find different ways to illuminate the object! \\ \\
+A few notes about solving this inverse problem:
+\begin{itemize}
+    \item We can use the reflectance maps to find intersections (either curves or points) between isophotes from different light source orientations.  The orientations are therefore defined by the interesections of these isophote curves.
+    \item Intuitively, the reflectance map answers the question ``How bright will a given orientation be?"
+    \item We can use an automated lookup table to help us solve this inverse problem, but depending on the discretization level of the reflectance map, this can become tedious.  Instead, wwe can use a calibration object, such as a sphere, instead.
+    \item For a given pixel, we can take pictures with different lighting conditions and repeatedly take images to infer the surface orientation from the sets of brightness measurements.
+    \item This problem is known as \textbf{photometric stereo}: Photometric stereo is a technique in computer vision for estimating the surface normals of objects by observing that object under different lighting conditions [1].
+\end{itemize}
+\subsubsection{Reflectance Map Example: Determining the Surface Normals of a Sphere}
+A few terms to set before we solve for $p$ and $q$:
+\begin{itemize}
+    \item Center of the sphere being imaged: $(x_0, y_0, z_0)^T$
+    \item Location of the light source: $(x, y, z)^T$
+\end{itemize}
+Then:
+\begin{itemize}
+    \item $z-z_0 = \sqrt{r^2_0 - (x-x_0)^2 + (y-y_0)^2}$
+    \item $p = \frac{x - x_0}{z - z_0}$
+    \item $a = \frac{y - y_0}{z - z_0}$
+\end{itemize}
+(Do the above equations carry a form similar to that of perspective projection?)
+\subsubsection{Computational Photometric Stereo}
+Though the intersection of curves approach we used above can be used for finding solutions to surfaces with well-defined reflectance maps, in general we seek to leverage approaches that are as general and robust as possible.  We can accomplish this, for instance, by using a 3D reflectance map in $(E_1, E_2, E_3)$ space, where each $E_i$ is a brightness measurement.  Each discretized (unit of graphic information that defines a point in three-dimensional space [2]) contains a specific surface orientation parameterized by $(p, q)$.  This approach allows us to obtain surface orientation estimates by using brightness measurements along with a \textbf{lookup table} (what is described above). \\ \\
+While this approach has many advantages, it also has some drawbacks that we need to be mindful of:
+\begin{itemize}
+    \item Discretization levels often need to be made coarse, since the number of $(p, q)$ voxel cells scales as a cubic in 3D, i.e. $f(d) \in O_{\text{space}}(d^3)$, where $d$ is the discretization level.
+    \item Not all voxels may be filled in - i.e. mapping (let us denote this as $\phi$) from 3D to 2D means that some kind of surface will be created, and therefore the $(E_1, E_2, E_3)$ space may be sparse.
+\end{itemize}
+One way we can solve this latter problem is to reincorporate albedo $\rho$!  Recall that we leveraged albedo to transform a system with a quadratic constraint into a system of all linear equations.  Now, we have a mapping from 3D space to 3D space:
+\begin{align*}
+    \phi: (E_1, E_2, E_3) \longrightarrow (p, q, \rho) \;\;\text{i.e.} \;\; \phi: \mathbb{R}^3 \longrightarrow \mathbb{R}^3 &&
+\end{align*}
+It is worth noting, however, that even with this approach, that there will still exist brightness triples $(E_1, E_2, E_3)$ that do not map to any $(p, q, \rho)$ triples.  This could happen, for instance, when we have extreme brightness from measurement noise.  \\ \\
+Alternatively, an easy way to ensure that this map $\phi$ is injective is to use the reverse map (we can denote this by $\psi$):
+\begin{align*}
+    \psi: (p, q, \rho) \longrightarrow (E_1, E_2, E_3) \;\;\text{i.e.} \;\; \psi: \mathbb{R}^3 \longrightarrow \mathbb{R}^3 &&
+\end{align*}
+\subsection{Photometry \& Radiometry}
+Next, we will rigorously cover some concepts in photometry and radiommetry.  Let us begin by rigorously defining these two fields:
+\begin{itemize}
+    \item \textbf{Photometry}: The science of the measurement of light, in terms of its perceived brightness to the human eye [3].
+    \item \textbf{Radiometry}: The science of measurement of radiant energy (including light) in terms of absolute power [3].
+\end{itemize}
+Next, we will cover some concepts that form the cornerstone of these fields:
+\begin{itemize}
+    \item \textbf{Irradiance}: This quantity concerns with power emitted/reflected by the object when light from a light source is incident upon it.  Note that for many objects/mediums, the radiation reflection is not \textbf{isotropic} - i.e. it is not emitted equally in different directions. \\ \\
+    \textbf{Irradiance is given by}: $E = \frac{\delta P}{\delta A}$ (Power/unit area, W/$\text{m}^2$)
+    \item \textbf{Intensity}: Intensity can be thought of as the power per unit angle.  In this case, we make use of \textbf{solid angles}, which have units of Steradians.  Solid angles are a measure of the amount of the field of view from some particular point that a given object covers [4].  We can compute a solid angle $\Omega$ using: $\Omega = \frac{A_{\text{surface}}}{R^2}$. \\ \\
+    \textbf{Intensity is given by}: $\text{Intensity} = \frac{\delta P}{\delta \Omega}$. \\ \\
+    \textbf{Radiance}: Oftentimes, we are only interested in the power reflected from an object that actually reaches the light sensor.  For this, we have \textbf{radiance}, we contract with irradiance defined above. We can use radiance and irradiance to contrast the ``brightness" of a scene and the ``brightness" of the scene perceived in the image plane. \\ \\
+    \textbf{Radiance is given by}: $L = \frac{\delta^2 P}{\delta A \delta \Omega}$
+\end{itemize}
+These quantities provide motivation for our next section: lenses.  Until now, we have considered only pinhole cameras, which are infinitisimally small, but to achieve nonzero irradiance in the image plane, we need to have lenses of finite size.
+\subsection{Lenses}
+Lenses are used to achieve the same photometric properties of perspective projection as pinhole cameras, but do so using a finite ``pinhole" size and thus by encountering a finite number of photons from light sources in scenes.  One caveat with lenses that we will cover in greater detail: lenses only work for a finite focal length $f$.  From Gauss, we have that it is impossible to make a perfect lens, but we can come close.
+\subsubsection{Thin Lenses - Introduction and Rules}
+Thin lenses are the first type of lens we consider.  These are often made from glass spheres, and obey the following three rules:
+\begin{itemize}
+    \item Central rays (rays that pass through the center of the lens) are undeflected - this allows us to preserve perspective projection as we had for pinhole cameras.
+    \item The ray from the focal center emerges parallel to the optical axis.
+    \item Any parallel rays go through the focal center.
+\end{itemize}
+Thin lenses also obey the following law, which relates the focal centers ($a$ and $b$) to the focal length of the lens.
+\begin{align*}
+    \frac{1}{a} + \frac{1}{b} = \frac{1}{f_0} &&
+\end{align*}
+Thin lenses can also be thought of as analog computers, in that they enforce the aforementioned rules for all light rays, much like a computer executes a specific program with outlined rules and conditions.  Here are some tradeoffs/issues to be aware of for thin lenses:
+\begin{itemize}
+    \item \textbf{Radial distortion}: In order to bring the entire angle into an image (e.g. for wide-angle lenses), we have the ``squash" the edges of the solid angle, thus leading to distortion that is radially-dependent.  Typically, other lens defects are mitigated at the cost of increased radial distortion.  Some specific kinds of radial distortion [5]:
+    \begin{itemize}
+        \item Barrel distortion
+        \item Mustache distortion
+        \item Pincushion distortion
+    \end{itemize}
+    \item \textbf{Lens Defects}: These occur frequently when manufacturing lenses, and can originate from a multitude of different issues.
+\end{itemize}
+\subsubsection{Putting it All Together: Image Irradiance from Object Irradiance}
+Here we show how we can relate object irradiance (amount of radiation emitted from an object) to image plane irradiance of that object (the amount of radiation emitted from an object that is incident on an image plane).  To understand how these two quantities relate to each other, it is best to do so by thinking of this as a ratio of ``Power in / Power out".  We can compute this ratio by matching solid angles:
+\begin{align*}
+    \frac{\delta I \cos \alpha}{(f \sec \alpha)^2} = \frac{\delta O \cos \theta}{(z \sec \alpha)^2} \implies \frac{\delta I \cos\alpha}{f^2} = \frac{\delta O}{z^2} \implies \frac{\delta O}{\delta I} = \frac{\cos \alpha}{\cos \theta}\Big(\frac{z}{f}\Big)^2 &&
+\end{align*}
+The equality on the far right-hand side can be interpreted as a unit ratio of ``power out" to ``power in".  Next, we'll compute the subtended solid angle $\Omega$:
+\begin{align*}
+    \Omega = \frac{\frac{\pi}{4}d^2\cos\alpha}{(z\sec\alpha)^2} = \frac{\pi}{4}\Big(\frac{d}{z}\Big)^2\cos^3\alpha &&
+\end{align*}
+Next, we will look at a unit change of power ($\delta P$):
+\begin{align*}
+    \delta P = L \delta O \Omega\cos\theta = L \delta O \frac{\pi}{4}\Big(\frac{d}{z})^2\cos^3\alpha\cos\theta &&
+\end{align*}
+We can relate this quantity to the irradiance brightness in the image:
+\begin{align*}
+    E & = \frac{\delta P}{\delta I} = L\frac{\delta O}{\delta I}\frac{\pi}{4}\Big(\frac{d}{z}\Big)^2\cos^3 \alpha \cos\theta \\
+      & = \frac{\pi}{4}L\Big(\frac{d}{f}\Big)^2\cos^4\alpha &&
+\end{align*}
+A few notes about this above expression:
+\begin{itemize}
+    \item The quantity on the left, $E$ is the \textbf{irradiance brightness in the image}.
+    \item The quantity $L$ on the righthand side is the \textbf{radiance brightness of the world}.
+    \item The ratio $\frac{d}{f}$ is the inverse of the so-called ``f-stop", which describes how open the aperture is.  Since these terms are squared, they typically come in multiples of $\sqrt{2}$.
+    \item The reason why we can be sloppy about the word brightness (i.e. \textbf{radiance} vs. \textbf{irradiance}) is because the two quantities are proportional to one another: $E \propto L$.
+    \item When does the $\cos^4\alpha$ term matter in the above equation?  This term becomes non-negligible when we go \textbf{off-axis} from the optical axis - e.g. when we have a wide-angle axis.  Part of the magic of DSLR lenses is to compensate for this effect.
+    \item Radiance in the world is determined by \textbf{illumination, orientation,} and \textbf{reflectance}.
+\end{itemize} 
+\subsubsection{BRDF: Bidirectional Reflectance Distribution Function}
+The BRDF can be interpreted intuitively as a ratio of ``Energy In" divided by ``Energy Out" for a specific slice of \textbf{incident} and \textbf{emitted} angles.  It depends on:
+\begin{itemize}
+    \item Incident and emitted azimuth angles, given by $\phi_i, \phi_e$, respectively.
+    \item Incident and emitted colatitude/polar angles, given by $\theta_i, \theta_e$, respectively.
+\end{itemize}
+Mathematically, the BRDF is given by:
+\begin{align*}
+    f(\theta_i, \theta_e, \phi_i, \phi_e) = \frac{\delta L(\theta_e, \phi_e)}{\delta E(\theta_i, \phi_i)} = \frac{\text{``Energy In"}}{\text{``Energy Out"}} &&
+\end{align*}
+Let's think about this ratio for a second.  Please take note of the following as a mnemonic to remember which angles go where:
+\begin{itemize}
+    \item The emitted angles (between the object and the camera/viewer) are parameters for radiance ($L$), which makes sense because radiance is measured in the image plane.
+    \item The incident angles (between the light source and the object) are parameters for irradiance ($E$), which makes sense because irradiance is measured in the scene with the object.
+\end{itemize}
+Practically, how do we measure this?
+\begin{itemize}
+    \item Put light source and camera in different positions
+    \item Note that we are exploring a 4D space comprised of $[\theta_i, \theta_e, \phi_i, \phi_e]$, so search/discretization routines/sub-routines will be computationally-expensive.
+    \item This procedure is carried out via \textbf{goniometers} (angle measurement devices).  Automation can be carried out by providing these devices with mechanical trajectories and the ability to measure brightness.  But we can also use multiple light sources!
+    \item Is the space of BRDF always in 4D?  For most surfaces, what really matters are the difference in emitted and incident azimuth angles ($\phi_e - \phi_i)$.  This is applicable for materials in which you can rotate the surface in the plane normal to the surface normal without changing the surface normal.
+    \item But this aforementioned dimensionality reduction procedure cannot always be done - materials for which there is directionally-dependent microstructures, e.g. hummingbird's neck, semi-precious stones, etc.
+\end{itemize}
+\subsubsection{Helmholtz Reciprocity}
+Somewhat formally, the \textbf{Helmholtz reciprocity} principle describes how a ray of light and its reverse ray encounter matched optical adventures, such as reflections, refractions, and absorptions in a passive medium, or at an interface [6].  It is a property of BRDF functions which mathematically states the following:
+\begin{align*}
+    f(\theta_i, \theta_e, \phi_i, \phi_e) = f(\theta_e, \theta_i, \phi_e, \phi_i) \fa \theta_i, \theta_e, \phi_i, \phi_e &&
+\end{align*}
+In other words, if the ray were reversed, and the incident and emitted angles were consequently switched, we would obtain the same BRDF value.  A few concluding notes/comments on this topic:
+\begin{itemize}
+    \item If there is not Helmholtz reciprocity/symmetry between a ray and its inverse in a BRDF, then there must be energy transfer.  This is consistent with the 2nd Law of Thermodynamics.
+    \item Helmholtz reciprocity has good computational implications - since you have symmetry in your (possibly) 4D table across incident and emitted angles, you only need to collect and populate half of the entries in this table.  Effectively, this is a tensor that is symmetric across some of its axes.
+\end{itemize}
+\section{References}
+\begin{enumerate}
+    \item Photometric Stereo, https://en.wikipedia.org/wiki/Photometric\_stereo
+    \item Voxels, https://whatis.techtarget.com/definition/voxel
+    \item Photometry, https://en.wikipedia.org/wiki/Photometry\_(optics)
+    \item Solid Angles, https://en.wikipedia.org/wiki/Solid\_angle
+    \item Distortion, https://en.wikipedia.org/wiki/Distortion\_(optics)
+    \item Helmholtz Reciprocity, https://en.wikipedia.org/wiki/Helmholtz\_reciprocity
+\end{enumerate}
+\end{document}

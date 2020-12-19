@@ -1,0 +1,361 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[left=1.0cm,right=1.0cm, top=1.5cm, bottom=1.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{graphics}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{listings}
+\usepackage{mathtools}
+\usepackage{hyperref}
+
+% Align all equations left:
+\documentclass[fleqn]{article} 
+
+
+% Sets and quantifiers
+\newcommand{\R}{\mathbb{R}\;}
+\newcommand{\Q}{\mathbb{Q}\;}
+\newcommand{\N}{\mathbb{N}\;}
+\newcommand{\nin}{n \in \mathbb{N}}
+\newcommand{\fa}{\;\forall\;}
+\newcommand{\ex}{\;\exists\;}
+\newcommand{\nex}{\;\nexists\;}
+
+% Sequences
+\newcommand{\seq}[1]{\{#1\}}
+\newcommand{\seqx}{\seq{x_n}}
+\newcommand{\seqy}{\seq{y_n}}
+\newcommand{\seqs}{\seq{s_n}}
+
+% Subsequences
+\newcommand{\seqxni}{\seq{x_{n_i}}}
+\newcommand{\seqyni}{\seq{y_{n_i}}}
+\newcommand{\xni}{x_{n_i}}
+\newcommand{\yni}{y_{n_i}}
+\newcommand{\xnij}{x_{n_{i_j}}}
+\newcommand{\ynij}{y_{n_{i_j}}}
+\newcommand{\seqxnij}{\seq{x_{n_{i_j}}}}
+\newcommand{\seqynij}{\seq{y_{n_{i_j}}}}
+
+% Such that
+\newcommand{\st}{\;\text{such that}\;}
+
+% Machine Vision
+\newcommand{\xhat}{\hat{\mathbf{x}}}
+\newcommand{\yhat}{\hat{\mathbf{y}}}
+\newcommand{\zhat}{\hat{\mathbf{z}}}
+\newcommand{\nhat}{\hat{\mathbf{n}}}
+\newcommand{\shat}{\hat{\mathbf{s}}}
+\newcommand{\rhat}{\hat{\mathbf{r}}}
+\newcommand{\vhat}{\hat{\mathbf{v}}}
+\newcommand{\hatvector}[1]{\hat{\mathbf{1}}}
+\newcommand{\mb}[1]{\mathbf{#1}}
+\newcommand{\der}[2]{\frac{d #1}{d #2}}
+\newcommand{\dder}[2]{\frac{d^2 #1}{d #2^2}}
+\newcommand{\pd}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\pdd}[2]{\frac{\partial^2 #1}{\partial #2^2}}
+\newcommand\numberthis{\addtocounter{equation}{1}\tag{\theequation}}
+
+% lim, limsup, liminf
+\newcommand{\limn}{\text{lim}_{n \rightarrow \infty}}
+\newcommand{\limi}{\text{lim}_{i \rightarrow \infty}}
+\newcommand{\limj}{\text{lim}_{j \rightarrow \infty}}
+\newcommand{\limsupn}{\limsup_{n \rightarrow \infty}}
+\newcommand{\liminfn}{\liminf_{n \rightarrow \infty}}
+
+% Parallel symbols
+\newcommand{\parallelsum}{\mathbin{\!/\mkern-5mu/\!}}
+
+
+% Custom for absolute value
+\delimitershortfall-1sp
+\newcommand\abs[1]{\left|#1\right|}
+
+% Reference and hyperlink
+\newcommand{\source}[1]{\href{#1}{(\textbf{Source})}}
+
+% Use for define equals
+\newcommand{\delteq}{\overset{\Delta}{=}}
+
+% For nicer fonts
+\usepackage{eucal}
+
+% For Dreamer Paper
+\newcommand{\stau}{s_{\tau}}
+\newcommand{\expect}[1]{\mathbb{E}_{#1}}
+\newcommand{\indep}{\perp \!\!\! \perp}
+
+
+\title{6.801/6.866: Machine Vision, Lecture 10}
+\author{Professor Berthold Horn, Ryan Sander, Tadayuki Yoshitake \\
+        MIT Department of Electrical Engineering and Computer Science \\ 
+        Fall 2020}
+\date{}
+
+\begin{document}
+
+\maketitle
+These lecture summaries are designed to be a review of the lecture.  Though I do my best to include all main topics from the lecture, the lectures will have more elaborated explanations than these notes.  Therefore, if you're looking for the most rigorous review and treatment of these topics, we encourage you to rewatch the lecture videos.  With that said, we hope these summaries are beneficial for your learning.  If you have any feedback for these lecture summaries, please submit it \textbf{\href{https://forms.gle/itCUtP4AubAbtwQT9}{here}}.
+\section{Lecture 10: Characteristic Strip Expansion, Shape from Shading, Iterative Solutions}
+In this lecture, we will continue studying our shape from shading problem, this time generalizing it beyond Hapke surfaces, making this framework amenable for a range of machine vision tasks.  We will introduce a set of ordinary differential equations, and illustrate how we can construct a linear dynamical system that allows us to iteratively estimate the depth profile of an object using both position and surface orientation.
+\subsection{Review: Where We Are and Shape From Shading}
+Shape from Shading (SfS) is one of the class of problems we study in this course, and is part of a larger class of problems focusing on machine vision from image projection.  In the previous lecture, we solved shape from shading for Hapke surfaces using the \textbf{Image Irradiance Equation} $E(x, y) = R(p, q)$, where $R(p, q)$ is the reflectance map that builds on the Bidirectional Reflectance Distribution Function (BRDF). \\ \\
+Recall additionally that irradiance (brightness in the image) depends on:
+\begin{enumerate}
+    \item Illumination
+    \item Surface material of object being imaged
+    \item Geometry of the object being imaged
+\end{enumerate}
+Recall from the previous lecture that for Hapke surfaces, we were able to solve the SfS problem in a particular direction, which we could then determine object surface orientation along.  We can integrate along this direction (the profile direction) to find height $z$, but recall that we gain no information from the other direction.  \\ \\
+For the Hapke example, we have a rotated coordinate system governed by the following ODEs (note that $xi$ will be the variable we parameterize our profiles along):
+\begin{enumerate}
+    \item X-direction: $\frac{dx}{d\xi} = p_s$
+    \item Y-direction: $\frac{dy}{d\xi} = q_s$
+    \item By chain rule, Z-direction: $\frac{dz}{d\xi} = \pd{z}{x}\frac{dx}{d\xi} + \pd{z}{y}\frac{dy}{d\xi} = pp_s + qq_s = p_sp + q_sq$
+\end{enumerate}
+\textbf{Intuition}: Infinitesimal steps in the image given by $\xi$ gives $\frac{dx}{d\xi}$, $\frac{dy}{d\xi}$, and we are interested in finding the change in height $\frac{dz}{d\xi}$, which can be used for recovering surface orientation. \\ \\
+\textbf{Note}: When dealing with brightness problems, e.g. SfS, we have implicitly shifted to orthographic projection ($x = \frac{f}{Z_0}X, y = \frac{f}{Z_0}y$).  These methods can be applied to perspective projection as well, but the mathematics makes the intuition less clear.  We can model orthographic projection by having a \textbf{telecentric lens}, which effectively places the object really far away from the image plane.  \\ \\
+We can solve the 3 ODEs above using a \textbf{forward Euler} method with a given step size.  For small steps, this approach will be accurate enough, and accuracy here is not too important anyway since we will have noise in our brightness measurements. \\ \\
+Recall brightness of Hapke surfaces is given by:
+\begin{align*}
+    E = \sqrt{\frac{\nhat \cdot \shat}{\nhat \cdot \vhat}} = \sqrt{\frac{\cos\theta_i}{\cos\theta_e}} = \\frac{1 + p_sp + q_sq}{\sqrt{1 + p^2 + q^2}r_s} \cdot \frac{1}{\sqrt{1 + p_sp + q_sq}} &&
+\end{align*}
+Some cancellation and rearranging yields:
+\begin{align*}
+    p_sp + q_sq = r_sE^2 - 1 &&
+\end{align*}
+Therefore, we have a direct relationship between our measured brightness $E$ and our unknowns of interest:
+\begin{align*}
+    \pd{z}{x}p_s + \pd{z}{y}q_s = pp_s + qq_s = r_sE^2 - 1 &&
+\end{align*}
+Note here, however, that we do not know surface orientation based on this, since again for Hapke surfaces, we only know slope in one of our two directions in our rotated gradient space $(p', q')$.  A forward Euler approach will generate a set of independent profiles, and we do not have any information about the surface orientation at the interfaces of these independent profiles.  This necessitates an \textbf{initial curve} containing \textbf{initial conditions} for each of these independent profiles.  In 3D, this initial curve is parameterized by $\eta$, and is given by: $(x(\eta), y(\eta), z(\eta))$.  Our goal is to find $z(\eta, \xi)$, where:
+\begin{itemize}
+    \item $\eta$ parameterizes the length of the initial curve
+    \item $\xi$ parameterizes along the 1D profiles we carve out
+\end{itemize}
+Therefore, we are able to determine the slope in a particular direction.
+\subsection{General Case}
+Let us now generalize our Hapke case above to be any surface.  We begin with our Image Irradiance Equation:
+\begin{align*}
+    E(x,y) = R(p,q) &&
+\end{align*}
+Let us now consider taking a small step $\delta x, \delta y$ in the image, and our goal is to determine how $z$ changes from this small step.  We can do so using differentials and surface orientation:
+\begin{align*}
+    \delta z = \pd{z}{x}\delta x + \pd{z}{y}\delta y = p\delta x + q\delta y &&
+\end{align*}
+Therefore, if we know $p$ and $q$, we can compute $\delta z$ for a given $\delta x$ and $\delta y$.  But in addition to updating $z$ using the equation above, we will also need to update $p$ and $q$ (intuitively, since we are still moving, the surface orientation can change):
+\begin{align*}
+    \delta p & = \pd{p}{x}\delta x + \pd{p}{y} \delta y \\
+    \delta q & = \pd{q}{x}\delta x + \pd{q}{y} \delta y &&
+\end{align*}
+This notion of updating $p$ and $q$ provides motivation for keeping track/updating not only $(x, y, z)$, but also $p$ and $q$.  We can think of solving our problem as constructing a \textbf{characteristic strip} of the ODEs above, composed of $(x, y, z, p, q) \in \mathbb{R}^5$.  In vector-matrix form, our updates to $p$ and $q$ become:
+\begin{align*}
+    \begin{bmatrix}\delta p \\ \delta q\end{bmatrix} = \begin{bmatrix}r & s \\ \\ s & t\end{bmatrix}\begin{bmatrix}\delta x \\ \delta y\end{bmatrix} = \begin{bmatrix} \pdd{z}{x} & \frac{\partial^2 z}{\partial y \partial x} \\ \\\frac{\partial^2 z}{\partial x \partial y} & \pdd{z}{y} \end{bmatrix}\begin{bmatrix}\delta x \\ \delta y\end{bmatrix} = \begin{bmatrix} p_x & p_y \\ \\ q_x & q_y\end{bmatrix}\begin{bmatrix}\delta x \\ \delta y\end{bmatrix} = \mathbf{H} \begin{bmatrix}\delta x \\ \delta y\end{bmatrix} &&
+\end{align*}
+Where $\mathbf{H}$ is the Hessian of second spatial derivatives ($x$ and $y$) of $z$.  Note that from Fubuni's theorem and from our Taylor expansion from last lecture, $p_y = q_x$. \\ \\
+\textbf{Intuition}: 
+\begin{itemize}
+    \item First spatial derivatives $\pd{z}{x}$ and $\pd{z}{y}$ describe the \textbf{surface orientation} of an oject in the image.
+    \item Second spatial derivatives $\pdd{z}{x}$, $\pdd{z}{y}$, and $\frac{\partial^2z}{\partial x \partial y} = \frac{\partial^2z}{\partial y \partial x}$ describe \textbf{curvature}, or the change in surface orientation.
+    \item In 2D, the \textbf{curvature} of a surface is specified by the \textbf{radius of curvature}, or its inverse, \textbf{curvature.}
+    \item In 3D, however, the curvature of a surface is specified by a Hessian matrix $\mb{H}$.  This curvature matrix allows us to compute $p$ and $q$.
+\end{itemize}
+One issue with using this Hessian approach to update $p$ and $q$: how do we update the second derivatives $r, s$, and $t$?  Can we use 3rd order derivatives?  It turns out that seeking to update lower-order derivatives with higher-order derivatives will just generate increasingly more unknowns, so we will seek alternative routes.  Let's try integrating our brightness measurements into what we already have so far:
+\begin{align*}
+    & \textbf{Image Irradiance Equation}: \;\; E(x,y) = R(p,q) \\
+    & \textbf{Chain Rule Gives}: \\
+    & \;\;\;\;\;\;\; E_x = \pd{E}{x} = \pd{R}{p}\pd{p}{x} + \pd{R}{q}\pd{q}{x} \\
+    & \;\;\;\;\;\;\;\;\;\;\;\;= \pd{R}{p} r + \pd{R}{q} s \\
+    & \;\;\;\;\;\;\; E_y = \pd{E}{y} = \pd{R}{p}\pd{p}{y} + \pd{R}{q}\pd{q}{y} \\
+    & \;\;\;\;\;\;\;\;\;\;\;\;= \pd{R}{p} s + \pd{R}{q} t &&
+\end{align*}
+In matrix-vector form, we have:
+\begin{align*}
+    \begin{bmatrix}E_x \\ E_y\end{bmatrix} = \begin{bmatrix}r & s \\ s & t\end{bmatrix}\begin{bmatrix}\pd{R}{p} \\ \\ \pd{R}{q}\end{bmatrix} = \mb{H}\begin{bmatrix}\pd{R}{p} \\ \\ \pd{R}{q}\end{bmatrix} &&
+\end{align*}
+Notice that we have the same \textbf{Hessian} matrix that we had derived for our surface orientation update equation before! \\ \\
+\textbf{Intuition}: These equations make sense intuitively - brightness will be constant for constant surface orientation in a model where brightness depends only on surface orientation.  Therefore, changes in brightness correspond to changes in surface orientation. \\ \\
+How do we solve for this Hessian $\mb{H}$?  We can:
+\begin{itemize}
+    \item Solve for $E_x, E_y$ numerically from our brightness measurements.
+    \item Solve for $R_p, R_q$ using our reflectance map.
+\end{itemize}
+However, solving for $\mb{H}$ in this way presents us with 3 unknowns and only 2 equations (undetermined system).  We cannot solve for $\mb{H}$, but we can still compute $\delta p, \delta q$.  We can pattern match $\delta x$ and $\delta y$ by using a $(\delta x, \delta y)^T$ vector in the same direction as the gradient of the reflectance map, i.e.
+\begin{align*}
+    \begin{bmatrix}\delta x \\ \delta y\end{bmatrix} = \begin{bmatrix}R_p \\ R_q\end{bmatrix}\xi &&
+\end{align*}
+Where the vector on the lefthand side is our step in $x$ and $y$, our vector on the righthand side is our gradient of the reflectance map in gradient space $(p,q)$, and $\xi$ is the step size.  Intuitively, this is the direction where we can ``make progress".  Substituting this equality into our update equation for $p$ and $q$, we have:
+\begin{align*}
+    \begin{bmatrix}\delta p \\ \delta q\end{bmatrix} & = \mb{H}\begin{bmatrix}R_p \\ R_q\end{bmatrix}\xi \\
+    & = \begin{bmatrix}E_x \\ E_y\end{bmatrix}\delta\xi &&
+\end{align*}
+Therefore, we can formally write out a system of 5 first-order ordinary differential equations (ODEs) that generate our characteristic strip as desired:
+\begin{enumerate}
+    \item $\frac{dx}{d\xi} = R_p$
+    \item $\frac{dy}{d\xi} = R_q$
+    \item $\frac{dp}{d\xi} = E_x$
+    \item $\frac{dq}{d\xi} = E_y$
+    \item $\frac{dz}{d\xi} = pR_p + qR_q$ \;\;\textbf{(``Output Rule")}
+\end{enumerate}
+Though we take partial derivatives on many of the righthand sides, we can think of these quantities as measurements or derived variations of our measurements, and therefore they do not correspond to partial derivatives that we actually need to solve for.  Thus, this is why we claim this is a system of ODEs, and not PDEs. \\ \\
+A few notes about this system of ODEs:
+\begin{itemize}
+    \item This system of 5 ODEs explores the surface along the characteristic strip generated by these equations.
+    \item Algorithmically, we (a) Look at/compute the brightness gradient, which helps us (b) Compute $p$ and $q$, which (c) Informs us of $R_p$ and $R_q$ for computing the change in height $z$.
+    \item ODEs 1 \& 2 and ODEs 3 \& 4 are two systems of equations that each determine the update for the other system (i.e. there is dynamic behavior between these two systems).  The 5th ODE is in turn updated from the results of updating the other 4 ODE quantities of interest. 
+    \item The step in the image $\mathbf{(x, y)}$ depends on the gradient of the reflectance map in $\mathbf{(p,q)}$.
+    \item Analogously, the step in the reflectance map $\mathbf{(p, q)}$ depends on the gradient of the image in $\mathbf{(x,y)}$.
+    \item This system of equations necessitates that we cannot simply optimize with block gradient ascent or descent, but rather a process in which we dynamically update our variables of interest using our other updated variables of interest.
+    \item This approach holds generally for any reflectance map $R(p, q)$.
+    \item We can express our image irradiance equation as a first order, \textit{nonlinear} PDE:
+    \begin{align*}
+        E(x,y) = R\Big(\pd{z}{x}, \pd{z}{y}\Big) &&
+    \end{align*}
+\end{itemize}
+Next, we will show how this general approach applied to a Hapke surface reduces to our previous SfS results for this problem.
+\subsubsection{Reducing General Form SfS for Hapke Surfaces}
+Recall reflectance map for Hapke surfaces:
+\begin{align*}
+    R(p, q) = \sqrt{\frac{1 + p_sp + q_sq}{r_s}} &&
+\end{align*}
+Taking derivatives using the system of 5 ODEs defined above, we have from the multivariate chain rule):
+\begin{enumerate}
+    \item $\mathbf{\der{x}{\xi}}:$ $R_p \delteq \pd{R}{p} = \frac{1}{\sqrt{r_s}}\frac{1}{2\sqrt{1 + p_sp + q_sq}}p_s$
+    \item $\mathbf{\der{y}{\xi}}:$ $R_q \delteq \pd{R}{q} = \frac{1}{\sqrt{r_s}}\frac{1}{2\sqrt{1 + p_sp + q_sq}}q_s$
+    \item $\mathbf{\der{z}{\xi}}:$ $pR_p + qR_q = \frac{p_sp + q_sq}{2\sqrt{r_s}\sqrt{1 + p_sp + q_sq}}$
+\end{enumerate}
+Since the denominator is common in all three of these derivative equations, we can just conceptualize this factor as a speed/step size factor.  Therefore, we can simply omit this factor when we update these variables after taking a step.  With this, our updates become:
+\begin{enumerate}
+    \item $\delta x \leftarrow p_s$
+    \item $\delta y \leftarrow q_s$ 
+    \item $\delta z \leftarrow (p_sp + q_sq) = r_sE^2 - 1$
+\end{enumerate}
+Which are consistent with our prior results using our Hapke surfaces.  Next, we will apply this generalized approach to Scanning Electron Microscopes (SEMs):
+\subsubsection{Applying General Form SfS to SEMs}
+For SEMs, the reflectance map is spherically symmetric around the origin:
+\begin{align*}
+    R(p,q) = f(p^2 + q^2) \;\;\text{for some} \; f: \R \rightarrow \R &&
+\end{align*}
+Using our system of 5 ODEs derived in the general case, we can compute our updates by first calculating derivatives $\der{x}{\xi}$, $\der{y}{\xi}$, and $\der{z}{\xi}$:
+\begin{enumerate}
+    \item $\mb{\der{x}{\xi}}: R_p \delteq \pd{R}{p} = 2f'(p^2 + q^2)p$
+    \item $\mb{\der{y}{\xi}}: R_q \delteq \pd{R}{q} = 2f'(p^2 + q^2)q$
+    \item $\mb{\der{z}{\xi}}: pR_p + qR_q = 2f'(p^2 + q^2)(p^2 + q^2)$
+\end{enumerate}
+Again, here we can also simplify these updates by noting that the term $2f'(p^2 + q^2)$ is common to all three derivatives, and therefore this factor can also be interpreted as a speed factor that only affects the step size.  Our updates then become:
+\begin{enumerate}
+    \item $\delta x \leftarrow p$
+    \item $\delta y \leftarrow q$ 
+    \item $\delta z \leftarrow p^2 + q^2$
+\end{enumerate}
+This tells us we will be taking steps along the brightness gradient.  Our solution generates \textbf{characteristic strips} that contain information about the surface orientation.  To continue our analysis of this SfS problem, in addition to defining characteristic strips, it will also be necessary to define the base characteristic.
+\subsection{Base Characteristics}
+Recall that the characteristic strip that our system of ODEs solves for is given by a 5-dimensional surface composed of:
+\begin{align*}
+    \begin{bmatrix}x & y & z & p & q\end{bmatrix}^T \in \mathbb{R}^5
+\end{align*}
+Another important component when discussing our solution to this SfS problem is the \textbf{base characteristic}, which is the projection of the characteristic strip onto the $x, y$ image plane:
+\begin{align*}
+    \begin{bmatrix}x(\xi) & y(\xi)\end{bmatrix}^T = \text{projection}_{x, y}\{\textbf{characteristic strip}\} = \text{projection}_{x, y}\{\begin{bmatrix}x & y & z & p & q\end{bmatrix}^T\} &&
+\end{align*}
+\textbf{A few notes/questions about base characteristics?}
+\begin{itemize}
+    \item \textbf{What are base characteristics?}  These can be thought of as the profiles in the $(x,y)$ plane that originate (possibly in both directions) from a given point in the initial curve.
+    \item \textbf{What are base characteristics used for?}  These are used to help ensure we explore as much of the image as possible.  We can interpolate/average (depending on how dense/sparse a given region of the image is) different base characteristics to ``fill out" the solution over the entire image space.  
+    \item \textbf{How are base characteristics used in practice?}  Like the solution profiles we have encountered before, base characteristics are independent of one another - this allows computation over them to be parallelizable.
+    \textbf{Intuition}: These sets of base characteristics can be thought of like a \textbf{wavefront} propagating outward from the initial curve.  We expect the solutions corresponding to these base characteristics to move at similar ``speeds".
+\end{itemize}
+\subsection{Analyzing ``Speed"}
+When considering how the speeds of these different solution curves vary, let us consider ways in which we can set constant step sizes/speeds.  Here are a few, to name:
+\begin{enumerate}
+    \item \textbf{Constant step size in z}: This is effectively stepping ``contour to contour" on a topographic map.  \\
+    \textbf{Achieved by}: Dividing by $pR_p + qR_q \implies \der{z}{\xi} = 1$.
+    \item \textbf{Constant step size in image}:  A few issues with this approach.  First, curves may run at different rates.  Second, methodology fails when $\sqrt{R^2_p + R^2_q} = 0$. \\
+    \textbf{Achieved by}: Dividing by $\sqrt{R^2_p + R^2_q} \implies \frac{d}{d\xi}(\sqrt{\delta x^2 + \delta y^2}) = 1$.
+    \item \textbf{Constant Step Size in 3D/Object}:  Runs into issues when $R_p = R_q = 0$. \\
+    \textbf{Achieved by}: Dividing by $\sqrt{R^2_p + R^2_q + (pR_p + qR_q)^2} \implies \sqrt{(\delta x)^2 + (\delta y)^2 + (\delta z)^2} = 1$.
+    \item \textbf{Constant Step Size in Isophotes}: Here, we are effectively taking constant steps in brightness.  We will end up dividing by the dot product of the brightness gradient and the gradient of the reflectance map in $(p, q)$ space. \\ 
+    \textbf{Achieved by}: Dividing by $(\pd{E}{x}\pd{R}{p} + \pd{E}{y}\pd{R}{q})\delta\xi = ((E_x, E_y) \cdot (R_p, R_q))\delta\xi \implies \delta E = 1$.
+\end{enumerate}
+\subsection{Generating an Initial Curve}
+While only having to measure a single initial curve for profiling is far better than having to measure an entire surface, it is still undesirable and is not a caveat we are satisfied with for this solution.  Below, we will discuss how we can generate an initial curve to avoid having to measure one for our SfS problem. \\ \\
+As we discussed, it is undesirable to have to measure an initial curve/characteristic strip, a.k.a. measure:
+\begin{align*}
+    \begin{bmatrix}x(\xi) & y(\xi) & z(\xi) & p(\xi) & q(\xi) \end{bmatrix}^T &&
+\end{align*}
+But we do not actually need to measure all of these.  Using the image irradiance equation we can calculate $\pd{z}{\eta}$:
+\begin{align*}
+    E(x,y) = R(p,q) \\
+    \pd{z}{\eta} & = \pd{z}{x}\pd{x}{\eta} + \pd{z}{y}\pd{y}{\eta} \\
+    & = p\pd{x}{\eta} + q\pd{y}{\eta} &&
+\end{align*}
+Where $p$ and $q$ in this case are our unknowns.  Therefore, in practice, we can get by with just initial curve, and do not need the full initial characteristic strip - i.e. if we have $x(\eta), y(\eta)$, and $z(\eta)$, then we can compute the orientation from the reflectance map using our brightness measurements.
+\subsubsection{Using Edge Points to Autogenerate an Initial Curve }
+An even more sweeping question: do we even need an initial curve?  Are there any special points on the object where we already know the orientation without a measurement?  These points are along the \textbf{edge}, or \textbf{occluding boundary}, of our objects of interest.  Here, we know the surface normal of each of these points.  Could we use these edge points as ``starting points" for our SfS solution? \\ \\
+It turns out, unfortunately, that we cannot.  This is due to the fact that as we infinitesimally approach the edge of the boundary, we have that $\abs{\pd{z}{x}} \rightarrow \infty, \abs{\pd{z}{y}} \rightarrow \infty$.  Even though the slope $\frac{q}{p}$ is known, we cannot use it numerically/iteratively with our step updates above.
+\subsubsection{Using Stationary Points to Autogenerate an Initial Curve}
+Let us investigate another option for helping us to avoid having to generate an initial curve.  Consider the brightest (or darkest) point on an image, i.e. the \textbf{unique, global, isolated extremum}.  This point is a stationary point in $(p, q)$ space, i.e.
+\begin{align*}
+    \pd{R}{p} = \pd{R}{q} = 0, \; \text{granted that} \; R(p, q) \;\text{is differentiable}. &&
+\end{align*}
+This would allow us to find the surface orientation $(p, q)$ solely through optimizing the reflectance map function $R(p,q)$.  One immediate problem with this stationary point approach is that we will not be able to step $x$ and $y$, since, from our system of ODEs, we have that at our stationary points, our derivatives of $x$ and $y$ are zero:
+\begin{align*}
+    & \der{x}{\xi} = R_p = 0 \\
+    & \der{y}{\xi} = R_q = 0 &&
+\end{align*}
+Additionally, if we have stationary brightness points in image space, we encounter the ``dual" of this problem.  By definition stationary points in the image space imply that:
+\begin{align*}
+    \pd{E}{x} = \pd{E}{y} = 0 &&
+\end{align*}
+This in turn implies that $p$ and $q$ cannot be stepped:
+\begin{align*}
+    & \der{p}{\xi} = \pd{E}{x} = 0 \\
+    & \der{q}{\xi} = \pd{E}{y} = 0 &&
+\end{align*}
+\textbf{Intuition}: Intuitively, what is happening with these two systems (each of 2 ODEs ($(x,y)$ or $p,q$), as we saw in our 5 ODE system above) is that using stationary points in one domain amounts to updates in the other domain going to zero, which in turn prevents the other system's quantities of interest from stepping.  Since $\delta z$ depends on $\delta x, \delta y, \delta p, \delta q$, and since $\delta x, \delta y, \delta p, \delta q = 0$ when we use stationary points as starting points, this means we cannot ascertain any changes in $\delta z$ along these points. \\ \\
+\textbf{Note}: The extremum corresponding to a stationary point can be \textbf{maximum}, as it is for Lambertian surfaces, or a \textbf{minimum}, as it is for Scanning Electron Microscopes (SEM). \\ \\
+However, even though we cannot use stationary points themselves as starting points, could we use the area around them?  If we stay close enough to the stationary point, we can approximate that these neighboring points have nearly the same surface orientation. 
+\begin{itemize}
+    \item \textbf{Approach 1}: Construct a local tangent plane by extruding a circle in the plane centered at the stationary point with radius $\epsilon$ - this means all points in this plane will have the same surface orientation as the stationary point.  Note that mathematically, a local 2D plane on a 3D surface is equivalent to a 2-manifold [1].  This is good in the sense that we know the surface orientation of all these points already, but not so great in that we have a degenerate system - since all points have the same surface orientation, under this model they will all have the same brightness as well.  This prevents us from obtaining a unique solution.
+    \item \textbf{Approach 2}: Rather than constructing a local planar surface, let us take a \textbf{curved surface} with \textbf{non-constant surface orientation} and therefore, under this model, \textbf{non-constant brightness}.
+\end{itemize}
+\subsubsection{Example}
+Suppose we have a reflectance map and surface function given by:
+\begin{align*}
+    & \textbf{Reflectance Map}: \; R(p, q)= p^2 + q^2 \\
+    & \textbf{Surface Function}: \; z(x,y) = x^2 + y^2 &&
+\end{align*}
+Then, we can compute the derivatives of these as:
+\begin{align*}
+    & p = \pd{z}{x} = 2x \\
+    & q = \pd{z}{y} = 4y \\
+    & E(x,y) = R(p,q) = p^2 + q^2 = 4x^2 + 16y^2 \\
+    & E_x = \pd{E}{x} = 8x \\
+    & E_y = \pd{E}{y} = 32y &&
+\end{align*}
+The brightness gradient $(\pd{E}{x}, \pd{E}{y}) = (8x, 32y) = (0, 0)$ at the origin $x = 0, y = 0$. \\ \\
+Can we use the brightness gradient to estimate local shape?  It turns out the answer is \textbf{no}, again because of stationary points.  But if we look at the second derivatives of brightness:
+\begin{align*}
+    & E_{xx} = \pdd{E}{x} = \pd{E}{x}(8x) = 8 \\
+    & E_{yy} = \pdd{E}{y} = \pd{E}{y}(32y) = 32 \\
+    & E_{xy} = \frac{\partial^2 E}{\partial x \partial y} = \frac{\partial}{\partial x}(32y) =  \frac{\partial}{\partial y}(8y) = 0 &&
+\end{align*}
+These second derivatives, as we will discuss more in the next lecture, will tell us some information about the object's shape.  As we have seen in previous lectures, these second derivatives can be computed by applying computational molecules to our brightness measurements. \\ \\
+\textbf{High-Level Algorithm} \\ \\
+(NOTE: This will be covered in greater detail next lecture) Let's walk through the steps to ensure we can autogenerate an initial condition curve without the need to measure it:
+\begin{enumerate}
+    \item Compute stationary points of brightness.
+    \item Use 2nd derivatives of brightness to estimate local shape.
+    \item Construct small cap (non-planar to avoid degeneracy) around the stationary point.\
+    \item Begin solutions from these points on the edge of the cap surrounding the stationary point.  
+\end{enumerate}
+\subsection{References}
+\begin{enumerate}
+    \item Manifold, https://en.wikipedia.org/wiki/Manifold
+\end{enumerate}
+\end{document} 
+

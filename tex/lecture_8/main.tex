@@ -1,0 +1,291 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[left=1.0cm,right=1.0cm, top=1.5cm, bottom=1.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{graphics}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{listings}
+\usepackage{mathtools}
+\usepackage{hyperref}
+
+% Align all equations left:
+\documentclass[fleqn]{article} 
+
+
+% Sets and quantifiers
+\newcommand{\R}{\mathbb{R}\;}
+\newcommand{\Q}{\mathbb{Q}\;}
+\newcommand{\N}{\mathbb{N}\;}
+\newcommand{\nin}{n \in \mathbb{N}}
+\newcommand{\fa}{\;\forall\;}
+\newcommand{\ex}{\;\exists\;}
+\newcommand{\nex}{\;\nexists\;}
+
+% Sequences
+\newcommand{\seq}[1]{\{#1\}}
+\newcommand{\seqx}{\seq{x_n}}
+\newcommand{\seqy}{\seq{y_n}}
+\newcommand{\seqs}{\seq{s_n}}
+
+% Subsequences
+\newcommand{\seqxni}{\seq{x_{n_i}}}
+\newcommand{\seqyni}{\seq{y_{n_i}}}
+\newcommand{\xni}{x_{n_i}}
+\newcommand{\yni}{y_{n_i}}
+\newcommand{\xnij}{x_{n_{i_j}}}
+\newcommand{\ynij}{y_{n_{i_j}}}
+\newcommand{\seqxnij}{\seq{x_{n_{i_j}}}}
+\newcommand{\seqynij}{\seq{y_{n_{i_j}}}}
+
+% Such that
+\newcommand{\st}{\;\text{such that}\;}
+
+% lim, limsup, liminf
+\newcommand{\limn}{\text{lim}_{n \rightarrow \infty}}
+\newcommand{\limi}{\text{lim}_{i \rightarrow \infty}}
+\newcommand{\limj}{\text{lim}_{j \rightarrow \infty}}
+\newcommand{\limsupn}{\limsup_{n \rightarrow \infty}}
+\newcommand{\liminfn}{\liminf_{n \rightarrow \infty}}
+
+% Parallel symbols
+\newcommand{\parallelsum}{\mathbin{\!/\mkern-5mu/\!}}
+
+
+% Custom for absolute value
+\delimitershortfall-1sp
+\newcommand\abs[1]{\left|#1\right|}
+
+% Reference and hyperlink
+\newcommand{\source}[1]{\href{#1}{(\textbf{Source})}}
+
+% Use for define equals
+\newcommand{\delteq}{\overset{\Delta}{=}}
+
+% Machine Vision
+\newcommand{\xhat}{\hat{\mathbf{x}}}
+\newcommand{\yhat}{\hat{\mathbf{y}}}
+\newcommand{\zhat}{\hat{\mathbf{z}}}
+\newcommand{\nhat}{\hat{\mathbf{n}}}
+\newcommand{\shat}{\hat{\mathbf{s}}}
+\newcommand{\rhat}{\hat{\mathbf{r}}}
+\newcommand{\vhat}{\hat{\mathbf{v}}}
+\newcommand{\hatvector}[1]{\hat{\mathbf{1}}}
+\newcommand{\mb}[1]{\mathbf{#1}}
+\newcommand{\pd}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand\numberthis{\addtocounter{equation}{1}\tag{\theequation}}
+
+% For nicer fonts
+\usepackage{eucal}
+
+% For Dreamer Paper
+\newcommand{\stau}{s_{\tau}}
+\newcommand{\expect}[1]{\mathbb{E}_{#1}}
+\newcommand{\indep}{\perp \!\!\! \perp}
+
+
+\title{6.801/6.866: Machine Vision, Lecture 8}
+\author{Professor Berthold Horn, Ryan Sander, Tadayuki Yoshitake \\
+        MIT Department of Electrical Engineering and Computer Science \\ 
+        Fall 2020}
+\date{}
+
+\begin{document}
+
+\maketitle
+These lecture summaries are designed to be a review of the lecture.  Though I do my best to include all main topics from the lecture, the lectures will have more elaborated explanations than these notes.  Therefore, if you're looking for the most rigorous review and treatment of these topics, we encourage you to rewatch the lecture videos.  With that said, we hope these summaries are beneficial for your learning.  If you have any feedback for these lecture summaries, please submit it \textbf{\href{https://forms.gle/itCUtP4AubAbtwQT9}{here}}.
+\section{Lecture 8: Shape from Shading, Special Cases, Lunar Surface, Scanning Electron Microscope, Green's Theorem in Photometric Stereo}
+In this lecture, we will continue our discussion of photometry/radiometry, beginning with the concepts covered last lecture.  We will then explore Hapke surfaces and how they compare to Lambertian surfaces, and show how they can be used to solve our shape from shading problem.  Finally, we will introduce two new types of lenses and some of their applications: ``thick" lenses and telecentric lenses.
+\subsection{Review of Photometric and Radiometric Concepts}
+Let us begin by reviewing a few key concepts from photometry and radiometry:
+\begin{itemize}
+    \item \textbf{Photometry}: Photometry is the science of measuring visible radiation, light, in units that are weighted according to the sensitivity of the human eye. It is a quantitative science based on a statistical model of the human visual perception of light (eye sensitivity curve) under carefully controlled conditions [3].
+    \item \textbf{Radiometry}: Radiometry is the science of measuring radiation energy in any portion of the electromagnetic spectrum. In practice, the term is usually limited to the measurement of ultraviolet (UV), visible (VIS), and infrared (IR) radiation using optical instruments [3].
+    \item \textbf{Irradiance}: $E \delteq \frac{\delta P}{\delta A}$ (W/$\text{m}^2$).  This corresponds to light falling on a surface.  When imaging an object, irradiance is converted to a grey level.
+    \item \textbf{Intensity}: $I \delteq \frac{\delta P}{\delta W}$ (W/ster).  This quantity applied to a point source and is often directionally-dependent.
+    \item \textbf{Radiance}: $L \delteq \frac{\delta^2 P}{\delta A\delta \Omega}$ (W/$\text{m}^2 \times$ ster).  This photometric quantity is a measure of how bright a surface appears in an image.
+    \item \textbf{BRDF (Bidirectional Reflectance Distribution)}: $f(\theta_i, \theta_e, \phi_i, \phi_e) = \frac{\delta L(\theta_e, \phi_e)}{\delta E(\theta_i, \phi_i)}$.  This function captures the fact that oftentimes, we are only interested in light hitting the camera, as opposed to the total amount of light emitted from an object.  Last time, we had the following equation to relate image irradiance with object/surface radiance:
+    \begin{align*}
+        E = \frac{\pi}{4}L\Big(\frac{d}{f}\Big)^2\cos^4\alpha &&
+    \end{align*}
+    Where the irradiance of the image $E$ is on the lefthand side and the radiance of the object/scene $L$ is on the right.  The BRDF must also satisfy \textbf{Helmholtz reciprocity}, otherwise we would be violating the 2nd Law of Thermodynamics.  Mathematically, recall that Helmholtz reciprocity is given by:
+    \begin{align*}
+        f(\theta_i, \theta_e, \phi_i, \phi_e) = f(\theta_e, \theta_i, \phi_e, \phi_i) \fa \theta_i, \theta_e, \phi_i, \phi_e &&
+    \end{align*}
+\end{itemize}
+With this, we are now ready to discuss our first type of surfaces: ideal Lambertian surfaces.
+\subsection{Ideal Lambertian Surfaces}
+Ideal Lambertian surfaces are of interest because their sensed brightness (irradiance) only depends on the cosine of the incident angles ($\theta_i, \phi_i)$.  A few additional notes about these surfaces:
+\begin{itemize}
+    \item Ideal Lambertian surfaces are equally bright from all directions, i.e.
+    \begin{align*}
+        f(\theta_i, \theta_e, \phi_i, \phi_e) & = f(\theta_e, \theta_i, \phi_e, \phi_i) \fa \theta_i, \theta_e, \phi_i, \phi_e \\
+        & \text{AND} \\
+        f(\theta_i, \theta_e, \phi_i, \phi_e) & = K \in \R \text{with respect to} \; \theta_e, \phi_e, \;\text{i.e.} \pd{f(\theta_i, \theta_e, \phi_i, \phi_e)}{\theta_e} = \pd{f(\theta_i, \theta_e, \phi_i, \phi_e)}{\phi_e} = 0
+    \end{align*}
+    \item If the surface is ideal, the Lambertian surface reflects all incident light.  We can use this to compute $f$.  Suppose we take a small slice of the light reflected by a Lambertian surface, i.e. a hemisphere for all positive z.  The area of this surface is given by: $\sin\theta_e\delta\theta_e\delta\phi_e$, which is the determinant of the coordinate transformation from euclidean to spherical coordinates.  Then, we have that:
+    \begin{align*}
+        \int_{-\pi}^{\pi}\int_{0}^{\frac{\pi}{2}}(fE\cos\theta_i\sin\theta_ed\theta_e)d\phi_e & = E\cos\theta_i \;\;\textbf{(Integrate all reflected light)} \\
+        E\cos\theta_i\int_{-\pi}^{\pi}\int_{0}^{\frac{\pi}{2}}(f\sin\theta_ed\theta_e)d\phi_e & = E\cos\theta_i \;\;\textbf{(Factor out $E\cos\theta_i$)} \\
+        \int_{-\pi}^{\pi}\int_{0}^{\frac{\pi}{2}}(f\sin\theta_ed\theta_e)d\phi_e & = 1 \;\;\textbf{(Cancel out on both sides)} \\
+        2\pi\int_{0}^{\frac{\pi}{2}}f\sin\theta_e\cos\theta_ed\theta_e & = 1 \;\;\textbf{(No dependence on $\phi_$)} \\
+        \pi f\int_{0}^{\frac{\pi}{2}}2\sin\theta_e\cos\theta_ed\theta_e & = 1 \;\;\textbf{(Rearranging terms)} \\
+        \pi f\int_{0}^{\frac{\pi}{2}}\sin(2\theta_e)d\theta_e & = 1 \;\;\textbf{(Using identity $2\sin\theta\cos\theta = \sin(2\theta)$)} \\
+        \pi f[-\frac{1}{2}\cos(2\theta_e)]^{\theta_e = \frac{\pi}{2}}_{\theta_e = 0} & = 1 \\
+        \pi f = 1 \implies f = \frac{1}{\pi} &&
+    \end{align*}
+\end{itemize}
+\subsubsection{Foreshortening Effects in Lambertian Surfaces}
+Now let us discuss a key issue in radiation reflectance and machine vision - \textbf{foreshortening}. Foreshortening is the visual effect or optical illusion that causes an object or distance to appear shorter than it actually is because it is angled toward the viewer [1].  Let us show how this is relevant for computing $f$. \\ \\
+Suppose we have a point source radiating isotropically over the positive hemisphere in a 3-dimensional spherical coordinate system.  Then, the solid angle spanned by this hemisphere is:
+\begin{align*}
+    \Omega = \frac{A_{\text{surface}}}{r^2} = \frac{2\pi r^2}{r^2} = 2\pi \;\text{Steradians} &&
+\end{align*}
+If the point source is radiating isotropically in all directions, then $f = \frac{1}{2\pi}$.  But we saw above that $f = \frac{1}{\pi}$ for an ideal Lambertian surface.  Why do we have this discrepancy?  Even if brightness is the same/radiation emitted is the same in all directions, this does not mean that the power radiated in all directions is hte same.  This is due to \textbf{foreshortening}, since the angle between the object's surface normal and the camera/viewer changes.
+\subsubsection{Example: Distant Lambertian Point Source}
+Here, we will have that $L = \frac{1}{f}Es$ (where $s$ is the location of the light source).  Since we have to take foreshortening into account, the perceived area $A$ of an object with world size $A'$ is given by:
+\begin{align*}
+    A = A'\cos\theta_i &&
+\end{align*}
+Therefore, our expression for the the radiance (how bright the object appears in the image) is given by:
+\begin{align*}
+    L = \frac{1}{\pi}Es = \frac{1}{\pi}E_0\cos\theta_i &&
+\end{align*}
+\subsection{Hapke Surfaces}
+Hapke surfaces are another type of surface we study in this course.  Formally, a Hapke surface is an object which has reflectance properties corresponding to \textbf{Hapke parameters}, which in turn are a set of parameters for an empirical model that is commonly used to describe the directional reflectance properties of the airless regolith surfaces of bodies in the solar system [2]. \\ \\
+The BRDF of a Hapke surface is given by:
+\begin{align*}
+    f(\theta_i, \phi_i, \theta_e, \phi_e) = \frac{1}{\sqrt{\cos\theta_e\cos\theta_i}} &&
+\end{align*}
+We can see that the Hapke BRDF also satisfies Helmholtz Reciprocity:
+\begin{align*}
+    f(\theta_i, \phi_i, \theta_e, \phi_e) = \frac{1}{\sqrt{\cos\theta_e\cos\theta_i}} = \frac{1}{\sqrt{\cos\theta_i\cos\theta_e}} = f(\theta_e, \phi_e, \theta_i, \phi_i) &&
+\end{align*}
+Using the Hapke BRDF, we can use this to compute \textbf{illumination} (same as \textbf{radiance}, which is given by:
+\begin{align*}
+    L & = E_0\cos\theta_if(\theta_i, \phi_i, \theta_e, \phi_e) \\
+      & = E_0\cos\theta_i\frac{1}{\sqrt{\cos\theta_e\cos\theta_i}} \\
+      & = E_0\sqrt{\frac{\cos\theta_i}{\cos\theta_e}} &&
+\end{align*}
+Where $L$ is the radiance/illumination of the object in the image, $E_0\cos\theta_i$ is the irradiance of the object, accounting for foreshortening effects, and $\frac{1}{\sqrt{\cos\theta_i\cos\theta_e}}$ is the BRDF of our Hapke surface.
+\subsubsection{Example Application: Imaging the Lunar Surface}
+What do the isophotes of the moon look like, supposing the moon can fall under some of the different types of surfaces we have discussed?
+\begin{itemize}
+    \item \textbf{Lambertian}: We will see circles and ellipses of isophotes, depending on the angle made between the viewer and the the moon.
+    \item \textbf{Hapke}: Because of the BRDF behavior, isophotes will run \textbf{longitudinally} along the moon in the case in which it is a Hapke surface.  Recall isophotes are where the brightness of the object in the image, given by:
+    \begin{align*}
+        \sqrt{\frac{\cos\theta_i}{\cos\theta_e}} = \sqrt{\frac{\frac{\nhat \cdot \shat}{||\nhat||_2||\shat||_2}}{\frac{\nhat \cdot \vhat}{||\nhat||_2||\vhat||_2}}} = c \implies \frac{\nhat \cdot \shat}{\nhat \cdot \vhat} = c^2 \;\; \text{for some} \; c \in \R &&
+    \end{align*}
+    Where $\nhat$ is the surface normal vector of the object being imaged, $\shat$ is the unit vector describing the position of the light source, and $\vhat$ is the unit vector describing the position of the vertical.  We can derive a relationship between $\nhat$ and $\shat$:
+    \begin{align*}
+        \nhat \cdot \shat = c \nhat \cdot \vhat \implies \nhat \cdot(\shat - c\vhat) = 0 \implies \nhat \perp (\shat - c\vhat) &&
+    \end{align*}
+    Next, we will use spherical coordinates to show how the isophotes of this surface will be longitudinal:
+    \begin{align*}
+        \nhat = \begin{bmatrix}\sin\theta\cos\phi \\
+                               \sin\theta\sin\phi \\
+                               \cos\theta\ \\
+                \end{bmatrix} \in \mathbb{R}^3 &&
+    \end{align*}
+    Since normal vectors $\nhat \in \mathbb{R}^3$ only have two degrees of freedom (since $||\nhat||_2 = 1$), we can fully parameterize these two degrees of freedom by the \textbf{azimuth} and \textbf{colatitude/polar} angles $\phi$ and $\theta$, respectively.  Then  we can express our coordinate system given by the orthogonal basis vectors $\nhat, \shat, \vhat$ as:
+    \begin{align*}
+        \nhat & = \begin{bmatrix}\sin\theta\cos\phi & \sin\theta\sin\phi & \cos\theta\end{bmatrix}^T\\
+        \shat & = \begin{bmatrix}\cos\theta_s & \sin\theta_s & 0\end{bmatrix}^T \\
+        \vhat & = \begin{bmatrix}\cos\theta_v & \sin\theta_v & 0\end{bmatrix}^T \\
+    \end{align*}
+    We can use our orthogonal derivations from above to now show our longitudinal isophotes:
+    \begin{align*}
+        \sqrt{\frac{\cos\theta_i}{\cos\theta_e}} = \frac{\nhat \cdot \shat}{\nhat \cdot \vhat} = \frac{\sin\theta\cos\phi\cos\phi_s + \sin\theta\sin\phi\sin\phi_s}{\sin\theta\cos\phi\cos\phi_v + \sin\theta\sin\phi\sin\phi_v} = \frac{\cos(\phi-\phi_s)}{\cos(\phi-\phi_v)} = c \; \;\text{for some} \;c \in \R&&
+    \end{align*}
+    From the righthand side above, we can deduce that isophotes for Hapke surfaces correspond to points with the same azimuth having the same brightness, i.e. the isophotes of the imaged object (such as the moon) are along lines of constant longitude.
+\end{itemize}
+\subsubsection{Surface Orientation and Reflectance Maps of Hapke Surfaces}
+Next, we will take another look at our ``shape from shading" problem, but this time using the surface normals of Hapke surfaces and relating this back to reflectance maps and our $(p, q)$ space.  From our previous derivations, we already have that the BRDF of a Hapke surface is nothing more than the square root of the dot product of the surface normal with the light source vector divided by the dot product of the surface normal with the vertical vector, i.e.
+\begin{align*}
+    \sqrt{\frac{\cos\theta_i}{\cos\theta_e}} = \sqrt{\frac{\nhat \cdot \shat}{\nhat \cdot \vhat}} &&
+\end{align*}
+Next, if we rewrite our unit vectors as 3D vectors in $(p, q)$ space, we have:
+\begin{align*}
+    \nhat & = \frac{\begin{bmatrix}-p & -q & 1\end{bmatrix}^T}{\sqrt{p^2 + q^2 + 1}} \\
+    \shat & = \frac{\begin{bmatrix}-p_s & -q_s & 1\end{bmatrix}^T}{\sqrt{p^2_s + q^2_s + 1}} \\
+    \vhat & = \begin{bmatrix}0 & 0 & 1\end{bmatrix}^T &&
+\end{align*}
+Then, substituting these definitions, we have:
+\begin{align*}
+    \nhat \cdot \vhat & = \frac{1}{\sqrt{1 + p^2 + q^2}} \\
+    \nhat \cdot \shat & = \frac{1 + p_sp + q_sq}{\sqrt{1 + p^2 + q^2}\sqrt{1 + p_s^2 + q_s^2}} \\
+    \frac{\nhat \cdot \shat}{\nhat \cdot \vhat} & = \frac{\frac{1 + p_sp + q_sq}{\sqrt{1 + p^2 + q^2}\sqrt{1 + p_s^2 + q_s^2}}}{\frac{1}{\sqrt{1 + p^2 + q^2}}} \\
+    & = \frac{1 + p_sp + q_sq}{\sqrt{1 + p^2_s + q^2_s}} \\
+    & = \frac{1 + p_sP + q_sq}{R_s} &&
+\end{align*}
+(Where $R_s \delteq \sqrt{1 + p^2_s + q^2_s}$.)  Note that $p_s$ and $q_s$ are constants, since they only reflect the spatial derivatives of the light source.  This ratio of dot products is therefore linear in $(p, q)$ space!  Then, what do the isophotes look like in gradient space?  Recall that isophotes take the form:
+\begin{align*}
+    \sqrt{\frac{\nhat \cdot \shat}{\nhat \cdot \vhat}} = c \implies \frac{\nhat \cdot \shat}{\nhat \cdot \vhat} = \frac{1 + p_sP + q_sq}{R_s} = c^2 \;\; \text{for some} \; c \in \R.
+\end{align*}
+Therefore, isophotes of Hapke surfaces are \textbf{linear} in spatial gradient space!  This is very useful for building reflectance maps because, as we will see shortly, a simple change of coordinate system in $(p, q)$ space tells us a lot about the surface orientation in one of the two directions.  \\ \\
+For one thing, let us use our linear isophotes in gradient space to solve our photometric stereo problem, in this case with two measurements under different lighting conditions.  Photometric stereo is substantially easier with Hapke surfaces than with Lambertian, because there is no ambiguity in where the solutions lie.  Unlike Lambertian surfaces, because of the linearity in $(p, q)$ space we are guaranteed by Bezout's Theorem to have only one unique solution. \\ \\
+\subsubsection{Rotated $(p', q')$ Coordinate Systems for Brightness Measurements}
+We can also derive/obtain a surface orientation in gradient space in a rotated coordinate system in gradient space, i.e. from $(p, q) \longrightarrow (p', q')$.  \\ \\
+We can prove (see the synchronous lecture notes for this part of the course) that the transforming the points in $(x, y)$ via a rotation matrix $\mb{R}$ is equivalent to rotating the gradient space $(p, q)$ by the same matrix $\mb{R}$.  I.e.
+\begin{align*}
+    \mb{R}: (x,y) \implies (x', y'), \begin{bmatrix}x' \\ y'\end{bmatrix} = \mb{R}\begin{bmatrix}x \\ y \end{bmatrix} \\
+    \mb{R}: (p,q) \implies (p', q'), \begin{bmatrix}p' \\ q'\end{bmatrix} = \mb{R}\begin{bmatrix}p \\ q \end{bmatrix} \\
+\end{align*}
+Where $\mb{R}$ is given according to:
+\begin{align*}
+    \mb{R} = \begin{bmatrix}\cos\alpha & \-sin\alpha \\
+                            \sin\alpha & \cos\alpha
+            \end{bmatrix} \in SO(2) &&
+\end{align*}
+(Where $SO(2)$ is the Special Orthogonal Group [4].) Note that $\mb{R}^{-1} = \mb{R}^T$ since $\mb{R}$ is orthogonal and symmetric. \\ \\
+By rotating our coordinate system from $(p, q) \longrightarrow (p', q')$, we are able to uniquely specify $p'$, but not $q'$, since our isophotes lie along a multitude/many $q'$ values.  Note that this rotation system is specified by having $p'$ lying along the gradient of our isophotes.  \\ \\
+Returning to our Lunar Surface application with Hapke surfaces, we can use this surface orientation estimation framework to take an iterative, incremental approach to get a profile of the lunar surface.  This enables us to do \textbf{depth profile shaping} of the moon simply from brightness estimates!  There are a few caveats to be mindful of for this methodology, however:
+\begin{itemize}
+    \item We can only recover absolute depth values provided we are given initial conditions (this makes sense, since we are effectively solving a differential equation in estimating the depth $z$ from the surface gradient $(p, q)^T$).  Even without initial conditions, however, we can still recover the general shape of profiling, simply without the absolute depth.
+    \item Additionally, we can get profiles for each cross-section of the moon/object we are imaging, but it is important to recognize that these profiles are effectively independent of one another, i.e. we do not recover any information about the relative surface orientation changes between/at the interfaces of different profiles we image.  We can use \textbf{heuristic-based} approaches to get a \textbf{topographic mapping} estimate.  We can then combine these stitched profiles together into a 3D surface.
+\end{itemize} 
+\subsection{``Thick" \& Telecentric Lenses}
+We will now shift gears somewhat to revisit lenses, namely ``thick" and telecentric lenses.
+\subsubsection{``Thick" Lenses}
+In practice, lenses are not thick, and are typically cascaded together to mitigate the specific aberrations and wavelength dependence of each individual lens.  For thick lenses, we will leverage the following definitions:
+\begin{itemize}
+    \item \textbf{Nodal/principal points}:  The center points of the outermost (ending and beginning lenses).
+    \item \textbf{Principal planes}:  The distance from the object to the first imaging lens and the distance from the last imaging lens to the viewer or imaging plane.  Abbreviated by $b$.
+    \item \textbf{Focal length}:  This definition is the same as before, but in this case, the focal length is the distance from the first imaging lens to the last imaging lens along the optical axis (i.e. orthogonal to the radial unit vectors of each lens in the ``thick" lens).
+\end{itemize}
+From this, we have the formula:
+\begin{align*}
+    \frac{1}{a} + \frac{1}{b} = \frac{1}{f} &&
+\end{align*}
+One ``trick" we can do with this is achieve a long focal length $f$ and a small field of view (FOV), i.e. as is done in a telephoto lens. 
+\subsubsection{Telecentric Lenses}
+These types of lenses are frequently used in machine vision, such as for circuit board inspection or barcode reading.  \\ \\
+Motivation for these types of lenses: When we have perspective projection, the degree of \textbf{magnification} depends on \textbf{distance}.  How can we remove this unwanted distance-dependent magnification due to perspective projection?  We can do so by effectively ``moving" the Center of Projection (COP) to ``$-\infty$".  This requires using a lens with a lot of glass. \\ \\
+A few notes about this:
+\begin{itemize}
+    \item To image with magnifying effects, the lens must be at least as wide in diameter as the width of the object.
+    \item a A double telecentric lens can be created by moving the other ``modal point" (the imaging plane/viewer) to ``$+\infty$".  In this case, our magnifying term given by $\cos^4\alpha$ goes to zero, because:
+    \begin{align*}
+        \lim_{\text{COP} \rightarrow +\infty}\alpha = 0 &&
+    \end{align*}
+    \item We can generalize this idea even more with ``lenselets": These each concentrate light into a confined area, and can be used in an array fashion as we would with arrays of photodiodes.  A useful term for these types of arrays is \textbf{fill factor}: The fill factor of an image sensor array is the ratio of a pixel's light sensitive area to its total area [5].  Lenselet arrays can be useful because it helps us to avoid \textbf{aliasing effects}.  We need to make sure that if we are sampling an object discretely, that we do not have extremely high-frequency signals without some low pass filtering.  This sort of low-pass filtering can be achieved with using large pixels and averaging (a crude form of lowpass filtering).  However, this averaging scheme does not work well when light comes in at off-90 degree angles.  We want light to come into the sensors at near-90 degrees (DSLRs find a way to get a around this).  
+    \item Recall that for an object space telecentric device, we no longer have a distance-based dependence.  Effectively, we are taking \textbf{perspective projection} and making the \textbf{focal length} larger, resulting in \textbf{approximately orthographic projection}.  Recall that for orthographic projection, projection becomes nearly independent in position, i.e. $(x, y)$ in image space has a linear relationship with $(X, Y)$ in the world.  This means that we can measure sizes of objects independently of how far away they are!  \\ \\
+    Starting with perspective projection:
+    \begin{align*}
+        & \frac{x}{f} = \frac{X}{Z}, \frac{y}{f} = \frac{Y}{Z} \\ \\
+        & \text{Having} \; |\Delta Z| << |Z|, \; \text{where} \Delta Z \;\text{is the variation in Z of an object}\; \implies x = \frac{f}{Z_0}X, y = \frac{f}{Z_0}Y \\
+        & \text{Approximating} \; \frac{f}{Z_0} = 1 \implies x = X, y = Y &&
+    \end{align*}
+\end{itemize}
+\subsection{References}
+\begin{enumerate}
+    \item Foreshortening, https://en.wikipedia.org/wiki/Perspective\_(graphical)
+    \item Hapke Parameters, https://en.wikipedia.org/wiki/Hapke\_parameters
+    \item Understanding Radiance (Brightness), Irradiance and Radiant Flux, https://cdn2.hubspot.net/hubfs/5512327/Energetiq\_March2019/PDF/Understanding\%20Radiance\%20(Brightness),\%20Irradiance\%20and\%20Radiant\%20Flux\%20-\%20Mar\%202011.pdf
+    \item Orthogonal Group, https://en.wikipedia.org/wiki/Orthogonal\_group
+    \item https://en.wikipedia.org/wiki/Fill\_factor\_(image\_sensor)
+\end{enumerate}
+\end{document}

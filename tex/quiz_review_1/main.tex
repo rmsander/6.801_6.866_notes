@@ -1,0 +1,423 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[left=1.0cm,right=1.0cm, top=1.5cm, bottom=1.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{graphics}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{listings}
+\usepackage{mathtools}
+\usepackage{hyperref}
+
+% Align all equations left:
+\documentclass[fleqn]{article} 
+
+
+% Sets and quantifiers
+\newcommand{\R}{\mathbb{R}\;}
+\newcommand{\Q}{\mathbb{Q}\;}
+\newcommand{\N}{\mathbb{N}\;}
+\newcommand{\nin}{n \in \mathbb{N}}
+\newcommand{\fa}{\;\forall\;}
+
+\newcommand{\ex}{\;\exists\;}
+\newcommand{\nex}{\;\nexists\;}
+
+% Sequences
+\newcommand{\seq}[1]{\{#1\}}
+\newcommand{\seqx}{\seq{x_n}}
+\newcommand{\seqy}{\seq{y_n}}
+\newcommand{\seqs}{\seq{s_n}}
+
+% Subsequences
+\newcommand{\seqxni}{\seq{x_{n_i}}}
+\newcommand{\seqyni}{\seq{y_{n_i}}}
+\newcommand{\xni}{x_{n_i}}
+\newcommand{\yni}{y_{n_i}}
+\newcommand{\xnij}{x_{n_{i_j}}}
+\newcommand{\ynij}{y_{n_{i_j}}}
+\newcommand{\seqxnij}{\seq{x_{n_{i_j}}}}
+\newcommand{\seqynij}{\seq{y_{n_{i_j}}}}
+
+% Such that
+\newcommand{\st}{\;\text{such that}\;}
+
+% lim, limsup, liminf
+\newcommand{\limn}{\text{lim}_{n \rightarrow \infty}}
+\newcommand{\limi}{\text{lim}_{i \rightarrow \infty}}
+\newcommand{\limj}{\text{lim}_{j \rightarrow \infty}}
+\newcommand{\limsupn}{\limsup_{n \rightarrow \infty}}
+\newcommand{\liminfn}{\liminf_{n \rightarrow \infty}}
+
+% Parallel symbols
+\newcommand{\parallelsum}{\mathbin{\!/\mkern-5mu/\!}}
+
+
+% Custom for absolute value
+\delimitershortfall-1sp
+\newcommand\abs[1]{\left|#1\right|}
+
+% Reference and hyperlink
+\newcommand{\source}[1]{\href{#1}{(\textbf{Source})}}
+
+% Use for define equals
+\newcommand{\delteq}{\overset{\Delta}{=}}
+
+% For nicer fonts
+\usepackage{eucal}
+
+% For Dreamer Paper
+\newcommand{\stau}{s_{\tau}}
+\newcommand{\expect}[1]{\mathbb{E}_{#1}}
+\newcommand{\indep}{\perp \!\!\! \perp}
+
+% Machine Vision
+\newcommand{\xhat}{\hat{\mathbf{x}}}
+\newcommand{\yhat}{\hat{\mathbf{y}}}
+\newcommand{\zhat}{\hat{\mathbf{z}}}
+\newcommand{\nhat}{\hat{\mathbf{n}}}
+\newcommand{\shat}{\hat{\mathbf{s}}}
+\newcommand{\rhat}{\hat{\mathbf{r}}}
+\newcommand{\vhat}{\hat{\mathbf{v}}}
+\newcommand{\hatvector}[1]{\hat{\mathbf{1}}}
+\newcommand{\mb}[1]{\mathbf{#1}}
+\newcommand{\der}[2]{\frac{d #1}{d #2}}
+\newcommand{\dder}[2]{\frac{d^2 #1}{d #2^2}}
+\newcommand{\pd}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\pdd}[2]{\frac{\partial^2 #1}{\partial #2^2}}
+\newcommand\numberthis{\addtocounter{equation}{1}\tag{\theequation}}
+
+% Plot functions
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usetikzlibrary{datavisualization}
+
+\title{6.801/6.866: Machine Vision, Quiz 1 Review}
+\author{Professor Berthold Horn, Ryan Sander, Tadayuki Yoshitake \\
+        MIT Department of Electrical Engineering and Computer Science \\ 
+        Fall 2020}
+\date{}
+\begin{document}
+% Title Page
+% Table of contents page
+\maketitle
+These lecture summaries are designed to be a review of the lecture.  Though I do my best to include all main topics from the lecture, the lectures will have more elaborated explanations than these notes.  Therefore, if you're looking for the most rigorous review and treatment of these topics, we encourage you to rewatch the lecture videos.  With that said, we hope these summaries are beneficial for your learning.  If you have any feedback for these lecture summaries, please submit it \textbf{\href{https://forms.gle/itCUtP4AubAbtwQT9}{here}}. \\ \\
+Here you will find a review of some of the topics covered so far in Machine Vision.  These are as follows in the section notes:
+\begin{enumerate}
+\item \textbf{Mathematics review} - Unconstrained optimization, Green's Theorem, Bezout's Theorem, Nyquist Sampling Theorem
+\item \textbf{Projection} - Perspective vs. Orthographic, Object vs. Image space
+\item \textbf{Optical Flow} - BCCE/optical flow, Time to Contact, vanishing points
+\item \textbf{Photometry} - Radiance, irradiance, illumination, geometry, BRDF, Helmholtz Reciprocity
+\item \textbf{Different surface types} - Lambertian, Hapke
+\item \textbf{Shape from Shading (SfS)} - Hapke case, general case, reflectance maps, image irradiance equation
+\item \textbf{Photometric Stereo} - least squares, multiple measurement variant, multiple light sources variant
+\item \textbf{Computational molecules} - Sobel, Robert, Silver operators, finite differences (forward, backward, and average), Laplacians
+\item \textbf{Lenses} - Thin lenses, thick lenses, telecentric lens, focal length, principal planes, pinhole model
+\item \textbf{Patent Review} - Edge detector, Object Detection
+\end{enumerate}
+\section{Quick Mathematics Review}
+Let's quickly touch on some important mathematical theorems that are useful for machine vision.
+    \begin{itemize}
+        \item \textbf{Unconstrained optimization}: Suppose we are trying to optimize an objective $J(a,b,c)$ by some set of parameters $\{a, b, c\}$.  We can find the best set of parameters $\{a^*, b^*, c^*\}$ using first-order conditions:
+        \begin{align*}
+            & a^*, b^*, c^* = \arg\min_{a, b, c}J(a, b, c) \\
+            & \rightarrow \pd{J}{a} = 0 \\
+            & \rightarrow \pd{J}{b} = 0 \\
+            & \rightarrow \pd{J}{c} = 0 &&
+        \end{align*}
+        The solution $a^*, b^*, c^*$ is the set of a, b, c that satisfies these first-order conditions.  Note that this procedure is identical with maximization.
+        \item \textbf{Green's Theorem} relates the line integral of a contour to the area located within that contour:
+            \begin{align*}
+                \oint_L(Ldx + Mdy) = \iint_D\Big(\pd{M}{x} - \pd{L}{y}\Big)dxdy &&
+            \end{align*}
+        \item \textbf{Bézout's Theorem}: \textit{The maximum number of solutions is the product of the polynomial order of each equation in the system of equations}:
+        \begin{align*}
+            \text{number of solutions} = \prod_{e=1}^Eo_e &&
+        \end{align*}
+        \item \textbf{Nyquist Sampling Theorem}:  We must sample at twice the frequency of the highest-varying component of our image to avoid aliasing and consequently reducing spatial artifacts.
+        \item \textbf{Taylor Series}: We can expand any analytical, continuous, infinitely-differentiable function into its Taylor Series form according to:
+        \begin{align*}
+            f(x+\delta x) = f(x) + \delta xf'(x) + \frac{(\delta x)^2}{2!}f''(x) + \frac{(\delta x)^3}{3!}f'''(x) + \frac{(\delta x)^4}{24}f^{(4)}(x) + ... = \sum_{i=0}^{\infty}\frac{(\delta x)^if^{(i)}(x)}{i!}, \;\;\text{where} \; 0! \delteq 1 &&
+        \end{align*}
+        For a single variable function, and:
+        \begin{align*}
+            f(x+\delta_x, y+\delta_y) = f(x,y) + \delta_x\pd{f(x,y)}{x} + \delta_y\pd{f(x,y)}{y} + \cdots &&
+        \end{align*}
+        For a multivariable function.
+    \end{itemize}
+\section{Projection: Perspective and Orthographic}
+A few important notes to remember: 
+\begin{itemize}
+    \item We use CAPITAL LETTERS for WORLD SPACE, and lowercase letters for image space.
+    \item Orthographic projection is essentially the limit of perspective projection as we move the point we are mapping to the image plane far away from the optical axis.
+    \item We can derive perspective projection from the pinhole model and similar triangles.
+\end{itemize}
+\textbf{Perspective Projection}:
+\begin{align*}
+    \frac{x}{f} = \frac{X}{Z}, \frac{y}{f} = \frac{Y}{Z} \;\textbf{(component form)} &&
+\end{align*} 
+\begin{align*}
+    \frac{1}{f}\mathbf{r} = \frac{1}{\mathbf{R} \cdot \hat{\mathbf{z}}}\mathbf{R}\;\textbf{(vector form)} &&
+\end{align*}
+\textbf{Orthographic Projection}:
+\begin{align*}
+    x = \frac{f}{Z_0}X, y = \frac{f}{Z_0}y &&
+\end{align*}
+\section{Optical Flow}
+Optical flow captures the motion of an image over time in image space.  Therefore, we will be interested in how brightness in the image changes with respect to (i) time, (ii) in the x-direction, and (iii) in the y-direction.  We will use derivatives to describe these different quantities:
+\begin{itemize}
+    \item $u \delteq \der{x}{t}$ - i.e. the velocity in the image space in the x direction.
+    \item $v \delteq \der{x}{t}$ - i.e. the velocity in the image space in the y direction.
+    \item $\frac{\partial E}{\partial x}$ - i.e. how the brightness changes in the x direction.
+    \item $\frac{\partial E}{\partial y}$ - i.e. how the brightness changes in the y direction.
+    \item $\frac{\partial E}{\partial t}$ - i.e. how the brightness changes w.r.t. time.
+\end{itemize}
+If $x(t)$ and $y(t)$ both depend on t, then the chain rule gives us the following for the total derivative:
+\begin{align*}
+    \frac{dE(x, y, t)}{dt} = \frac{dx}{dt} \frac{\partial E}{\partial x} + \frac{dy}{dt} \frac{\partial E}{\partial y} + \frac{\partial E}{\partial t} = 0 &&
+\end{align*}
+Rewriting this in terms of $u, v$ from above:
+\begin{align*}
+    uE_x + vE_y + E_t = 0 &&
+\end{align*}
+This equation above is known as the \textbf{Brightness Change Constraint Equation (BCCE)}.  This is also one of the most important equations in 2D optical flow. \\ \\
+Normalizing the equation on the right by the magnitude of the brightness derivative vectors, we can derive the \textbf{brightness gradient}:
+\begin{align*}
+    (u, v) \cdot \Bigg(\frac{E_x}{\sqrt{E_x^2 + E_y^2}}, \frac{E_y}{\sqrt{E_x^2 + E_y^2}}\Bigg) = (u, v) \cdot \hat{\mb{G}} = -\frac{E_t}{\sqrt{E_x^2 + E_y^2}} \\
+    \textbf{Brightness Gradient}: \; \hat{\mb{G}} = \Bigg(\frac{E_x}{\sqrt{E_x^2 + E_y^2}}, \frac{E_y}{\sqrt{E_x^2 + E_y^2}}\Bigg) &&
+\end{align*}
+What is the \textbf{brightness gradient}?
+\begin{itemize}
+    \item A unit vector given by: $\Bigg(\frac{E_x}{\sqrt{E_x^2 + E_y^2}}, \frac{E_y}{\sqrt{E_x^2 + E_y^2}}\Bigg) \in \mathbb{R}^2$.
+    \item Measures spatial changes in brightness in the image in the image plane $x$ and $y$ directions.
+\end{itemize}
+We are also interested in contours of constant brightness, or \textbf{isophotes}.  These are curves on an illuminated surface that connects points of equal brightness (source: Wikipedia). \\ \\
+Finally, we are also interested in solving for optimal values of $u$ and $v$ for multiple measurements.  In the ideal case without noise:
+\begin{align*}
+    \begin{bmatrix}U \\ V\end{bmatrix} = \frac{1}{(E_{x_1}E_{y_2} - E_{y_1}E_{x_2})}\begin{bmatrix}E_{y_2} & -E_{y_1} \\ -E_{x_2} & E_{x_1} \end{bmatrix}\begin{bmatrix}-E_{t_1} \\ -E_{t_2} \end{bmatrix} &&
+\end{align*} \\ \\
+When there is noise we simply minimize our objective, instead of setting it equal to zero:
+\begin{align*}
+    J(u, v) \delteq \int_{x \in \mathbb{X}}\int_{y \in \mathbb{Y}}(uE_x + vE_y + E_t)^2dxdy &&
+\end{align*}
+We solve for our set of optimal parameters by finding the set of parameters that minimizes this objective:
+\begin{align*}
+    u^*, v^* = \arg \min_{u, v} J(u, v) = \arg \min_{u, v} \int_{x \in \mathbb{X}}\int_{y \in \mathbb{Y}}(uE_x + vE_y + E_t)^2dxdy &&
+\end{align*}
+Since this is an unconstrained optimization problem, we can solve by finding the minimum of the two variables using two First-Order Conditions (FOCs):
+\begin{itemize}
+    \item $\frac{\partial J(u, v)}{\partial u} = 0$
+    \item $\frac{\partial J(u, v)}{\partial v} = 0$
+\end{itemize}
+\textbf{Vanishing points}: These are the points in the image plane (or extended out from the image plane) that parallel lines in the world converge to.  Applications include:
+\begin{itemize}
+    \item Multilateration
+    \item Calibration Objects (Sphere, Cube)
+    \item Camera Calibration
+\end{itemize}
+We will also look at \textbf{Time to Contact (TTC)}:
+\begin{align*}
+    \frac{Z}{W} \delteq = \frac{Z}{\frac{dZ}{dt}} = \frac{\text{meters}}{\frac{\text{meters}}{\text{seconds}}} = \text{seconds} &&
+\end{align*}
+Let us express the inverse of this \textbf{Time to Contact (TTC)} quantity as $C$, which can be interpreted roughly as the number of frames until contact is made:
+\begin{align*}
+    C \delteq \frac{W}{Z} = \frac{1}{\text{TTC}} &&
+\end{align*}
+\section{Photometry}
+Here, we will mostly focus on some of the definitions we have encountered from lecture:
+\begin{itemize}
+    \item \textbf{Photometry}: Photometry is the science of measuring visible radiation, light, in units that are weighted according to the sensitivity of the human eye. It is a quantitative science based on a statistical model of the human visual perception of light (eye sensitivity curve) under carefully controlled conditions.
+    \item \textbf{Radiometry}: Radiometry is the science of measuring radiation energy in any portion of the electromagnetic spectrum. In practice, the term is usually limited to the measurement of ultraviolet (UV), visible (VIS), and infrared (IR) radiation using optical instruments.
+    \item \textbf{Irradiance}: $E \delteq \frac{\delta P}{\delta A}$ (W/$\text{m}^2$).  This corresponds to light falling on a surface.  When imaging an object, irradiance is converted to a grey level.
+    \item \textbf{Intensity}: $I \delteq \frac{\delta P}{\delta W}$ (W/ster).  This quantity applied to a point source and is often directionally-dependent.
+    \item \textbf{Radiance}: $L \delteq \frac{\delta^2 P}{\delta A\delta \Omega}$ (W/$\text{m}^2 \times$ ster).  This photometric quantity is a measure of how bright a surface appears in an image.
+    \item \textbf{BRDF (Bidirectional Reflectance Distribution)}: $f(\theta_i, \theta_e, \phi_i, \phi_e) = \frac{\delta L(\theta_e, \phi_e)}{\delta E(\theta_i, \phi_i)}$.  This function captures the fact that oftentimes, we are only interested in light hitting the camera, as opposed to the total amount of light emitted from an object.  Last time, we had the following equation to relate image irradiance with object/surface radiance:
+    \begin{align*}
+        E = \frac{\pi}{4}L\Big(\frac{d}{f}\Big)^2\cos^4\alpha &&
+    \end{align*}
+    Where the irradiance of the image $E$ is on the lefthand side and the radiance of the object/scene $L$ is on the right.  The BRDF must also satisfy \textbf{Helmholtz reciprocity}, otherwise we would be violating the 2nd Law of Thermodynamics.  Mathematically, recall that Helmholtz reciprocity is given by:
+    \begin{align*}
+        f(\theta_i, \theta_e, \phi_i, \phi_e) = f(\theta_e, \theta_i, \phi_e, \phi_i) \fa \theta_i, \theta_e, \phi_i, \phi_e &&
+    \end{align*}
+\end{itemize}
+\section{Different Surface Types}
+With many of our photometric properties established, we can also discuss photometric properties of different types of surfaces.  Before we dive in, it is important to also recall the definition of surface orientation:
+\begin{itemize}
+    \item $p \delteq \pd{z}{x}$
+    \item $q \delteq \pd{z}{y}$
+\end{itemize}
+\begin{itemize}
+    \item \textbf{Lambertian Surfaces}:
+    \begin{itemize}
+        \item Ideal Lambertian surfaces are equally bright from all directions, i.e.
+    \begin{align*}
+        f(\theta_i, \theta_e, \phi_i, \phi_e) & = f(\theta_e, \theta_i, \phi_e, \phi_i) \fa \theta_i, \theta_e, \phi_i, \phi_e \\
+        & \text{AND} \\
+        f(\theta_i, \theta_e, \phi_i, \phi_e) & = K \in \R \text{with respect to} \; \theta_e, \phi_e &&
+    \end{align*}
+    \item \textbf{``Lambert's Law"}:
+\begin{align*}
+    E_i \propto \cos\theta_i = \nhat \cdot \shat_i &&
+\end{align*}
+    \end{itemize}
+    \item \textbf{Hapke Surfaces}: 
+    \begin{itemize}
+        \item The BRDF of a Hapke surface is given by:
+\begin{align*}
+    f(\theta_i, \phi_i, \theta_e, \phi_e) = \frac{1}{\sqrt{\cos\theta_e\cos\theta_i}} &&
+\end{align*}
+        \item Isophotes of Hapke surfaces are \textbf{linear} in spatial gradient, or $(p, q)$ space.
+    \end{itemize}
+    \item What do the isophotes of the moon look like, supposing the moon can fall under some of the different types of surfaces we have discussed?
+\begin{itemize}
+    \item \textbf{Lambertian}: We will see circles and ellipses of isophotes, depending on the angle made between the viewer and the the moon.
+    \item \textbf{Hapke}: Because of the BRDF behavior, isophotes will run \textbf{longitudinally} along the moon in the case in which it is a Hapke surface. 
+\end{itemize}
+\end{itemize}
+\section{Shape from Shading (SfS)}
+This is one of the most fundamental problems in machine vision in which we try to estimate the surface of an object from brightness measurements.  Several variations of this problem we consider:
+\begin{itemize}
+    \item Hapke surfaces - this leads to linear isophotes in $(p, q)$ space, and allows us to solve for one of the dimensions of interest.
+    \item General case: There are several techniques we can apply to solve for this:
+    \begin{itemize}
+        \item Green's Theorem (see lecture notes handout)
+        \item Iterative Discrete Optimization (see lecture notes handout)
+    \end{itemize}
+    For these problems, we considered:
+    \begin{itemize}
+        \item Characteristic strips $(x, y, z, p, q)$
+        \item Initial curves/base characteristics
+        \item Normalizing with respect to constant step sizes
+        \item A system of 5 ODEs
+        \item Stationary points and estimates of surfaces around them for initial points
+    \end{itemize}
+\end{itemize}
+Next, let us review reflectance maps.  A \textbf{reflectance map} $R(p, q)$ is a lookup table (or, for simpler cases, a parametric function) that stores the brightness for particular surface orientations $p = \pd{z}{x}, q = \pd{z}{y}$. \\ \\
+The \textbf{Image Irradiance Equation} relates the reflectance map to the brightness function in the image $E(x,y)$ and is the first step in many Shape from Shading approaches.
+\begin{align*}
+    E(x,y) = R(p,q) &&
+\end{align*}
+\section{Photometric Stereo}
+\textbf{Photometric stereo} is a technique in machine vision for estimating the surface normals of objects by observing that object under different lighting conditions.  This problem is quite common in machine vision applications. \\ \\
+One way we can solve photometric stereo is by taking multiple brightness measurements from a light source that we move around.  This problem becomes:
+\begin{align*}
+    \begin{bmatrix}-s^T_1 \\ -s^T_2 \\ -s^T_3 \\ \end{bmatrix}\mathbf{n} = \begin{bmatrix}E_1 \\ E_2 \\ E_3\end{bmatrix} &&
+\end{align*}
+Written compactly:
+\begin{align*}
+   \mathbf{S}\mathbf{n} = \mathbf{E} \longrightarrow \mathbf{n} = \mathbf{S}^{-1}\mathbf{E}
+\end{align*}
+Note that we we need $\mb{S}$ to be invertible to compute this, which occurs when the light source vectors are not coplanar.  \\ \\
+\textbf{Other variations of this problem}:
+\begin{itemize}
+    \item Using light sources at different electromagnetic frequencies
+    \item Using a camera with different light filters
+    \item Moving the object to different locations
+\end{itemize}
+\section{Computational Molecules}
+These are crucial components for applying machine concepts to real-life problems.
+\begin{enumerate}
+    \item $E_x = \frac{1}{\epsilon}(E(x,y) - E(x-1,y))$ (Backward Difference), $\frac{1}{\epsilon}(z(x+1,y) - z(x,y))$ (Forward Difference)
+    \item $E_y = \frac{1}{\epsilon}(E(x,y) - E(x,y-1))$ (Backward Difference), $\frac{1}{\epsilon}(E(x,y+1) - E(x,y))$ (Forward Difference)
+    \item $\Delta E = \nabla^2E = \frac{1}{\epsilon^2}(4E(x, y) - (E(x-1,y) + E(x+1, y) + E(x, y-1) + E(x, y+1)))$
+    \item $E_{xx} = \frac{\partial^2E}{\partial x^2} = \frac{1}{\epsilon^2}(E(x-1,y) - 2(x,y) + E(x+1,y))$
+    \item $E_{yy} = \frac{\partial^2z}{\partial y^2} = \frac{1}{\epsilon^2}(E(x,y-1) - 2(x,y) + E(x,y+1))$
+    \item \textbf{Robert's Cross}: This approximates derivatives in a coordinate system rotated 45 degrees $(x', y')$.  The derivatives can be approximated using the $K_{x'}$ and $K_{y'}$ kernels:
+    \begin{align*}
+        &\pd{E}{x'} \rightarrow K_{x'} = \begin{bmatrix}0 & -1 \\ -1 & 0\end{bmatrix} \\
+        &\pd{E}{y'} \rightarrow K_{y'} = \begin{bmatrix}1 & 0 \\ 0 & -1\end{bmatrix} &&
+    \end{align*}
+    \item \textbf{Sobel Operator}: This computational molecule requires more computation and it is not as high-resolution.  It is also more robust to noise than the computational molecules used above:
+    \begin{align*}
+        &\pd{E}{x} \rightarrow K_{x} = \begin{bmatrix}-1 & 0 & 1 \\ 
+                                                       2 & 0 & 2 \\ 
+                                                       -1 & 0 & 1
+                                        \end{bmatrix} \\
+        &\pd{E}{y} \rightarrow K_{y} = \begin{bmatrix}-1 & 2 & -1 \\ 
+                                                       0 & 0 & 0 \\ 
+                                                       1 & 2 & 1
+                                        \end{bmatrix} &&
+    \end{align*}
+    \item \textbf{Silver Operators}:  This computational molecule is designed for a hexagonal grid.  Though these filters have some advantages, unfortunately, they are not compatible with most cameras as very few cameras have a hexagonal pixel structure.
+    \begin{figure}[ht]
+        \centering
+        \includegraphics[width=9cm]{figures/hexagonal_filters.png}
+        \caption{Silver Operators with a hexagonal grid.}
+        \label{fig:my_label}
+    \end{figure}
+    \item \textbf{``Direct Edge" Laplacian}: $\frac{1}{\epsilon^2}\begin{bmatrix}0 & 1 & 0 \\
+                                                   1 & -4 & 1 \\
+                                                   0 & 1 & 0
+                                    \end{bmatrix}$
+    \item \textbf{``Indirect Edge" Laplacian}: $\frac{1}{2\epsilon^2}\begin{bmatrix}1 & 0 & 1 \\
+                                                     0 & -4 & 0 \\
+                                                     1 & 0 & 1
+                                    \end{bmatrix}$
+    \item \textbf{Rotationally-symmetric Laplacian}: \begin{align*}
+    4 \Big(\frac{1}{\epsilon^2}\begin{bmatrix}0 & 1 & 0 \\
+                                                   1 & -4 & 1 \\
+                                                   0 & 1 & 0
+                                    \end{bmatrix}\Big) + 1 \Big(\frac{1}{2\epsilon^2}\begin{bmatrix}1 & 0 & 1 \\
+                                                     0 & -4 & 0 \\
+                                                     1 & 0 & 1
+                                    \end{bmatrix}\Big) = \frac{1}{6\epsilon^2}\begin{bmatrix}1 & 4 & 1 \\
+                                                                        4 & -20 & 4 \\
+                                                                        1 & 4 & 1
+                                                        \end{bmatrix} &&
+\end{align*}
+\end{enumerate}
+Some methods we used for analyzing how well these work:
+\begin{enumerate}
+    \item \textbf{Taylor Series}: From previous lectures we saw that we could use averaging to reduce the error terms from 2nd order derivatives to third order derivatives.  This is useful for analytically determining the error.
+    \item \textbf{Test functions}: We will touch more on these later, but these are helpful for testing your derivative estimates using analytical expressions, such as polynomial functions.
+    \item \textbf{Fourier domain}: This type of analysis is helpful for understanding how these ``stencils"/molecules affect higher (spatial) frequency image content.
+\end{enumerate}
+\section{Lenses}
+Lenses are also important, because they determine our ability to sense light and perform important machine vision applications.  Some types of lenses:
+\begin{itemize}
+    \item \textbf{Thin lenses} are the first type of lens we consider.  These are often made from glass spheres, and obey the following three rules:
+\begin{itemize}
+    \item Central rays (rays that pass through the center of the lens) are undeflected - this allows us to preserve perspective projection as we had for pinhole cameras.
+    \item The ray from the focal center emerges parallel to the optical axis.
+    \item Any parallel rays go through the focal center.
+\end{itemize}
+    \item \textbf{Thick lenses} (cascaded thin lenses)
+    \item \textbf{Telecentric lenses} - These ``move" the the Center of Projection to infinity to achieve approximately orthographic projection.
+    \item Potential distortions caused by lenses:
+    \begin{itemize}
+    \item \textbf{Radial distortion}: In order to bring the entire angle into an image (e.g. for wide-angle lenses), we have the ``squash" the edges of the solid angle, thus leading to distortion that is radially-dependent.  Typically, other lens defects are mitigated at the cost of increased radial distortion.  Some specific kinds of radial distortion [5]:
+    \begin{itemize}
+        \item Barrel distortion
+        \item Mustache distortion
+        \item Pincushion distortion
+    \end{itemize}
+    \item \textbf{Lens Defects}: These occur frequently when manufacturing lenses, and can originate from a multitude of different issues.
+\end{itemize}
+\end{itemize}
+\section{Patent Review}
+The two patents we touched on were for:
+\begin{itemize}
+    \item \textbf{Fast and Accurate Edge detection}: At a high level, this framework leveraged the following steps for fast edge detection:
+    \begin{itemize}
+        \item CORDIC algorithm for estimating (and subsequently quantizing) the brightness gradient direction
+        \item Thresholding gradients via Non-Maximum Suppression (NMS)
+        \item Interpolation at the sub-pixel level along with peak finding for accurate edge detection at sub-pixel level
+        \item Bias compensation
+        \item Plane position
+    \end{itemize}
+    We also discussed some issues/considerations with the following aspects of this framework's design:
+    \begin{itemize}
+        \item Quantization of gradient direction
+        \item Interpolation method for sub-pixel accuracy (quadratic, piecewise linear, cubic, etc.)
+    \end{itemize}
+    \item \textbf{Object detection and pose estimation}: At a high level, this framework leveraged the following steps for fast object detection/pose estimation:
+    \begin{itemize}
+        \item Finding specific \textbf{probing points} in a template image that we use for comparing/estimating gradients.
+        \item Using different \textbf{scoring functions} to compare template image to different configurations of the runtime image to find the object along with its pose (position with orientation).
+    \end{itemize}
+\end{itemize}
+\end{document}
+

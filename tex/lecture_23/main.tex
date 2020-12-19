@@ -1,0 +1,483 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[left=1.0cm,right=1.0cm, top=1.5cm, bottom=1.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{graphics}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{listings}
+\usepackage{mathtools}
+\usepackage{hyperref}
+
+% Align all equations left:
+\documentclass[fleqn]{article} 
+
+
+% Sets and quantifiers
+\newcommand{\R}{\mathbb{R}\;}
+\newcommand{\Q}{\mathbb{Q}\;}
+\newcommand{\N}{\mathbb{N}\;}
+\newcommand{\nin}{n \in \mathbb{N}}
+\newcommand{\fa}{\;\forall\;}
+\newcommand{\ex}{\;\exists\;}
+\newcommand{\nex}{\;\nexists\;}
+
+% Multidimensional sets
+\newcommand{\Rd}[1]{\mathbb{R}^{#1}}
+\newcommand{\Qd}[1]{\mathbb{Q}^{#1}}
+\newcommand{\Nd}[1]{\mathbb{N}^{#1}}
+
+% Sequences
+\newcommand{\seq}[1]{\{#1\}}
+\newcommand{\seqx}{\seq{x_n}}
+\newcommand{\seqy}{\seq{y_n}}
+\newcommand{\seqs}{\seq{s_n}}
+
+% Subsequences
+\newcommand{\seqxni}{\seq{x_{n_i}}}
+\newcommand{\seqyni}{\seq{y_{n_i}}}
+\newcommand{\xni}{x_{n_i}}
+\newcommand{\yni}{y_{n_i}}
+\newcommand{\xnij}{x_{n_{i_j}}}
+\newcommand{\ynij}{y_{n_{i_j}}}
+\newcommand{\seqxnij}{\seq{x_{n_{i_j}}}}
+\newcommand{\seqynij}{\seq{y_{n_{i_j}}}}
+
+% Such that
+\newcommand{\st}{\;\text{such that}\;}
+
+% Vectors
+\newcommand{\xhat}{\hat{\mathbf{x}}}
+\newcommand{\yhat}{\hat{\mathbf{y}}}
+\newcommand{\zhat}{\hat{\mathbf{z}}}
+\newcommand{\nhat}{\hat{\mathbf{n}}}
+\newcommand{\shat}{\hat{\mathbf{s}}}
+\newcommand{\rhat}{\hat{\mathbf{r}}}
+\newcommand{\vhat}{\hat{\mathbf{v}}}
+\newcommand{\hatvector}[1]{\hat{\mathbf{1}}}
+\newcommand{\mb}[1]{\mathbf{#1}}
+\newcommand{\omegahat}{\boldsymbol{\hat{\mathbf{\omega}}}}
+
+% Four-vector quaternions
+\newcommand{\quat}[1]{\overset{o}{#1}}
+\newcommand{\quatconj}[1]{\overset{o}{#1}^{*}}
+
+
+% Bold vectors
+\newcommand{\xb}{\mathbf{x}}
+\newcommand{\yb}{\mathbf{y}}
+\newcommand{\zb}{\mathbf{z}}
+\newcommand{\rb}{\mathbf{r}}
+\newcommand{\qb}{\mathbf{q}}
+
+
+% Matrices
+\newcommand{\I}[1]{\mb{I}_{#1}}
+
+% Derivatives
+\newcommand{\der}[2]{\frac{d #1}{d #2}}
+\newcommand{\dder}[2]{\frac{d^2 #1}{d #2^2}}
+\newcommand{\derop}[1]{\frac{d}{d #1}}
+\newcommand{\dderop}[1]{\frac{d^2}{d #1^2}}
+
+% Partial Derivatives
+\newcommand{\pd}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\pdd}[2]{\frac{\partial^2 #1}{\partial #2^2}}
+\newcommand{\pdop}[1]{\frac{\partial}{\partial #1}}
+\newcommand{\pddop}[1]{\frac{\partial^2}{\partial #1^2}}
+\newcommand{\pddmixed}[3]{\frac{\partial^2 #1}{\partial #2\partial #3}}
+\newcommand{\pddmixedop}[2]{\frac{\partial^2}{\partial #1\partial #2}}
+
+% ith
+\newcommand{\ith}{\text{i}^{\text{th}}}
+
+% lim, limsup, liminf
+\newcommand{\limn}{\text{lim}_{n \rightarrow \infty}}
+\newcommand{\limi}{\text{lim}_{i \rightarrow \infty}}
+\newcommand{\limj}{\text{lim}_{j \rightarrow \infty}}
+\newcommand{\limsupn}{\limsup_{n \rightarrow \infty}}
+\newcommand{\liminfn}{\liminf_{n \rightarrow \infty}}
+
+% Parallel symbols
+\newcommand{\parallelsum}{\mathbin{\!/\mkern-5mu/\!}}
+
+
+% Custom for absolute value
+\delimitershortfall-1sp
+\newcommand\abs[1]{\left|#1\right|}
+
+% Reference and hyperlink
+\newcommand{\source}[1]{\href{#1}{(\textbf{Source})}}
+
+% Use for define equals
+\newcommand{\delteq}{\overset{\Delta}{=}}
+
+% For nicer fonts
+\usepackage{eucal}
+
+% For Dreamer Paper
+\newcommand{\stau}{s_{\tau}}
+\newcommand{\expect}[1]{\mathbb{E}_{#1}}
+\newcommand{\indep}{\perp \!\!\! \perp}
+
+
+\title{6.801/6.866: Machine Vision, Lecture 23}
+\author{Professor Berthold Horn, Ryan Sander, Tadayuki Yoshitake \\
+        MIT Department of Electrical Engineering and Computer Science \\ 
+        Fall 2020}
+\date{}
+
+\begin{document}
+
+\maketitle
+These lecture summaries are designed to be a review of the lecture.  Though I do my best to include all main topics from the lecture, the lectures willr have more elaborated explanations than these notes.  Therefore, if you're looking for the most rigorous review and treatment of these topics, we encourage you to rewatch the lecture videos.  With that said, we hope these summaries are beneficial for your learning.  If you have any feedback for these lecture summaries, please submit it \textbf{\href{https://forms.gle/itCUtP4AubAbtwQT9}{here}}.
+\section{Lecture 23: Gaussian Image and Extended Gaussian Image, Solids of Revolution, Direction Histograms, Regular Polyhedra}
+In this lecture, we cover more on the Gaussian images and extended Gaussian images (EGI), as well as integral Gaussian images, some properties of EGI, and applications of these frameworks.
+\subsection{Gaussian Curvature and Gaussian Images in 3D}
+Let's start with defining what a Gaussian image is: \\ \\
+\textbf{Gaussian Image}: A correspondence between points on an image and corresponding points on the unit sphere based off of equality of the surface normals.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth/2]{figures/object_mapping.png}
+    \caption{Mapping from object space the Gaussian sphere using correspondences between surface normal vectors.  Recall that this method can be used for tasks such as image recognition and image alignment.}
+    \label{fig:my_label}
+\end{figure}
+Recall that we defined the \textbf{Gaussian curvature} of an (infinitesimal) patch on an object as a scalar that corresponds to the ratio of the areas of the object and the Gaussian sphere we map the object to, as we take the limit of the patch of area on the object to be zero:
+\begin{align*}
+    \kappa_{\text{Gaussian}} & = \lim_{\delta \rightarrow 0}\frac{\delta S}{\delta O} \\
+                             & = \; \text{The ratio of areas of the image and the object} &&
+\end{align*}
+Rather than use Gaussian curvature, however, we will elect to use the inverse of this quantity (which is given by density) $\frac{1}{\kappa}$, which roughly corresponds to the amount of surface that contains that surface normal. \\ \\
+We can also consider the integral of Gaussian curvature, and the role this can play for dealing with object discontinuities:
+\subsubsection{Gaussian Integral Curvature}
+The integral of Gaussian curvature is given by:
+\begin{align*}
+    \iint_{O}KdO = \iint_{O}\der{S}{O}dO = \iint_{O}dS = S \;\text{(The area of a corresponding patch on the sphere)} &&
+\end{align*}
+\textbf{Note}: One nice feature of \textbf{integral curvature}: This can be applied when curvature itself cannot be applied, e.g. at discontinuities such as edges and corners. \\ \\
+We can also apply the integral over the Gaussian sphere:
+\begin{align*}
+    \iint_{S}\frac{1}{K}dS = \iint_{S}\der{O}{S}dS = \iint_{S}dO = O \;\text{(The area of a corresponding path on the object)} &&
+\end{align*}
+This second derivation is used more often in practice.
+\subsubsection{How Do We Use Integral Gaussian Curvature?}
+As we briefly mentioned above, integral Gaussian curvature can be used for ``smoothing out" discontinuities and providing continuity when there is none guaranteed by the curvature function itself.  Discontinuities can be caused by features such as corners, edges, and other abrupt changes in surface orientation.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=2\textwidth/3]{figures/edge_integral_gaussian_curvature.png}
+    \caption{An application in which integral Gaussian curvature can be used in lieu of the curvature function.  The smoothing properties of integration enable for the mitigation of discontinuity affects.}
+    \label{fig:my_label}
+\end{figure}
+Next, let's consider the different forms our mass density distribution $G$ can take.
+\subsubsection{Can We Have Any Distribution of G on the Sphere?}
+It is important to understand if we need to impose any restrictions on our mass density distribution.  Let's analyze this in both the discrete and continuous cases.  The results from the discrete case extend to the continuous case.
+\begin{itemize}
+    \item \textbf{Discrete Case}: Consider an object that we have discretized to a set of polygon facets, and consider that we have a camera that observes along an optical axis $\vhat$, and a mirror image of this camera that observes along the optical axis $-\vhat$.  Note that any surface normals that are not parallel to these optical axes will have foreshortening effects imposed.
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=\textwidth/2]{figures/proof.png}
+        \caption{Problem setup in the discrete case.  Consider our object parameterized by a discrete number of finite polygon facets, and a camera and its mirror image observing the different surface normals of these facets from two opposite vantage points.}
+        \label{fig:my_label}
+    \end{figure}
+    First, consider only taking the facets with positive dot product (i.e. 90 degrees or less) away from the vector $\vhat$, and sum the product of these facet area multiplied by normal and the unit vector corresponding to the optical axis $\vhat$:
+    \begin{align*}
+        \sum_{\hat{\mb{s}}_i \cdot \vhat \geq 0}A_i\hat{\mb{s}}_i \cdot \vhat &&
+    \end{align*}
+    Now, consider the other facets, that is, those for which we take the facets with positive dot product (i.e. 90 degrees or less) away from the vector $-\vhat$, which is 180 degrees rotated from $\vhat$, and applying the same operation:
+    \begin{align*}
+        \sum_{\hat{\mb{s}}_i \cdot (-\vhat) \geq 0}A_i\hat{\mb{s}}_i \cdot (-\vhat) &&
+    \end{align*}
+    We must have equality between these two sums:
+    \begin{align*}
+        \sum_{\hat{\mb{s}}_i \cdot \vhat \geq 0}A_i\hat{\mb{s}}_i \cdot \vhat = \sum_{\hat{\mb{s}}_i \cdot (-\vhat) \geq 0}A_i\hat{\mb{s}}_i \cdot (-\vhat) &&
+    \end{align*}
+    And therefore, if we combine the sums to the same side:
+    \begin{align*}
+        & \sum_{\hat{\mb{s}}_i \cdot \vhat \geq 0}A_i\hat{\mb{s}}_i \cdot \vhat - (\sum_{\hat{\mb{s}}_i \cdot (-\vhat) \geq 0}A_i\hat{\mb{s}}_i \cdot (-\vhat)) = \mb{0} \\
+        & \sum_{\hat{\mb{s}}_i \cdot \vhat \geq 0}A_i\hat{\mb{s}}_i \cdot \vhat - (-\sum_{\hat{\mb{s}}_i \cdot (-\vhat) \geq 0}A_i\hat{\mb{s}}_i \cdot \vhat) = \mb{0} \\
+        & \sum_{\hat{\mb{s}}_i \cdot \vhat \geq 0}A_i\hat{\mb{s}}_i \cdot \vhat + \sum_{\hat{\mb{s}}_i \cdot (-\vhat) \geq 0}A_i\hat{\mb{s}}_i \cdot \vhat = \mb{0} \\
+        & \sum_{\{\hat{\mb{s}}_i \cdot \vhat \geq 0\} \cup \{\hat{\mb{s}}_i \cdot (-\vhat) \geq 0\}}A_i\hat{\mb{s}}_i \cdot \vhat = \mb{0} \\
+        & \sum_{i}A_i\hat{\mb{s}}_i \cdot \vhat = \mb{0} \\
+        & (\sum_{i}A_i\hat{\mb{s}}_i) \cdot \vhat = \mb{0} \fa \vhat &&
+\end{align*}
+Therefore, from this it must be the case that $\sum_{i}A_i\hat{\mb{s}}_i = \mb{0}$, i.e. that the center of mass of the mapping must be at the center of the sphere.  This also means that the Gaussian density $G$ must have a ``zero-mean" mass distribution for any closed object.  This does not generally hold for any non-closed objects.
+\item \textbf{Continuous Case}: This same result holds in the continuous case - the mean must be at the center of the sphere for closed objects.  Mathematically:
+\begin{align*}
+    \iint_{S}G(\shat)\shat dS = \mb{0} &&
+\end{align*}
+\end{itemize}
+Therefore, for both the discrete and continuous cases, we can think of the Extended Gaussian Image (EGI) as a mass distribution over the sphere that objects are mapped to according to their surface normals. \\ \\
+Next, let's look at some discrete applications.  Continuous EGI can be useful as well, especially if we are using an analytical model (in which case we can compute the exact EGI).
+\subsection{Examples of EGI in 3D}
+Let's start with some examples of EGI in 3D.
+\subsubsection{Sphere: EGI}
+We have seen this before for the circle, and can simply generalize this from 2D to 3D:
+\begin{itemize}
+    \item \textbf{Curvature}: $\kappa = R^2$ 
+    \item \textbf{Density}: $G = \frac{1}{K} = \frac{1}{R^2}$
+\end{itemize}
+We saw that because the curvature and density are the same everywhere, that this imposes limitations on the effectiveness of this surface for recognition and alignment tasks.  Let's next consider something with more complicated structure.
+\subsubsection{Ellipsoid: EGI}
+Recall our two main ways to parameterize ellipses/ellipsoids: implicit (the more common form) and ``squashed circle/sphere" (in this case, the more useful form:
+\begin{itemize}
+    \item \textbf{Implicit parameterization}: $\left(\frac{x}{a}\right)^2 + \left(\frac{y}{b}\right)^2 + \left(\frac{z}{c}\right)^2 = 1$
+    \item \textbf{``Sphere Squashing" parameterization}: These are parameterized by $\theta$ and $\phi$:
+    \begin{align*}
+        & x = a\cos\theta\cos\phi \\
+        & y = b\sin\theta\cos\phi \\
+        & z = c\sin\phi &&
+    \end{align*}
+\end{itemize}
+We will elect to use the second of these representations because it allows for easier and more efficient generation of points by parameterizing $\theta$ and $\phi$ and stepping these variables. \\ \\
+As we did last time for the 2D ellipse, we can express these parametric coordinates as a vector parameterized by $\theta$ and $\phi$:
+\begin{align*}
+    \rb = (a\cos\theta\cos\phi, b\sin\theta\cos\phi, c\sin\phi)^T &&
+\end{align*}
+And similarly to what we did before, to compute the \textbf{surface normal} and the \textbf{curvature}, we can first find (in this case, two) tangent vectors, which we can find by taking the derivative of $\rb$ with respect to $\theta$ and $\phi$:
+\begin{align*}
+    & \rb_{\theta} \delteq \der{\rb}{\theta} = (-a\sin\theta\cos\phi, b\cos\theta\cos\phi, 0)^T \\
+    &\rb_{\phi} \delteq \der{\rb}{\phi} = (-a\cos\theta\sin\phi, -b\sin\theta\sin\phi, c\cos\phi)^T &&
+\end{align*}
+Then we can compute the normal vector by taking the cross product of these two tangent vectors of the ellipsoid.  We do not carry out this computation, but this cross product gives:
+\begin{align*}
+    \mb{n} = \rb_{\theta} \times \rb_{\phi} & = \cos\phi(b\cos\theta\cos\phi, ac\sin\theta\cos\phi, ab\sin\phi)^T \\
+    & = (b\cos\theta\cos\phi, ac\sin\theta\cos\phi, ab\sin\phi)^T &&
+\end{align*}
+Where we have dropped the $\cos\phi$ factor because we will need to normalize this vector anyway.  Note that this vector takes a similar structure to that of our original parametric vector $\rb$. \\ \\
+With our surface normals computed, we are now equipped to match surface normals on the object to the surface normals on the unit sphere.  To obtain \textbf{curvature}, our other quantity of interest, we need to differentiate again.  We will also change our parameterization from $(\theta, \phi) \rightarrow (\xi, \eta)$, since $(\theta, \phi)$ parameterize the object in its own space, and we want to parameterize the object in unit sphere space $(\xi, \eta)$.
+\begin{align*}
+    & \nhat = (\cos\xi\cos\eta, \sin\xi\cos\eta, \sin\eta)^T \\
+    & \bar{\mb{s}} = (a\cos\xi\cos\eta, b\sin\xi\cos\eta, \sin\eta)^T \\\
+    & \kappa = \left(\frac{\mb{s} \cdot \mb{s}}{abc}\right)^2 \\
+    & G = \frac{1}{K} = \left(\frac{abc}{\mb{s} \cdot \mb{s}}\right)^2 &&
+\end{align*}
+With the surface normals and curvature now computed, we can use the distribution $G$ on the sphere for our desired tasks of \textbf{recognition} and \textbf{alignment}! \\ \\
+Related, let us look at the \textbf{extrema} of curvature for our ellipsoid.  These are given as points along the axes of the ellipsoids:
+\begin{enumerate}
+    \item $\left(\frac{bc}{a}\right)^2$
+    \item $\left(\frac{ac}{b}\right)^2$
+    \item $\left(\frac{ab}{c}\right)^2$
+\end{enumerate}
+For these extrema, there will always be one maxima, one minima, and one saddle point.  The mirror images of these extrema (which account for the mirrors of each of these three extrema above) exhibit identical behavior and reside, geometrically, on the other side of the sphere we map points to. \\ \\
+\textbf{How Well Does this Ellipsoid Satisfy Our Desired Representation Properties?}
+\begin{itemize}
+    \item \textbf{Translation invariance}: As we saw with EGI last time, this representation is robust to translation invariance.
+    \item \textbf{Rotation ``Equivariance"}: This property works as desired as well - rotations of the ellipsoid correspond to \textbf{equivariant rotations} of the EGI of this ellipse.
+\end{itemize}
+\subsection{EGI with Solids of Revolution}
+We saw above that the EGI for an ellipsoid is more mathematically-involved, and is, on the other end, ``too simple" in the case of a sphere.  Are there geometric shapes that lend themselves well for an ``intermediate representation"?  It turns out there are, and these are the \textbf{solids of revolution}.  These include:
+\begin{itemize}
+    \item Cylinders
+    \item Spheres
+    \item Cones
+    \item Hyperboloids of one and two sheets
+\end{itemize}
+How do we compute the EGI of solids of revolution?  We can use \textbf{generators} that produce these objects to help.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=2\textwidth/3]{figures/solids_of_revolution_mapping.png}
+    \caption{EGI representation of a generalized solid of revolution.  Note that bands in the object domain correspond to bands in the sphere domain.}
+    \label{fig:my_label}
+\end{figure}
+As we can see from the figure, the bands ``map" into each other!  These solids of revolution are symmetric in both the object and transform space.  Let's look at constructing infinitesimal areas so we can then compute Gaussian curvature $\kappa$ and density $G$:
+\begin{itemize}
+    \item \textbf{Area of object band}: $\delta O = 2\pi r\delta s$
+    \item \textbf{Area of sphere band}: $\delta S = 2\pi \cos(\eta) \delta n$
+\end{itemize}
+Then we can compute the curvature as:
+\begin{align*}
+    & \kappa = \frac{\delta S}{\delta O} = \frac{2\pi\cos(\eta)\delta \eta}{2\pi r\delta s} = \frac{\cos(\eta)\delta \eta}{r\delta s} \\
+    & G = \frac{1}{\kappa} = \frac{\delta O}{\delta S} = r\sec(\eta)\frac{\delta s}{\delta \eta} &&
+\end{align*}
+Then in the limit of $\delta \rightarrow 0$, our curvature and density become:
+\begin{align*}
+    & \kappa = \lim_{\delta \rightarrow O}\frac{\delta S}{\delta O} = \frac{\cos\eta}{r}\der{\eta}{s} \;\; \text{(Where} \; \der{\eta}{s} \; \text{is the rate of change of surface normal direction along the arc, i.e. curvature)} \\
+    & G = \lim_{\delta \rightarrow 0}\frac{\delta O}{\delta S} = r\sec\eta\der{s}{\eta} \; \text{(Where} \; \der{s}{\eta} \;\; \text{is the rate of change of the arc length w.r.t. angle)} \\
+    & \kappa = \frac{\cos\eta}{r}\kappaG &&
+\end{align*}
+\subsection{Gaussian Curvature}
+Using the figure below, we can read off the trigonometric terms from this diagram to compute the curvature $\kappa$ in a different way:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth/4]{figures/gaussian_analytic.png}
+    \caption{Our infinitesimal trigonometric setup that we can use to calculate Gaussian curvature.}
+    \label{fig:my_label}
+\end{figure}
+We can read off the trigonometric terms as:
+\begin{align*}
+    & \sin\eta = \frac{-\delta r}{\delta s} = -r_s \; \text{(First derivative)} \\
+    & \cos\eta\der{\eta}{s} = \der{}{s}(-r_s) = -r_{\text{ss}} \; \text{(Second derivative)} &&
+\end{align*}
+Then the curvature for the solid of revolution is given by:
+\begin{align*}
+    \kappa = \frac{-r_{\text{ss}}}{r} &&
+\end{align*}
+Let's look at some examples to see how this framework applies:
+\subsubsection{Example: Sphere}
+Take the following cross-section of a sphere in 2D:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth/5]{figures/sphere_example.png}
+    \caption{Cross-section of a 3D sphere in 2D.  We can apply our framework above to derive our same result for Gaussian curvature.}
+    \label{fig:my_label}
+\end{figure}
+Mathematically:
+\begin{align*}
+    & r = R\cos\left(\frac{S}{R}\right) \\
+    & r_{\text{ss}} = R\left(-\frac{1}{R^2}\right)\cos\left(\frac{S}{R}\right) = -\frac{1}{R}\cos\left(\frac{S}{R}\right) &&
+\end{align*}
+Then curvature is given by:
+\begin{align*}
+    \kappa = \frac{-r_{\text{ss}}}{r} = \frac{-\left(-\frac{1}{R}\right)\cos\left(\frac{S}{R}\right)}{R\cos\left(\frac{S}{R}\right)} = \frac{1}{R^2} &&
+\end{align*}
+Alternatively, rather than expressing this in terms of $R$ and $S$, we can also express as a function of $z$ (with respect to the diagram above).  Let's look at some of the quantities we need for this approach:
+\begin{align*}
+    & \tan\eta = -\frac{dr}{dz} = -r_{z} \;\text{(First derivative)} \\
+    & \sec^2\der{\eta}{s} = \der{}{s}(-r_z) = -r_{zz}\der{z}{s} \;\text{(By Chain Rule)} \\
+    & \sec^2\eta = 1 + \tan^2\eta \\
+    & \cos\eta = \der{z}{\eta} = -z_s &&
+\end{align*}
+Putting all of these equations together:
+\begin{align*}
+    & \kappa = \frac{-r_{zz}}{r(1+z^2)^2} \\
+    & r = \sqrt{R^2 - Z^2} \\
+    & r_z = -\frac{Z}{\sqrt{R^2-Z^2}} \\
+    & r_{zz} = -\frac{R^2}{(R^2 - Z^2)^{\frac{3}{2}}} \\
+    & 1 + r^{2}_z = \frac{R^2}{R^2 - Z^2} \\
+    & \text{Then:} \; \kappa = \frac{-r_{zz}}{r(1+z^2)^2} = \frac{1}{R^2} &&
+\end{align*}
+One particular EGI, and the applications associated with it, is of strong interest - the \textbf{torus}.
+\subsubsection{EGI Example Torus}
+Geometrically, the torus can be visualized as a cross-section in the diagram below, with small radius $\rho$ and large radius $R$.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth/2]{figures/torus.png}
+    \caption{Geometric cross-section of the torus, along with its associated parameters and their significance that describe the torus.}
+    \label{fig:my_label}
+\end{figure}
+\textbf{What problems might we have with this object?}  It is \textbf{non-convex}.  This Gaussian image may not be invertible when objects are non-convex.  We lose uniqueness of mapping, as well as some other EGI properties, by using this non-convex object. \\ \\
+For the torus, the mapping from the object to the sphere is \textbf{not invertible} - each point in the EGI maps to two points on the object, which means the \textbf{surface normal} of the object is not unique. \\ \\
+\textbf{The torus is convex into the board}.  Convex shapes/objects have non-negative curvature, and above we have a saddle point with negative curvature. \\ \\
+Keeping these potential issues in mind, let's press on.  Mathematically:
+\begin{align*}
+    r & = R + \rho\cos\eta \\
+      & = R + \rho\cos\left(\frac{S}{\rho}\right) &&
+\end{align*}
+From here, we can take the second derivative $r_{\text{ss}}$:
+\begin{align*}
+    r_{\text{ss}} = \dder{r}{s} = -\frac{1}{\rho}\cos\left(\frac{s}{\rho}\right) &&
+\end{align*}
+Combining/substituting to solve for curvature $\kappa$:
+\begin{align*}
+    \kappa = \frac{-r_{\text{ss}}}{r} = \frac{1}{\rho}\frac{\cos\left(\frac{S}{\rho}\right)}{R + \rho\cos\left(\frac{S}{\rho}\right)} &&
+\end{align*}
+We will also repeat this calculation for the corresponding surface normal on the other side.  We will see that this results in different sign and magnitude:
+\begin{align*}
+    r & = R - \rho\cos\eta \\
+      & = R - \rho\cos\left(\frac{S}{\rho}\right) &&
+\end{align*}
+From here, we can take the second derivative $r_{\text{ss}}$:
+\begin{align*}
+    r_{\text{ss}} = \dder{r}{s} = \frac{1}{\rho}\cos\left(\frac{s}{\rho}\right) &&
+\end{align*}
+Combining/substituting to solve for curvature $\kappa$:
+\begin{align*}
+    \kappa = \frac{-r_{\text{ss}}}{r} = -\frac{1}{\rho}\frac{\cos\left(\frac{S}{\rho}\right)}{R + \rho\cos\left(\frac{S}{\rho}\right)} &&
+\end{align*}
+Since we have two different Gaussian curvatures, and therefore two separate densities for the same surface normal, what do we do?  Let's discuss two potential approaches below.
+\begin{enumerate}
+    \item \textbf{Approach 1: Adding Densities}:  For any non-convex object in which we have multiple points with the same \textbf{surface normals}, we can simply add these points together in density:
+    \begin{align*}
+        G = \frac{1}{\kappa_{+}} + \frac{1}{\kappa_{-}} = 2\rho^2 &&
+    \end{align*}
+    Even though this approach is able to cancel many terms, it creates a constant density, which means we will not be able to solve alignment/orientation problems.  Let's try a different approach.
+    \item \textbf{Approach 2: Subtracting Densities}: In this case, let us try better taking into account local curvature by subtracting instead of adding densities, which will produce a non-constant combined density:
+    \begin{align*}
+        G = \frac{1}{\kappa_{+}} - \frac{1}{\kappa_{-}} = 2R\rho\sec(\eta) &&
+    \end{align*}
+    This result is non-constant (better for solving alignment/orientation problems), but we should note that because of the secant term, it has a singularity at the pole.  We can conceptualize this singularity intuitively by embedding a sphere within an infinite cylinder, and noting that as we approach the singularity, the mapped location climbs higher and higher on the cylinder.
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=\textwidth/5]{figures/embedding.png}
+        \caption{Embedding our sphere within a cylinder geometrically illustrates the singularity we observe for $\sec\eta$ as $\eta \rightarrow \frac{\pi}{2}$.}
+        \label{fig:my_label}
+    \end{figure}
+\end{enumerate}
+\textbf{Note}: Our \textbf{alignment} and \textbf{recognition} tasks are done in sphere space, and because of this, we do not need to reconstruct the original objects after applying the EGI mapping.
+\subsubsection{Analyzing the Density Distribution of the Sphere (For Torus)}
+Whereas we had a direct mapping from ``bands" to ``bands" in the previous case, in this case our ``bands" map to ``crescents" on the sphere when computing the EGI of the torus.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth/2]{figures/band_to_crescent.png}
+    \caption{Computing the EGI of a torus, and demonstrating how we do not have the same ``band to band" correspondence/mapping that we had in the previous case, suggesting that this mapping may not be invertible.}
+    \label{fig:my_label}
+\end{figure}
+\textbf{Note}: On a torus, the band is slightly narrower on the inner side.  Can balance out this asymmetry by using the band on the opposite side. \\ \\
+We can also consider the area of a torus:
+\begin{align*}
+    A_{\text{torus}} & = (2\pi\rho)(2\pi R) \\
+                     & = 4\pi^2R\rho \\
+                     & = \text{``A circle of circles"} &&
+\end{align*}
+As a result of how this area is structured, two ``donuts" (tori) of different shape/structure but with the same area correspond/map to the same EGI, since EGI captures a ratio of areas.  This loss of uniqueness is due to the fact that this torus representation still remains non-convex - in a sense this is the ``price we pay" for using a non-convex representation. \\ \\
+Some other issues to be mindful of with a torus:
+\begin{itemize}
+    \item It is hard to extract all surface normals since it is impossible to image all surfaces of a torus with just a single camera/camera pose.  This phenomenon is also due to the non-convexity of the torus.
+\end{itemize}
+\subsection{How Can We Compute EGI Numerically?}
+How can we compute EGI numerically through applications/frameworks such as \textbf{photometric stereo} data or with discretized \textbf{meshes}?  We can look at the facets/pixels of objects. \\ \\
+Let us first suppose we have a triangular facet:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth/3]{figures/numericaL_facet.png}
+    \caption{A triangular facet, which we can imagine we use to compute our EGI numerically.}
+    \label{fig:my_label}
+\end{figure}
+As we have done before, we can find the \textbf{surface normal} and \textbf{area} of this facet to proceed with our EGI computation:
+\begin{itemize}
+    \item \textbf{Surface Normal}: This can be computed simply by taking the cross product between any of the two edges of the triangular facet, e.g.
+    \begin{align*}
+        \mb{n} & = (\mb{b} - \mb{a}) \times (\mb{c} - \mb{b}) \\
+            & = (\mb{a} \times \mb{b}) + (\mb{b} \times \mb{c}) + (\mb{c} \times \mb{a}) &&
+    \end{align*}
+    \item \textbf{Area}: This can be computed by recalling the area of a triangular ($\frac{1}{2}\text{base} \times \text{height}$):
+    \begin{align*}
+        A & = \frac{1}{2}(\mb{b} - \mb{a}) \cdot (\mb{c} - \mb{a}) \\
+          & = \frac{1}{6}((\mb{a} \cdot \mb{a} + \mb{b} \cdot \mb{b} + \mb{c} \cdot \mb{c}) - (\mb{a} \cdot \mb{b} + \mb{b} \cdot \mb{c} + \mb{c} \cdot \mb{a})) &&
+    \end{align*}
+\end{itemize}
+We can repeat this area and surface normal computation on all of our facets/elements to compute the mass distribution over the sphere by adding different facets from all over surface.  We add rather than subtract components to ensure we have a non-constant EGI, and therefore have an EGI representation that is suitable for alignment tasks.
+\subsubsection{Direction Histograms}
+Direction histograms are another way of thinking about how we build an EGI.  These are used in different applications outside of machine vision as well, e.g. finding direction histograms in (i) muscle fibers, (ii) neural images, (iii) analyzing blood vessels. \\ \\
+Typically, these \textbf{direction histograms} can be used to ascertain what the most common orientations are amongst a set of orientations. \\ \\
+For histograms in higher dimensions, is subdividing the region into squares/cubes the most effective approach?  As it turns out, no, and this is because the regions are not round.  We would prefer to fill in the plane with disks.  \\ \\
+To contrast, suppose the tessellation is with triangles - you are now combining things that are pretty far away, compared to a square.  Hexagons alleviate this problem by minimizing distance from the center of each cell to the vertives, while also preventing overlapping/not filled in regions.
+\textbf{Other notes}:
+\begin{itemize}
+    \item We also need to take ``randomness" into account, i.e. when points lie very close to the boundaries between different bins.  We can account for this phenomena by constructing and counting not only the original grids, but additionally, shifted/offset grids that adjust the intervals, and consequently the counts in each grid cell. \\ \\
+    The only issue with this approach is that this ``solution" scales poorly with dimensionality: As we increase dimensions, we need to take more grids (e.g. for 2D, we need our (i) Original plane, (ii) Shifted $x$, (iii) Shifted $y$, and (iv) Shifted $x$ and shifted $y$).  However, in light of this, this is a common solution approach for mitigating ``randomness" in 2D binning.
+\end{itemize}
+\subsubsection{Desired Properties of Dividing Up the Sphere/Tessellations}
+To build an optimal representation, we need to understand what our desired optimal properties of our tessellations will be:
+\begin{enumerate}
+    \item \textbf{Equal areas of cells/facets}
+    \item \textbf{Equal shapes of cells/facets}
+    \item \textbf{``Rounded" shapes of cells/facets}
+    \item \textbf{Regular pattern}
+    \item \textbf{Allows for easy ``binning"}: As an example a brute force way to do binning for spheres is to compute the dotr product with all surface normals and take the largest of these.  This is very impractical and computationally-inefficient because it requires us to step through all data each time.  For this reason, it is important we consider implementations/representations that make binning efficient and straightforward.
+    \item \textbf{Alignment of rotation}: The idea with this is that we need to bring one object into alignment with the other in order to do effective recognition, one of the key tasks we cited. \\ \\
+    For instance, with a dodecahedron, our \textbf{orientation/direction histogram} is represented by 12 numbers (which correspond to the number of faces on the dodecahedron):
+    \begin{align*}
+        [A_{1}, A_{2}, \cdots, A_{12}] &&
+    \end{align*}
+    When we bring this object into alignment during, for instance, a recognition task, we merely only need to permute the order of these 12 numbers - all information is preserved and there is no loss from situations such as overlapping.  This is an advantage of having alignment of rotation.
+    \begin{align*}
+        [A_{7}, A_{4}, \cdots, A_{8}] &&
+    \end{align*}
+\end{enumerate}
+\textbf{Platonic} and \textbf{Archimedean} solids are the representations we will use for these direction histograms.
+\end{document}
+
